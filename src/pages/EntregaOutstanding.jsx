@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import './Page.css'
 import './EntregaOutstanding.css'
+import './Page.css'
 
 function EntregaOutstanding({ onLogout }) {
   const navigate = useNavigate()
@@ -78,7 +78,7 @@ function EntregaOutstanding({ onLogout }) {
           </button>
         </div>
       </header>
-      
+
       <main className="entrega-main">
         <div className="entrega-content">
           <div className="entrega-header">
@@ -87,7 +87,7 @@ function EntregaOutstanding({ onLogout }) {
               Registre entregas excepcionais que tiveram impacto significativo
             </p>
             {!mostrarFormulario && (
-              <button 
+              <button
                 className="adicionar-button"
                 onClick={() => setMostrarFormulario(true)}
               >
@@ -99,7 +99,7 @@ function EntregaOutstanding({ onLogout }) {
           {mostrarFormulario && (
             <div className="formulario-container">
               <h3 className="formulario-title">Nova Entrega Outstanding</h3>
-              
+
               <div className="formulario-campo">
                 <label className="campo-label">
                   Descrição <span className="required">*</span>
@@ -170,7 +170,7 @@ function EntregaOutstanding({ onLogout }) {
             <h3 className="lista-title">
               {entregas.length > 0 ? `Minhas Entregas (${entregas.length})` : 'Nenhuma entrega registrada'}
             </h3>
-            
+
             {entregas.length === 0 && !mostrarFormulario && (
               <div className="empty-state">
                 <div className="empty-icon">📦</div>
@@ -187,7 +187,7 @@ function EntregaOutstanding({ onLogout }) {
                     <span className="data-text">{entrega.data}</span>
                   </div>
                 </div>
-                
+
                 <div className="entrega-card-body">
                   <div className="entrega-secao">
                     <h4 className="secao-title">Descrição</h4>
