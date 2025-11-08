@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import './RegistroValor.css'
 import { valoresDisponiveis } from '../data/valores'
+import './Page.css'
+import './RegistroValor.css'
 
 function RegistroValor({ onLogout }) {
   const navigate = useNavigate()
@@ -25,7 +26,7 @@ function RegistroValor({ onLogout }) {
     setFormulario(prev => {
       const valores = prev.valoresSelecionados
       const jaSelecionado = valores.includes(valorId)
-      
+
       if (jaSelecionado) {
         return {
           ...prev,
@@ -42,9 +43,9 @@ function RegistroValor({ onLogout }) {
 
   const handleSalvarRegistro = () => {
     if (
-      formulario.descricao.trim() && 
+      formulario.descricao.trim() &&
       formulario.valoresSelecionados.length > 0 &&
-      formulario.reflexao.trim() && 
+      formulario.reflexao.trim() &&
       formulario.impacto.trim()
     ) {
       const valoresNomes = formulario.valoresSelecionados.map(id => {
@@ -90,9 +91,9 @@ function RegistroValor({ onLogout }) {
 
   const isFormularioValido = () => {
     return (
-      formulario.descricao.trim() && 
+      formulario.descricao.trim() &&
       formulario.valoresSelecionados.length > 0 &&
-      formulario.reflexao.trim() && 
+      formulario.reflexao.trim() &&
       formulario.impacto.trim()
     )
   }
@@ -110,7 +111,7 @@ function RegistroValor({ onLogout }) {
           </button>
         </div>
       </header>
-      
+
       <main className="registro-main">
         <div className="registro-content">
           <div className="registro-header">
@@ -119,7 +120,7 @@ function RegistroValor({ onLogout }) {
               Registre ações que refletem os valores da organização
             </p>
             {!mostrarFormulario && (
-              <button 
+              <button
                 className="adicionar-button"
                 onClick={() => setMostrarFormulario(true)}
               >
@@ -131,7 +132,7 @@ function RegistroValor({ onLogout }) {
           {mostrarFormulario && (
             <div className="formulario-container">
               <h3 className="formulario-title">Novo Registro de Valor</h3>
-              
+
               <div className="formulario-campo">
                 <label className="campo-label">
                   Descreva o que aconteceu <span className="required">*</span>
@@ -229,7 +230,7 @@ function RegistroValor({ onLogout }) {
             <h3 className="lista-title">
               {registros.length > 0 ? `Meus Registros (${registros.length})` : 'Nenhum registro encontrado'}
             </h3>
-            
+
             {registros.length === 0 && !mostrarFormulario && (
               <div className="empty-state">
                 <div className="empty-icon">💎</div>
@@ -256,7 +257,7 @@ function RegistroValor({ onLogout }) {
                     })}
                   </div>
                 </div>
-                
+
                 <div className="registro-card-body">
                   <div className="registro-secao">
                     <h4 className="secao-title">O que aconteceu</h4>

@@ -4,6 +4,7 @@ import { eixosAvaliacao } from '../data/eixosAvaliacao'
 import { mockColaboradores } from '../data/mockData'
 import { getNivelCarreira, niveisEsperadosPorCarreira } from '../data/niveisEsperados'
 import './CicloAvaliacao.css'
+import './Page.css'
 
 // Função mockada para obter pessoas que escolheram o colaborador atual
 const getParesParaAvaliar = () => {
@@ -356,9 +357,11 @@ function CicloAvaliacao({ onLogout }) {
                 className={`menu-etapa-item ${isAtiva ? 'ativa' : ''} ${status}`}
                 onClick={() => podeNavegar && handleNavegarEtapa(etapa.numero)}
               >
+                {/*
                 <div className="menu-etapa-numero">
                   {status === 'concluida' ? '✓' : etapa.numero}
                 </div>
+                */}
                 <div className="menu-etapa-conteudo">
                   <div className="menu-etapa-icone">{etapa.icone}</div>
                   <div className="menu-etapa-info">

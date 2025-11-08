@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import './Page.css'
 import './EntregaOutstanding.css'
 
 function EntregaOutstanding({ onLogout }) {
