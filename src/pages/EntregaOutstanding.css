@@ -1,0 +1,291 @@
+.entrega-main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.entrega-content {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.entrega-header {
+  margin-bottom: 40px;
+  padding-bottom: 30px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.entrega-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 10px 0;
+}
+
+.entrega-subtitle {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0 0 20px 0;
+}
+
+.adicionar-button {
+  padding: 12px 24px;
+  background: #50e550;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.adicionar-button:hover {
+  background: #45cc45;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(80, 229, 80, 0.3);
+}
+
+.formulario-container {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 40px;
+  border: 2px solid #e0e0e0;
+}
+
+.formulario-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 25px 0;
+}
+
+.formulario-campo {
+  margin-bottom: 25px;
+}
+
+.campo-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.required {
+  color: #f44336;
+  font-weight: 600;
+}
+
+.campo-descricao {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 10px 0;
+  font-style: italic;
+}
+
+.campo-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #333;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.campo-textarea:focus {
+  outline: none;
+  border-color: #50e550;
+  box-shadow: 0 0 0 3px rgba(80, 229, 80, 0.1);
+}
+
+.formulario-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.cancelar-button {
+  padding: 12px 24px;
+  background: #f5f7fa;
+  color: #333;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelar-button:hover {
+  background: #e9ecef;
+  border-color: #bbb;
+}
+
+.salvar-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.salvar-button.enabled {
+  background: #50e550;
+  color: white;
+}
+
+.salvar-button.enabled:hover {
+  background: #45cc45;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(80, 229, 80, 0.3);
+}
+
+.salvar-button.disabled {
+  background: #e0e0e0;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.entregas-lista {
+  margin-top: 40px;
+}
+
+.lista-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 25px 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed #e0e0e0;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.empty-text {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0 0 10px 0;
+  font-weight: 500;
+}
+
+.empty-subtext {
+  font-size: 0.95rem;
+  color: #999;
+  margin: 0;
+}
+
+.entrega-card {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 20px;
+  transition: all 0.2s ease;
+}
+
+.entrega-card:hover {
+  border-color: #50e550;
+  box-shadow: 0 4px 12px rgba(80, 229, 80, 0.1);
+  transform: translateY(-2px);
+}
+
+.entrega-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.entrega-data {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.data-icon {
+  font-size: 1.2rem;
+}
+
+.data-text {
+  font-size: 0.95rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.entrega-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.entrega-secao {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.secao-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #50e550;
+  margin: 0 0 10px 0;
+}
+
+.secao-conteudo {
+  font-size: 0.95rem;
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+  .entrega-content {
+    padding: 20px;
+  }
+
+  .entrega-title {
+    font-size: 1.5rem;
+  }
+
+  .formulario-container {
+    padding: 20px;
+  }
+
+  .formulario-actions {
+    flex-direction: column;
+  }
+
+  .cancelar-button,
+  .salvar-button {
+    width: 100%;
+  }
+
+  .entrega-card {
+    padding: 20px;
+  }
+}
+
