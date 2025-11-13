@@ -1,0 +1,100 @@
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.models import colaborador as colaborador_models
+from app.schemas import colaborador as colaborador_schemas
+
+router = APIRouter(prefix="/colaboradores", tags=["colaboradores"])
+
+
+@router.get("/", response_model=colaborador_schemas.ColaboradorListResponse)
+def get_colaboradores(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+    departamento: Optional[str] = None,
+    email: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """Lista todos os colaboradores"""
+    query = db.query(colaborador_models.Colaborador).filter(
+        colaborador_models.Colaborador.is_active == True
+    )
+
+    if departamento:
+        query = query.filter(
+            colaborador_models.Colaborador.departamento == departamento
+        )
+
+    if email:
+        query = query.filter(colaborador_models.Colaborador.email == email)
+
+    total = query.count()
+    colaboradores = query.offset(skip).limit(limit).all()
+
+    return {"colaboradores": colaboradores, "total": total}
+
+
+@router.get("/{colaborador_id}", response_model=colaborador_schemas.ColaboradorResponse)
+def get_colaborador(colaborador_id: int, db: Session = Depends(get_db)):
+    """Obtém um colaborador por ID"""
+    colaborador = (
+        db.query(colaborador_models.Colaborador)
+        .filter(colaborador_models.Colaborador.id == colaborador_id)
+        .first()
+    )
+
+    if not colaborador:
+        raise HTTPException(status_code=404, detail="Colaborador não encontrado")
+
+    return colaborador
+
+
+@router.post(
+    "/", response_model=colaborador_schemas.ColaboradorResponse, status_code=201
+)
+def create_colaborador(
+    colaborador: colaborador_schemas.ColaboradorCreate, db: Session = Depends(get_db)
+):
+    """Cria um novo colaborador"""
+    db_colaborador = (
+        db.query(colaborador_models.Colaborador)
+        .filter(colaborador_models.Colaborador.email == colaborador.email)
+        .first()
+    )
+
+    if db_colaborador:
+        raise HTTPException(status_code=400, detail="Email já cadastrado")
+
+    db_colaborador = colaborador_models.Colaborador(**colaborador.model_dump())
+    db.add(db_colaborador)
+    db.commit()
+    db.refresh(db_colaborador)
+    return db_colaborador
+
+
+@router.put("/{colaborador_id}", response_model=colaborador_schemas.ColaboradorResponse)
+def update_colaborador(
+    colaborador_id: int,
+    colaborador: colaborador_schemas.ColaboradorUpdate,
+    db: Session = Depends(get_db),
+):
+    """Atualiza um colaborador"""
+    db_colaborador = (
+        db.query(colaborador_models.Colaborador)
+        .filter(colaborador_models.Colaborador.id == colaborador_id)
+        .first()
+    )
+
+    if not db_colaborador:
+        raise HTTPException(status_code=404, detail="Colaborador não encontrado")
+
+    update_data = colaborador.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_colaborador, field, value)
+
+    db.commit()
+    db.refresh(db_colaborador)
+    return db_colaborador
