@@ -1,10 +1,9 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
-
 from app.schemas.ciclo import CicloResponse
 from app.schemas.colaborador import ColaboradorResponse
+from pydantic import BaseModel
 
 
 class CicloAvaliacaoBase(BaseModel):
@@ -38,6 +37,7 @@ class CicloAvaliacaoResponse(CicloAvaliacaoBase):
     colaborador_id: int
     colaborador: Optional[ColaboradorResponse] = None
     pares_selecionados: List[ParSelecionadoResponse] = []
+    pares_para_avaliar: List[ColaboradorResponse] = []
     created_at: datetime
     updated_at: Optional[datetime] = None
 

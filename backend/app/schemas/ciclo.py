@@ -1,14 +1,14 @@
 from datetime import datetime
 from typing import List, Optional
 
+from app.models.ciclo import EtapaCiclo, StatusCiclo
 from pydantic import BaseModel
-
-from app.models.ciclo import StatusCiclo
 
 
 class CicloBase(BaseModel):
     nome: str
     status: Optional[str] = StatusCiclo.ABERTO.value
+    etapa_atual: Optional[str] = EtapaCiclo.ESCOLHA_PARES.value
     data_inicio: Optional[datetime] = None
     data_fim: Optional[datetime] = None
 
@@ -20,6 +20,7 @@ class CicloCreate(CicloBase):
 class CicloUpdate(BaseModel):
     nome: Optional[str] = None
     status: Optional[str] = None
+    etapa_atual: Optional[str] = None
     data_inicio: Optional[datetime] = None
     data_fim: Optional[datetime] = None
 
@@ -36,4 +37,3 @@ class CicloResponse(CicloBase):
 class CicloListResponse(BaseModel):
     ciclos: List[CicloResponse]
     total: int
-

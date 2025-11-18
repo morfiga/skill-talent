@@ -42,6 +42,28 @@
   text-align: center;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-button {
+  padding: 8px 20px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.admin-button:hover {
+  background: #4f46e5;
+}
+
 .logout-button {
   padding: 8px 20px;
   background: #50e550;
@@ -99,8 +121,17 @@
     order: 1;
   }
 
-  .logout-button {
+  .header-buttons {
     order: 2;
+    width: 100%;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .admin-button,
+  .logout-button {
+    flex: 1;
+    max-width: 150px;
   }
 
   .page-content {

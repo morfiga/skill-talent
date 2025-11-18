@@ -1,12 +1,11 @@
 from typing import List, Optional
 
-from sqlalchemy import and_
-from sqlalchemy.orm import Session
-
 from app.models.ciclo import Ciclo, StatusCiclo
 from app.models.ciclo_avaliacao import CicloAvaliacao, ParSelecionado
 from app.models.colaborador import Colaborador
 from app.repositories.base import BaseRepository
+from sqlalchemy import and_
+from sqlalchemy.orm import Session, joinedload
 
 
 class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
@@ -15,16 +14,12 @@ class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
     def __init__(self, db: Session):
         super().__init__(CicloAvaliacao, db)
 
-    def get_by_colaborador(
-        self, colaborador_id: int, skip: int = 0, limit: int = 100
-    ) -> List[CicloAvaliacao]:
+    def get_by_colaborador(self, colaborador_id: int) -> List[CicloAvaliacao]:
         """Busca ciclos de avaliação por colaborador"""
         return (
             self.db.query(self.model)
             .filter(self.model.colaborador_id == colaborador_id)
             .order_by(self.model.created_at.desc())
-            .offset(skip)
-            .limit(limit)
             .all()
         )
 
@@ -109,3 +104,27 @@ class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
     def validate_pares(self, pares_ids: List[int]) -> List[Colaborador]:
         """Valida se os pares existem"""
         return self.db.query(Colaborador).filter(Colaborador.id.in_(pares_ids)).all()
+
+    def get_pares_para_avaliar(
+        self, avaliador_id: int, ciclo_id: int
+    ) -> List[Colaborador]:
+        """Busca os colaboradores que selecionaram o avaliador_id como par no ciclo_id"""
+        # Buscar todos os ciclos de avaliação do ciclo especificado
+        # onde o avaliador_id foi selecionado como par
+        # Retorna os colaboradores (colaborador_id) desses ciclos de avaliação
+        return (
+            self.db.query(Colaborador)
+            .join(
+                CicloAvaliacao,
+                CicloAvaliacao.colaborador_id == Colaborador.id,
+            )
+            .join(
+                ParSelecionado,
+                ParSelecionado.ciclo_avaliacao_id == CicloAvaliacao.id,
+            )
+            .filter(ParSelecionado.par_id == avaliador_id)
+            .filter(CicloAvaliacao.ciclo_id == ciclo_id)
+            .filter(CicloAvaliacao.colaborador_id != avaliador_id)
+            .distinct()
+            .all()
+        )

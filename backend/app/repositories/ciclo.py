@@ -15,16 +15,12 @@ class CicloRepository(BaseRepository[Ciclo]):
     def get_by_status(
         self,
         status: StatusCiclo,
-        skip: int = 0,
-        limit: int = 100,
     ) -> List[Ciclo]:
         """Busca ciclos por status"""
         return (
             self.db.query(self.model)
             .filter(self.model.status == status)
             .order_by(self.model.created_at.desc())
-            .offset(skip)
-            .limit(limit)
             .all()
         )
 

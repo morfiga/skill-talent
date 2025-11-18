@@ -12,6 +12,7 @@ class ColaboradorBase(BaseModel):
     avatar: Optional[str] = None
     nivel_carreira: Optional[str] = None
     gestor_id: Optional[int] = None
+    google_id: Optional[str] = None
 
 
 class ColaboradorCreate(ColaboradorBase):
@@ -26,14 +27,31 @@ class ColaboradorUpdate(BaseModel):
     avatar: Optional[str] = None
     nivel_carreira: Optional[str] = None
     gestor_id: Optional[int] = None
+    google_id: Optional[str] = None
     is_active: Optional[bool] = None
+    is_admin: Optional[bool] = None
 
 
 class ColaboradorResponse(ColaboradorBase):
     id: int
     is_active: bool
+    is_admin: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ColaboradorAuthResponse(BaseModel):
+    """Schema para resposta de autenticação"""
+
+    id: int
+    email: EmailStr
+    nome: str
+    avatar: Optional[str] = None
+    is_active: bool
+    is_admin: bool
 
     class Config:
         from_attributes = True

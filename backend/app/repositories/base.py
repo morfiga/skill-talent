@@ -24,14 +24,12 @@ class BaseRepository(Generic[ModelType]):
         return self.db.query(self.model).filter(self.model.id == id).first()
 
     def get_all(
-        self, skip: int = 0, limit: int = 100, order_by=None, **filters
+        self, order_by=None, **filters
     ) -> List[ModelType]:
         """
         Lista todos os registros com filtros opcionais
         
         Args:
-            skip: Número de registros para pular
-            limit: Número máximo de registros para retornar
             order_by: Campo para ordenação (ex: self.model.created_at.desc())
             **filters: Filtros adicionais (ex: status="ativo")
         """
@@ -46,7 +44,7 @@ class BaseRepository(Generic[ModelType]):
         if order_by is not None:
             query = query.order_by(order_by)
         
-        return query.offset(skip).limit(limit).all()
+        return query.all()
 
     def count(self, **filters) -> int:
         """Conta o número de registros com filtros opcionais"""

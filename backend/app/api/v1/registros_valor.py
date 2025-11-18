@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_colaborador
@@ -55,8 +55,6 @@ def create_registro_valor(
 
 @router.get("/", response_model=registro_schemas.RegistroValorListResponse)
 def get_registros_valor(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=100),
     current_colaborador: colaborador_models.Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
@@ -65,13 +63,8 @@ def get_registros_valor(
         registro_models.RegistroValor.colaborador_id == current_colaborador.id
     )
 
-    total = query.count()
-    registros = (
-        query.order_by(registro_models.RegistroValor.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
+    registros = query.order_by(registro_models.RegistroValor.created_at.desc()).all()
+    total = len(registros)
 
     return {"registros": registros, "total": total}
 

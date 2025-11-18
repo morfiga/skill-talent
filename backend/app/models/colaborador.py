@@ -1,8 +1,7 @@
+from app.database import Base
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-from app.database import Base
 
 
 class Colaborador(Base):
@@ -13,19 +12,21 @@ class Colaborador(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     cargo = Column(String(255))
     departamento = Column(String(255))
-    avatar = Column(String(10))  # Emoji ou URL
+    avatar = Column(String(500), nullable=True)  # Emoji ou URL
     nivel_carreira = Column(
         String(10)
     )  # E, J1, J2, J3, P1, P2, P3, S1, S2, S3, ES1, ES2
     gestor_id = Column(Integer, ForeignKey("colaboradores.id"), nullable=True)
+    google_id = Column(String(255), unique=True, index=True, nullable=True)
     is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
     # Relacionamentos
-    gestor = relationship("Colaborador", remote_side=[id], backref="subordinados")
+    gestor = relationship("Colaborador", remote_side=[id], backref="liderados")
     avaliacoes_realizadas = relationship(
         "Avaliacao", foreign_keys="Avaliacao.avaliador_id", back_populates="avaliador"
     )

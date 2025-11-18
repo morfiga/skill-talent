@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -12,8 +12,6 @@ router = APIRouter(prefix="/colaboradores", tags=["colaboradores"])
 
 @router.get("/", response_model=colaborador_schemas.ColaboradorListResponse)
 def get_colaboradores(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=100),
     departamento: Optional[str] = None,
     email: Optional[str] = None,
     db: Session = Depends(get_db),
@@ -31,8 +29,8 @@ def get_colaboradores(
     if email:
         query = query.filter(colaborador_models.Colaborador.email == email)
 
-    total = query.count()
-    colaboradores = query.offset(skip).limit(limit).all()
+    colaboradores = query.all()
+    total = len(colaboradores)
 
     return {"colaboradores": colaboradores, "total": total}
 

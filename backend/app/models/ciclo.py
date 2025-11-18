@@ -1,12 +1,11 @@
 import enum
 
+from app.database import Base
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-from app.database import Base
 
 
 def get_enum_values(enum_class):
@@ -20,6 +19,13 @@ class StatusCiclo(str, enum.Enum):
     FECHADO = "fechado"
 
 
+class EtapaCiclo(str, enum.Enum):
+    ESCOLHA_PARES = "escolha_pares"
+    APROVACAO_PARES = "aprovacao_pares"
+    AVALIACOES = "avaliacoes"
+    FEEDBACK = "feedback"
+
+
 class Ciclo(Base):
     __tablename__ = "ciclos"
 
@@ -28,6 +34,10 @@ class Ciclo(Base):
     status = Column(
         SQLEnum(StatusCiclo, values_callable=get_enum_values),
         default=StatusCiclo.ABERTO,
+    )
+    etapa_atual = Column(
+        SQLEnum(EtapaCiclo, values_callable=get_enum_values),
+        default=EtapaCiclo.ESCOLHA_PARES,
     )
     data_inicio = Column(DateTime(timezone=True), server_default=func.now())
     data_fim = Column(DateTime(timezone=True), nullable=True)

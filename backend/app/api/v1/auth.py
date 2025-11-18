@@ -1,15 +1,18 @@
 import logging
 from datetime import timedelta
 
+from app.core.config import settings
+from app.core.security import (
+    create_access_token,
+    get_current_colaborador,
+    verify_google_token,
+)
+from app.database import get_db
+from app.models import colaborador as colaborador_models
+from app.schemas import auth as auth_schemas
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-
-from app.core.config import settings
-from app.core.security import create_access_token, get_current_user, verify_google_token
-from app.database import get_db
-from app.models import user as user_models
-from app.schemas import auth as auth_schemas
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +41,7 @@ async def google_login(
 
     email = google_user_info.get("email")
     name = google_user_info.get("name")
-    picture = google_user_info.get("picture")
+    avatar = google_user_info.get("picture")
     google_id = google_user_info.get("sub")
 
     if not email:
@@ -49,52 +52,52 @@ async def google_login(
         )
 
     try:
-        # Buscar ou criar usuário
-        user = (
-            db.query(user_models.User)
-            .filter(user_models.User.google_id == google_id)
+        # Buscar ou criar colaborador
+        colaborador = (
+            db.query(colaborador_models.Colaborador)
+            .filter(colaborador_models.Colaborador.google_id == google_id)
             .first()
         )
 
-        if not user:
+        if not colaborador:
             # Tentar buscar por email
-            user = (
-                db.query(user_models.User)
-                .filter(user_models.User.email == email)
+            colaborador = (
+                db.query(colaborador_models.Colaborador)
+                .filter(colaborador_models.Colaborador.email == email)
                 .first()
             )
 
-            if user:
-                # Atualizar usuário existente com google_id
+            if colaborador:
+                # Atualizar colaborador existente com google_id
                 logger.info(
-                    f"Atualizando usuário existente com Google ID. Email: {email}"
+                    f"Atualizando colaborador existente com Google ID. Email: {email}"
                 )
-                user.google_id = google_id
-                user.picture = picture
+                colaborador.google_id = google_id
+                colaborador.avatar = avatar
                 if name:
-                    user.name = name
+                    colaborador.nome = name
             else:
-                # Criar novo usuário
-                logger.info(f"Criando novo usuário. Email: {email}")
-                user = user_models.User(
+                # Criar novo colaborador
+                logger.info(f"Criando novo colaborador. Email: {email}")
+                colaborador = colaborador_models.Colaborador(
                     email=email,
-                    name=name or email.split("@")[0],
+                    nome=name or email.split("@")[0],
                     google_id=google_id,
-                    picture=picture,
+                    avatar=avatar,
                 )
-                db.add(user)
+                db.add(colaborador)
         else:
-            # Atualizar informações do usuário
-            if picture:
-                user.picture = picture
+            # Atualizar informações do colaborador
+            if avatar:
+                colaborador.avatar = avatar
             if name:
-                user.name = name
+                colaborador.nome = name
 
         db.commit()
-        db.refresh(user)
+        db.refresh(colaborador)
     except SQLAlchemyError as e:
         logger.error(
-            f"Erro ao salvar usuário no banco de dados. Email: {email}. Erro: {str(e)}",
+            f"Erro ao salvar colaborador no banco de dados. Email: {email}. Erro: {str(e)}",
             exc_info=True,
         )
         db.rollback()
@@ -106,30 +109,36 @@ async def google_login(
     # Criar token JWT
     # O campo 'sub' (subject) deve ser uma string no JWT
     access_token = create_access_token(
-        data={"sub": str(user.id), "email": user.email},
+        data={"sub": str(colaborador.id), "email": colaborador.email},
         expires_delta=timedelta(hours=settings.JWT_EXPIRATION_HOURS),
     )
 
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user_id": user.id,
-        "email": user.email,
-        "name": user.name,
-        "picture": user.picture,
+        "user_id": colaborador.id,
+        "email": colaborador.email,
+        "name": colaborador.nome,
+        "avatar": colaborador.avatar,
     }
 
 
 @router.get("/verify")
-async def verify_auth(current_user: user_models.User = Depends(get_current_user)):
-    """Verifica se o token é válido e retorna informações do usuário"""
+async def verify_auth(
+    current_colaborador: colaborador_models.Colaborador = Depends(
+        get_current_colaborador
+    ),
+):
+    """Verifica se o token é válido e retorna informações do colaborador"""
     try:
-        from app.schemas import user as user_schemas
+        from app.schemas import colaborador as colaborador_schemas
 
-        return user_schemas.UserResponse.model_validate(current_user)
+        return colaborador_schemas.ColaboradorAuthResponse.model_validate(
+            current_colaborador
+        )
     except Exception as e:
         logger.error(
-            f"Erro ao verificar autenticação. User ID: {current_user.id}. Erro: {str(e)}",
+            f"Erro ao verificar autenticação. Colaborador ID: {current_colaborador.id}. Erro: {str(e)}",
             exc_info=True,
         )
         raise HTTPException(

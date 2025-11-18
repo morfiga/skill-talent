@@ -1,63 +1,28 @@
-import { useState, useEffect } from 'react'
-import { ciclosAvaliacaoAPI, avaliacoesAPI, eixosAvaliacaoAPI } from '../../services/api'
+import { useCallback, useEffect, useState } from 'react'
+import Avatar from '../../components/Avatar'
+import { avaliacoesAPI, ciclosAvaliacaoAPI, eixosAvaliacaoAPI } from '../../services/api'
 import '../CicloAvaliacao.css'
 
-function EtapaAvaliarPares({ colaboradorId, cicloAberto, onIniciarAvaliacao, onVoltar }) {
+function EtapaAvaliarPares({ colaboradorId, cicloAberto, cicloAtivo, onIniciarAvaliacao, onVoltar }) {
   const [paresParaAvaliar, setParesParaAvaliar] = useState([])
   const [avaliacoesPares, setAvaliacoesPares] = useState({})
   const [eixosAvaliacao, setEixosAvaliacao] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadParesParaAvaliar()
-    loadEixosAvaliacao()
-  }, [cicloAberto])
-
-  const loadEixosAvaliacao = async () => {
+  const loadEixosAvaliacao = useCallback(async () => {
     try {
       const response = await eixosAvaliacaoAPI.getAll()
       setEixosAvaliacao(response.eixos || [])
     } catch (error) {
       console.error('Erro ao carregar eixos:', error)
     }
-  }
+  }, [])
 
-  const loadParesParaAvaliar = async () => {
+  const loadAvaliacoesPares = useCallback(async () => {
     if (!cicloAberto) return
 
     try {
-      // Buscar ciclos de avaliação do ciclo aberto onde o colaborador atual foi selecionado como par
-      const response = await ciclosAvaliacaoAPI.getAll()
-      const ciclos = response.ciclos || []
-
-      const pares = []
-      ciclos.forEach(ciclo => {
-        if (ciclo.ciclo_id === cicloAberto.id && ciclo.pares_selecionados) {
-          const foiSelecionado = ciclo.pares_selecionados.some(
-            ps => ps.par_id === colaboradorId
-          )
-          if (foiSelecionado && ciclo.colaborador_id !== colaboradorId) {
-            pares.push(ciclo.colaborador)
-          }
-        }
-      })
-
-      setParesParaAvaliar(pares)
-      
-      // Carregar avaliações existentes
-      await loadAvaliacoesPares()
-    } catch (error) {
-      console.error('Erro ao carregar pares para avaliar:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const loadAvaliacoesPares = async () => {
-    if (!cicloAberto) return
-
-    try {
-      const response = await avaliacoesAPI.getAll({ 
+      const response = await avaliacoesAPI.getAll({
         ciclo_id: cicloAberto.id,
         avaliador_id: colaboradorId,
         tipo: 'par'
@@ -82,7 +47,41 @@ function EtapaAvaliarPares({ colaboradorId, cicloAberto, onIniciarAvaliacao, onV
     } catch (error) {
       console.error('Erro ao carregar avaliações de pares:', error)
     }
-  }
+  }, [cicloAberto, colaboradorId])
+
+  const loadParesParaAvaliar = useCallback(async () => {
+    if (!cicloAberto) return
+
+    try {
+      setLoading(true)
+
+      // Buscar ciclo ativo para obter pares_para_avaliar
+      let cicloComPares = cicloAtivo
+      if (!cicloComPares || !cicloComPares.pares_para_avaliar) {
+        // Se não foi passado ou não tem pares_para_avaliar, buscar do backend
+        cicloComPares = await ciclosAvaliacaoAPI.getAtivo()
+      }
+
+      // Usar pares_para_avaliar do ciclo ativo
+      const pares = cicloComPares?.pares_para_avaliar || []
+      setParesParaAvaliar(pares)
+
+      // Carregar avaliações existentes
+      await loadAvaliacoesPares()
+    } catch (error) {
+      console.error('Erro ao carregar pares para avaliar:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [cicloAberto, cicloAtivo, loadAvaliacoesPares])
+
+  useEffect(() => {
+    loadEixosAvaliacao()
+  }, [loadEixosAvaliacao])
+
+  useEffect(() => {
+    loadParesParaAvaliar()
+  }, [loadParesParaAvaliar])
 
   const getStatusAvaliacaoPar = (colaboradorId) => {
     const avaliacao = avaliacoesPares[colaboradorId]
@@ -141,7 +140,12 @@ function EtapaAvaliarPares({ colaboradorId, cicloAberto, onIniciarAvaliacao, onV
                   className="par-avaliar-card"
                   onClick={() => onIniciarAvaliacao(colaborador)}
                 >
-                  <div className="par-avaliar-avatar">{colaborador.avatar}</div>
+                  <Avatar
+                    avatar={colaborador.avatar}
+                    nome={colaborador.nome}
+                    size={60}
+                    className="par-avaliar-avatar"
+                  />
                   <div className="par-avaliar-info">
                     <p className="par-avaliar-nome">{colaborador.nome}</p>
                     <p className="par-avaliar-cargo">{colaborador.cargo}</p>

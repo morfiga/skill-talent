@@ -7,7 +7,8 @@ import './Page.css'
 
 function EntregaOutstanding({ onLogout }) {
   const navigate = useNavigate()
-  const { colaboradorId } = useAuth()
+  const { colaboradorId, colaborador } = useAuth()
+  const isAdmin = colaborador?.is_admin || false
   const [entregas, setEntregas] = useState([])
   const [loading, setLoading] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
@@ -94,9 +95,16 @@ function EntregaOutstanding({ onLogout }) {
             ← Voltar
           </button>
           <h1 className="page-title">Entrega outstanding</h1>
-          <button className="logout-button" onClick={onLogout}>
-            Sair
-          </button>
+          <div className="header-buttons">
+            {isAdmin && (
+              <button className="admin-button" onClick={() => navigate('/admin')}>
+                Administração
+              </button>
+            )}
+            <button className="logout-button" onClick={onLogout}>
+              Sair
+            </button>
+          </div>
         </div>
       </header>
 

@@ -30,7 +30,7 @@ async function request(endpoint, options = {}) {
         localStorage.removeItem('user_id')
         localStorage.removeItem('user_email')
         localStorage.removeItem('user_name')
-        localStorage.removeItem('user_picture')
+        localStorage.removeItem('user_avatar')
         window.location.href = '/login'
       }
 
@@ -74,6 +74,10 @@ export const colaboradoresAPI = {
     method: 'PUT',
     body: JSON.stringify(data),
   }),
+  delete: (id) => request(`/colaboradores/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ is_active: false }),
+  }),
 }
 
 // API de Eixos de Avaliação
@@ -96,21 +100,37 @@ export const ciclosAPI = {
   },
   getById: (id) => request(`/ciclos/${id}`),
   getAtivoAberto: () => request('/ciclos/ativo/aberto'),
+  create: (data) => request('/ciclos', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id, data) => request(`/ciclos/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  avancarEtapa: (id) => request(`/ciclos/${id}/avancar-etapa`, {
+    method: 'POST',
+  }),
+  delete: (id) => request(`/ciclos/${id}`, {
+    method: 'DELETE',
+  }),
 }
 
 // API de Ciclos de Avaliação
 export const ciclosAvaliacaoAPI = {
-  getAll: (params = {}) => {
-    const queryParams = new URLSearchParams(params).toString()
-    return request(`/ciclos-avaliacao?${queryParams}`)
-  },
+  getAll: () => request(`/ciclos-avaliacao`),
   getById: (id) => request(`/ciclos-avaliacao/${id}`),
   getAtivo: () => request('/ciclos-avaliacao/ativo'),
+  getLiderados: (cicloId) => request(`/ciclos-avaliacao/gestor/liderados?ciclo_id=${cicloId}`),
   create: (data) => request('/ciclos-avaliacao', {
     method: 'POST',
     body: JSON.stringify(data),
   }),
   update: (id, data) => request(`/ciclos-avaliacao/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  updateParesLiderado: (cicloAvaliacaoId, data) => request(`/ciclos-avaliacao/gestor/${cicloAvaliacaoId}/pares`, {
     method: 'PUT',
     body: JSON.stringify(data),
   }),

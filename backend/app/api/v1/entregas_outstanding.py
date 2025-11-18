@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_colaborador
@@ -32,8 +32,6 @@ def create_entrega_outstanding(
 
 @router.get("/", response_model=entrega_schemas.EntregaOutstandingListResponse)
 def get_entregas_outstanding(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=100),
     current_colaborador: colaborador_models.Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
@@ -42,13 +40,8 @@ def get_entregas_outstanding(
         entrega_models.EntregaOutstanding.colaborador_id == current_colaborador.id
     )
 
-    total = query.count()
-    entregas = (
-        query.order_by(entrega_models.EntregaOutstanding.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
+    entregas = query.order_by(entrega_models.EntregaOutstanding.created_at.desc()).all()
+    total = len(entregas)
 
     return {"entregas": entregas, "total": total}
 

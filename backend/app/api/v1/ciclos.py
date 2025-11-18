@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -26,8 +26,6 @@ def create_ciclo(ciclo: ciclo_schemas.CicloCreate, db: Session = Depends(get_db)
 @router.get("/", response_model=ciclo_schemas.CicloListResponse)
 def get_ciclos(
     status: Optional[str] = None,
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
     """Lista todos os ciclos"""
@@ -40,13 +38,8 @@ def get_ciclos(
         except ValueError:
             raise HTTPException(status_code=400, detail="Status inválido")
 
-    total = query.count()
-    ciclos = (
-        query.order_by(ciclo_models.Ciclo.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
+    ciclos = query.order_by(ciclo_models.Ciclo.created_at.desc()).all()
+    total = len(ciclos)
 
     return {"ciclos": ciclos, "total": total}
 
@@ -87,6 +80,13 @@ def update_ciclo(
         except ValueError:
             raise HTTPException(status_code=400, detail="Status inválido")
 
+    # Converter etapa_atual string para enum se fornecido
+    if "etapa_atual" in update_data and update_data["etapa_atual"]:
+        try:
+            update_data["etapa_atual"] = ciclo_models.EtapaCiclo(update_data["etapa_atual"])
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Etapa inválida")
+
     for field, value in update_data.items():
         setattr(db_ciclo, field, value)
 
@@ -116,3 +116,51 @@ def get_ciclo_aberto(db: Session = Depends(get_db)):
 
     logger.debug(f"Ciclo aberto encontrado. ID: {ciclo.id}, Nome: {ciclo.nome}, Status: {ciclo.status}")
     return ciclo
+
+
+@router.post("/{ciclo_id}/avancar-etapa", response_model=ciclo_schemas.CicloResponse)
+def avancar_etapa(ciclo_id: int, db: Session = Depends(get_db)):
+    """Avança a etapa atual do ciclo para a próxima"""
+    db_ciclo = (
+        db.query(ciclo_models.Ciclo).filter(ciclo_models.Ciclo.id == ciclo_id).first()
+    )
+
+    if not db_ciclo:
+        raise HTTPException(status_code=404, detail="Ciclo não encontrado")
+
+    # Sequência de etapas
+    etapas_sequencia = [
+        ciclo_models.EtapaCiclo.ESCOLHA_PARES,
+        ciclo_models.EtapaCiclo.APROVACAO_PARES,
+        ciclo_models.EtapaCiclo.AVALIACOES,
+        ciclo_models.EtapaCiclo.FEEDBACK,
+    ]
+
+    try:
+        etapa_atual_idx = etapas_sequencia.index(db_ciclo.etapa_atual)
+        if etapa_atual_idx < len(etapas_sequencia) - 1:
+            db_ciclo.etapa_atual = etapas_sequencia[etapa_atual_idx + 1]
+            db.commit()
+            db.refresh(db_ciclo)
+            return db_ciclo
+        else:
+            raise HTTPException(
+                status_code=400, detail="Ciclo já está na última etapa"
+            )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Etapa atual inválida")
+
+
+@router.delete("/{ciclo_id}", status_code=204)
+def delete_ciclo(ciclo_id: int, db: Session = Depends(get_db)):
+    """Exclui um ciclo"""
+    db_ciclo = (
+        db.query(ciclo_models.Ciclo).filter(ciclo_models.Ciclo.id == ciclo_id).first()
+    )
+
+    if not db_ciclo:
+        raise HTTPException(status_code=404, detail="Ciclo não encontrado")
+
+    db.delete(db_ciclo)
+    db.commit()
+    return None

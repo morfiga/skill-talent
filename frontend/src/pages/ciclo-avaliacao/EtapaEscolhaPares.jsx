@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Avatar from '../../components/Avatar'
 import { ciclosAvaliacaoAPI, colaboradoresAPI } from '../../services/api'
 import '../CicloAvaliacao.css'
 
@@ -47,7 +48,16 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
     }
   }
 
+  // Verificar se está na etapa de aprovação de pares
+  const isAprovacaoPares = cicloAberto?.etapa_atual === 'aprovacao_pares'
+
   const toggleSelecao = (colaborador) => {
+    // Bloquear alteração durante aprovação de pares
+    if (isAprovacaoPares) {
+      alert('Não é possível alterar os pares durante a etapa de aprovação de pares. Aguarde a aprovação do gestor.')
+      return
+    }
+
     setParesSelecionados(prev => {
       const jaSelecionado = prev.find(p => p.id === colaborador.id)
 
@@ -63,6 +73,12 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
   }
 
   const handleSalvar = async () => {
+    // Bloquear salvamento durante aprovação de pares
+    if (isAprovacaoPares) {
+      alert('Não é possível alterar os pares durante a etapa de aprovação de pares. Aguarde a aprovação do gestor.')
+      return
+    }
+
     if (paresSelecionados.length === 4 && cicloAberto) {
       try {
         setSalvando(true)
@@ -93,7 +109,8 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
         }
       } catch (error) {
         console.error('Erro ao salvar pares:', error)
-        alert('Erro ao salvar pares selecionados. Tente novamente.')
+        const errorMessage = error.response?.data?.detail || error.message || 'Erro ao salvar pares selecionados. Tente novamente.'
+        alert(errorMessage)
       } finally {
         setSalvando(false)
       }
@@ -113,8 +130,22 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
       <div className="ciclo-header">
         <h2 className="ciclo-step-title">Etapa 1: Escolha de Pares</h2>
         <p className="ciclo-step-description">
-          Selecione 4 colaboradores para avaliar seu desempenho
+          {isAprovacaoPares 
+            ? 'Os pares estão aguardando aprovação do gestor. Não é possível alterá-los neste momento.'
+            : 'Selecione 4 colaboradores para avaliar seu desempenho'}
         </p>
+        {isAprovacaoPares && (
+          <div style={{ 
+            padding: '12px', 
+            backgroundColor: '#fff3cd', 
+            border: '1px solid #ffc107', 
+            borderRadius: '4px', 
+            marginTop: '10px',
+            color: '#856404'
+          }}>
+            ⚠️ Os pares selecionados estão aguardando aprovação do gestor. Você não pode alterá-los durante esta etapa.
+          </div>
+        )}
         <div className="selecao-counter">
           <span className={`counter-text ${paresSelecionados.length === 4 ? 'complete' : ''}`}>
             {paresSelecionados.length} de 4 selecionados
@@ -128,18 +159,25 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
           <div className="selecionados-grid">
             {paresSelecionados.map((colaborador) => (
               <div key={colaborador.id} className="selecionado-card">
-                <div className="selecionado-avatar">{colaborador.avatar}</div>
+                <Avatar
+                  avatar={colaborador.avatar}
+                  nome={colaborador.nome}
+                  size={60}
+                  className="selecionado-avatar"
+                />
                 <div className="selecionado-info">
                   <p className="selecionado-nome">{colaborador.nome}</p>
                   <p className="selecionado-cargo">{colaborador.cargo}</p>
                 </div>
-                <button
-                  className="remover-button"
-                  onClick={() => toggleSelecao(colaborador)}
-                  title="Remover"
-                >
-                  ×
-                </button>
+                {!isAprovacaoPares && (
+                  <button
+                    className="remover-button"
+                    onClick={() => toggleSelecao(colaborador)}
+                    title="Remover"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -156,10 +194,16 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
             return (
               <div
                 key={colaborador.id}
-                className={`colaborador-card ${isSelecionado ? 'selecionado' : ''} ${isMaximo ? 'disabled' : ''}`}
-                onClick={() => !isMaximo && toggleSelecao(colaborador)}
+                className={`colaborador-card ${isSelecionado ? 'selecionado' : ''} ${isMaximo || isAprovacaoPares ? 'disabled' : ''}`}
+                onClick={() => !isMaximo && !isAprovacaoPares && toggleSelecao(colaborador)}
+                style={isAprovacaoPares ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
               >
-                <div className="colaborador-avatar">{colaborador.avatar}</div>
+                <Avatar
+                  avatar={colaborador.avatar}
+                  nome={colaborador.nome}
+                  size={60}
+                  className="colaborador-avatar"
+                />
                 <div className="colaborador-info">
                   <p className="colaborador-nome">{colaborador.nome}</p>
                   <p className="colaborador-cargo">{colaborador.cargo}</p>
@@ -181,11 +225,11 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
           </button>
         )}
         <button
-          className={`continuar-button ${paresSelecionados.length === 4 ? 'enabled' : 'disabled'}`}
+          className={`continuar-button ${paresSelecionados.length === 4 && !isAprovacaoPares ? 'enabled' : 'disabled'}`}
           onClick={handleSalvar}
-          disabled={paresSelecionados.length !== 4 || salvando}
+          disabled={paresSelecionados.length !== 4 || salvando || isAprovacaoPares}
         >
-          {salvando ? 'Salvando...' : 'Salvar'}
+          {salvando ? 'Salvando...' : isAprovacaoPares ? 'Aguardando Aprovação' : 'Salvar'}
         </button>
       </div>
     </>

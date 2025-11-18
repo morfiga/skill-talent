@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { ciclosAPI, ciclosAvaliacaoAPI } from '../../services/api'
@@ -16,11 +16,41 @@ function CicloAvaliacao({ onLogout }) {
   const { etapa } = useParams()
   const location = useLocation()
   const { colaboradorId, colaborador } = useAuth()
+  const isAdmin = colaborador?.is_admin || false
   const [loading, setLoading] = useState(true)
   const [cicloAberto, setCicloAberto] = useState(null)
   const [cicloAtivo, setCicloAtivo] = useState(null)
   const [parSendoAvaliado, setParSendoAvaliado] = useState(null)
   const [etapaAtual, setEtapaAtual] = useState(1)
+
+  // Função para verificar se etapa está liberada
+  const etapaEstaLiberada = useCallback((etapaNum) => {
+    if (!cicloAberto) return false
+
+    // Mapear etapas numéricas para etapas do ciclo
+    // Etapa 1: Escolha de Pares -> escolha_pares
+    // Etapas 2, 3, 4: Autoavaliação, Avaliar Pares, Avaliação Gestor -> avaliacoes (só após aprovacao_pares)
+    // Etapa 5: Feedback -> feedback
+
+    if (etapaNum === 1) {
+      return cicloAberto.etapa_atual === 'escolha_pares' ||
+        cicloAberto.etapa_atual === 'aprovacao_pares' ||
+        cicloAberto.etapa_atual === 'avaliacoes' ||
+        cicloAberto.etapa_atual === 'feedback'
+    }
+
+    if (etapaNum >= 2 && etapaNum <= 4) {
+      // Só libera após a aprovação de pares
+      return cicloAberto.etapa_atual === 'avaliacoes' ||
+        cicloAberto.etapa_atual === 'feedback'
+    }
+
+    if (etapaNum === 5) {
+      return cicloAberto.etapa_atual === 'feedback'
+    }
+
+    return false
+  }, [cicloAberto])
 
   // Determinar etapa atual baseada na URL ou estado
   useEffect(() => {
@@ -34,6 +64,18 @@ function CicloAvaliacao({ onLogout }) {
       }
     }
   }, [etapa, location.pathname])
+
+  // Verificar se a etapa atual está liberada ao carregar
+  useEffect(() => {
+    if (cicloAberto && etapaAtual && !etapaEstaLiberada(etapaAtual)) {
+      // Redirecionar para a primeira etapa liberada ou dashboard
+      if (etapaEstaLiberada(1)) {
+        navigate('/ciclo-avaliacao/1')
+      } else {
+        navigate('/dashboard')
+      }
+    }
+  }, [cicloAberto, etapaAtual, navigate, etapaEstaLiberada])
 
   useEffect(() => {
     if (colaboradorId) {
@@ -115,6 +157,10 @@ function CicloAvaliacao({ onLogout }) {
   // Removido handleAvaliacaoGestorFinalizada - não há mais navegação automática
 
   const handleNavegarEtapa = (etapaNum) => {
+    if (!etapaEstaLiberada(etapaNum)) {
+      alert('Esta etapa ainda não foi liberada pelo administrador.')
+      return
+    }
     navigate(`/ciclo-avaliacao/${etapaNum}`)
   }
 
@@ -161,13 +207,15 @@ function CicloAvaliacao({ onLogout }) {
         <div className="menu-lateral-etapas">
           {etapas.map((etapa) => {
             const isAtiva = etapaAtual === etapa.numero
-            const podeNavegar = true
+            const podeNavegar = etapaEstaLiberada(etapa.numero)
+            const etapaBloqueada = !podeNavegar
 
             return (
               <div
                 key={etapa.numero}
-                className={`menu-etapa-item ${isAtiva ? 'ativa' : ''}`}
+                className={`menu-etapa-item ${isAtiva ? 'ativa' : ''} ${etapaBloqueada ? 'bloqueada' : ''}`}
                 onClick={() => podeNavegar && handleNavegarEtapa(etapa.numero)}
+                title={etapaBloqueada ? 'Esta etapa ainda não foi liberada pelo administrador' : ''}
               >
                 <div className="menu-etapa-conteudo">
                   <div className="menu-etapa-icone">{etapa.icone}</div>
@@ -213,9 +261,16 @@ function CicloAvaliacao({ onLogout }) {
               ← Voltar
             </button>
             <h1 className="page-title">Ciclo de avaliação</h1>
-            <button className="logout-button" onClick={onLogout}>
-              Sair
-            </button>
+            <div className="header-buttons">
+              {isAdmin && (
+                <button className="admin-button" onClick={() => navigate('/admin')}>
+                  Administração
+                </button>
+              )}
+              <button className="logout-button" onClick={onLogout}>
+                Sair
+              </button>
+            </div>
           </div>
         </header>
 
@@ -244,9 +299,16 @@ function CicloAvaliacao({ onLogout }) {
             ← Voltar
           </button>
           <h1 className="page-title">Ciclo de avaliação</h1>
-          <button className="logout-button" onClick={onLogout}>
-            Sair
-          </button>
+          <div className="header-buttons">
+            {isAdmin && (
+              <button className="admin-button" onClick={() => navigate('/admin')}>
+                Administração
+              </button>
+            )}
+            <button className="logout-button" onClick={onLogout}>
+              Sair
+            </button>
+          </div>
         </div>
       </header>
 
@@ -254,44 +316,62 @@ function CicloAvaliacao({ onLogout }) {
         {renderMenuLateral()}
         <main className="ciclo-main">
           <div className="ciclo-content">
-            {etapaAtual === 1 && (
-              <EtapaEscolhaPares
-                colaboradorId={colaboradorId}
-                cicloAberto={cicloAberto}
-                cicloAtivo={cicloAtivo}
-                onParesSalvos={handleParesSalvos}
-                onVoltar={() => navigate('/dashboard')}
-              />
-            )}
-            {etapaAtual === 2 && (
-              <EtapaAutoavaliacao
-                colaboradorId={colaboradorId}
-                cicloAberto={cicloAberto}
-                onVoltar={() => navigate('/ciclo-avaliacao/1')}
-              />
-            )}
-            {etapaAtual === 3 && (
-              <EtapaAvaliarPares
-                colaboradorId={colaboradorId}
-                cicloAberto={cicloAberto}
-                onIniciarAvaliacao={handleIniciarAvaliacaoPar}
-                onVoltar={() => navigate('/ciclo-avaliacao/2')}
-              />
-            )}
-            {etapaAtual === 4 && (
-              <EtapaAvaliacaoGestor
-                colaboradorId={colaboradorId}
-                colaborador={colaborador}
-                cicloAberto={cicloAberto}
-                onVoltar={() => navigate('/ciclo-avaliacao/3')}
-              />
-            )}
-            {etapaAtual === 5 && (
-              <EtapaFeedback
-                colaborador={colaborador}
-                cicloAberto={cicloAberto}
-                onVoltar={() => navigate('/ciclo-avaliacao/4')}
-              />
+            {!etapaEstaLiberada(etapaAtual) ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <h2>Etapa não liberada</h2>
+                <p>Esta etapa ainda não foi liberada pelo administrador.</p>
+                <p>Entre em contato com o administrador para mais informações.</p>
+                <button
+                  className="back-button"
+                  onClick={() => navigate('/dashboard')}
+                  style={{ marginTop: '20px' }}
+                >
+                  Voltar ao Dashboard
+                </button>
+              </div>
+            ) : (
+              <>
+                {etapaAtual === 1 && (
+                  <EtapaEscolhaPares
+                    colaboradorId={colaboradorId}
+                    cicloAberto={cicloAberto}
+                    cicloAtivo={cicloAtivo}
+                    onParesSalvos={handleParesSalvos}
+                    onVoltar={() => navigate('/dashboard')}
+                  />
+                )}
+                {etapaAtual === 2 && (
+                  <EtapaAutoavaliacao
+                    colaboradorId={colaboradorId}
+                    cicloAberto={cicloAberto}
+                    onVoltar={() => navigate('/ciclo-avaliacao/1')}
+                  />
+                )}
+                {etapaAtual === 3 && (
+                  <EtapaAvaliarPares
+                    colaboradorId={colaboradorId}
+                    cicloAberto={cicloAberto}
+                    cicloAtivo={cicloAtivo}
+                    onIniciarAvaliacao={handleIniciarAvaliacaoPar}
+                    onVoltar={() => navigate('/ciclo-avaliacao/2')}
+                  />
+                )}
+                {etapaAtual === 4 && (
+                  <EtapaAvaliacaoGestor
+                    colaboradorId={colaboradorId}
+                    colaborador={colaborador}
+                    cicloAberto={cicloAberto}
+                    onVoltar={() => navigate('/ciclo-avaliacao/3')}
+                  />
+                )}
+                {etapaAtual === 5 && (
+                  <EtapaFeedback
+                    colaborador={colaborador}
+                    cicloAberto={cicloAberto}
+                    onVoltar={() => navigate('/ciclo-avaliacao/4')}
+                  />
+                )}
+              </>
             )}
           </div>
         </main>

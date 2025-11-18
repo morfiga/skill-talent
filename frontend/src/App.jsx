@@ -1,5 +1,6 @@
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
+import Admin from './pages/Admin'
 import CicloAvaliacao from './pages/ciclo-avaliacao/CicloAvaliacao'
 import Dashboard from './pages/Dashboard'
 import EntregaOutstanding from './pages/EntregaOutstanding'
@@ -7,7 +8,7 @@ import Login from './pages/Login'
 import RegistroValor from './pages/RegistroValor'
 
 function App() {
-  const { isAuthenticated, login, logout } = useAuth()
+  const { isAuthenticated, login, logout, colaborador, user } = useAuth()
 
   const handleLogin = (tokenResponse) => {
     login(tokenResponse)
@@ -85,6 +86,18 @@ function App() {
           element={
             isAuthenticated ? (
               <RegistroValor onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            isAuthenticated && (user?.is_admin || colaborador?.is_admin) ? (
+              <Admin onLogout={handleLogout} />
+            ) : isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
             ) : (
               <Navigate to="/login" replace />
             )

@@ -1,13 +1,12 @@
 from typing import Dict, List, Optional
 
-from sqlalchemy import and_
-from sqlalchemy.orm import Session
-
 from app.models.avaliacao import Avaliacao, AvaliacaoEixo, TipoAvaliacao
 from app.models.ciclo_avaliacao import CicloAvaliacao
 from app.models.colaborador import Colaborador
 from app.models.eixo_avaliacao import EixoAvaliacao
 from app.repositories.base import BaseRepository
+from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
 
 class AvaliacaoRepository(BaseRepository[Avaliacao]):
@@ -22,15 +21,11 @@ class AvaliacaoRepository(BaseRepository[Avaliacao]):
         avaliador_id: Optional[int] = None,
         avaliado_id: Optional[int] = None,
         tipo: Optional[str] = None,
-        skip: int = 0,
-        limit: int = 100,
     ) -> List[Avaliacao]:
         """Busca avaliações com filtros"""
         query = self._build_filter_query(ciclo_id, avaliador_id, avaliado_id, tipo)
 
-        return (
-            query.order_by(self.model.created_at.desc()).offset(skip).limit(limit).all()
-        )
+        return query.order_by(self.model.created_at.desc()).all()
 
     def count_by_filters(
         self,

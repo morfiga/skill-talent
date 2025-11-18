@@ -19,8 +19,8 @@ function Login({ onLogin }) {
       localStorage.setItem('user_id', response.user_id.toString())
       localStorage.setItem('user_email', response.email)
       localStorage.setItem('user_name', response.name)
-      if (response.picture) {
-        localStorage.setItem('user_picture', response.picture)
+      if (response.avatar) {
+        localStorage.setItem('user_avatar', response.avatar)
       }
 
       // Chamar callback de login

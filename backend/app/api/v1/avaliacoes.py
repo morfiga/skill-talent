@@ -1,10 +1,6 @@
 import logging
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
-
 from app.core.security import get_current_colaborador
 from app.database import get_db
 from app.models import avaliacao as avaliacao_models
@@ -16,6 +12,9 @@ from app.repositories import (
     EixoAvaliacaoRepository,
 )
 from app.schemas import avaliacao as avaliacao_schemas
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -144,8 +143,6 @@ def get_avaliacoes(
     avaliador_id: Optional[int] = None,
     avaliado_id: Optional[int] = None,
     tipo: Optional[str] = None,
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=100),
     current_colaborador: colaborador_models.Colaborador = Depends(
         get_current_colaborador
     ),
@@ -157,14 +154,11 @@ def get_avaliacoes(
     # Se não especificado, filtrar por avaliador_id ou avaliado_id do usuário logado
     if avaliador_id is None and avaliado_id is None:
         # Retornar avaliações onde o usuário logado é avaliador ou avaliado
-        # Buscar todas as avaliações (sem paginação) para combinar
         avaliacoes_como_avaliador = avaliacao_repo.get_by_filters(
             ciclo_id=ciclo_id,
             avaliador_id=current_colaborador.id,
             avaliado_id=None,
             tipo=tipo,
-            skip=0,
-            limit=10000,  # Buscar todas
         )
         # Também buscar avaliações onde o usuário é avaliado
         avaliacoes_como_avaliado = avaliacao_repo.get_by_filters(
@@ -172,20 +166,15 @@ def get_avaliacoes(
             avaliador_id=None,
             avaliado_id=current_colaborador.id,
             tipo=tipo,
-            skip=0,
-            limit=10000,  # Buscar todas
         )
         # Combinar e remover duplicatas
         avaliacoes_ids = {a.id for a in avaliacoes_como_avaliador}
-        todas_avaliacoes = avaliacoes_como_avaliador + [
+        avaliacoes = avaliacoes_como_avaliador + [
             a for a in avaliacoes_como_avaliado if a.id not in avaliacoes_ids
         ]
         # Ordenar por created_at desc
-        todas_avaliacoes.sort(key=lambda x: x.created_at, reverse=True)
-        # Calcular total antes da paginação
-        total = len(todas_avaliacoes)
-        # Aplicar paginação
-        avaliacoes = todas_avaliacoes[skip : skip + limit]
+        avaliacoes.sort(key=lambda x: x.created_at, reverse=True)
+        total = len(avaliacoes)
     else:
         # Validar que o usuário só pode ver suas próprias avaliações
         # Se avaliador_id for especificado, deve ser o usuário logado
@@ -201,7 +190,11 @@ def get_avaliacoes(
         # (permite que o usuário busque avaliações onde ele avalia outras pessoas, como gestor)
         # Se avaliador_id NÃO for especificado e avaliado_id for especificado,
         # então o avaliado deve ser o próprio usuário logado
-        if avaliador_id is None and avaliado_id is not None and avaliado_id != current_colaborador.id:
+        if (
+            avaliador_id is None
+            and avaliado_id is not None
+            and avaliado_id != current_colaborador.id
+        ):
             logger.warning(
                 f"Tentativa de buscar avaliações de outro avaliado sem ser o avaliador. Avaliado ID: {avaliado_id}, Colaborador logado: {current_colaborador.id}"
             )
@@ -211,7 +204,7 @@ def get_avaliacoes(
             )
 
         logger.debug(
-            f"GET /avaliacoes - Listando avaliações. Filtros: ciclo_id={ciclo_id}, avaliador_id={avaliador_id}, avaliado_id={avaliado_id}, tipo={tipo}, skip={skip}, limit={limit}"
+            f"GET /avaliacoes - Listando avaliações. Filtros: ciclo_id={ciclo_id}, avaliador_id={avaliador_id}, avaliado_id={avaliado_id}, tipo={tipo}"
         )
 
         avaliacao_repo = AvaliacaoRepository(db)
@@ -220,8 +213,6 @@ def get_avaliacoes(
             avaliador_id=avaliador_id,
             avaliado_id=avaliado_id,
             tipo=tipo,
-            skip=skip,
-            limit=limit,
         )
 
         # Calcular total com os mesmos filtros
@@ -233,9 +224,7 @@ def get_avaliacoes(
         )
 
     logger.debug(f"Total de avaliações encontradas: {total}")
-    logger.debug(
-        f"Retornando {len(avaliacoes)} avaliações (skip={skip}, limit={limit})"
-    )
+    logger.debug(f"Retornando {len(avaliacoes)} avaliações")
     return {"avaliacoes": avaliacoes, "total": total}
 
 

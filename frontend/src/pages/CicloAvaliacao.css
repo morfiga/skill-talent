@@ -89,7 +89,6 @@
 }
 
 .selecionado-avatar {
-  font-size: 2rem;
   flex-shrink: 0;
 }
 
@@ -181,7 +180,6 @@
 }
 
 .colaborador-avatar {
-  font-size: 2.5rem;
   flex-shrink: 0;
 }
 
@@ -201,12 +199,6 @@
   font-size: 0.95rem;
   color: #666;
   margin: 0 0 4px 0;
-}
-
-.colaborador-departamento {
-  font-size: 0.85rem;
-  color: #999;
-  margin: 0;
 }
 
 .check-icon {
@@ -492,7 +484,6 @@
 }
 
 .par-avaliar-avatar {
-  font-size: 3rem;
   text-align: center;
 }
 

@@ -2,17 +2,15 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
+from app.core.config import settings
+from app.database import get_db
+from app.models import colaborador as colaborador_models
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-
-from app.core.config import settings
-from app.database import get_db
-from app.models import colaborador as colaborador_models
-from app.models import user as user_models
 
 logger = logging.getLogger(__name__)
 
@@ -109,63 +107,38 @@ def verify_token(
         )
 
 
-def get_current_user(
+def get_current_colaborador(
     token_data: dict = Depends(verify_token), db: Session = Depends(get_db)
 ):
-    """Retorna o usuário atual baseado no token"""
-    try:
-        user = (
-            db.query(user_models.User)
-            .filter(user_models.User.id == token_data["user_id"])
-            .first()
-        )
-        if user is None:
-            logger.warning(
-                f"Usuário não encontrado no banco de dados. User ID: {token_data.get('user_id')}"
-            )
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
-        return user
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(
-            f"Erro ao buscar usuário no banco de dados. User ID: {token_data.get('user_id')}. Erro: {str(e)}",
-            exc_info=True,
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao buscar usuário",
-        )
-
-
-def get_current_colaborador(
-    current_user: user_models.User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Retorna o colaborador associado ao usuário logado baseado no email"""
+    """Retorna o colaborador atual baseado no token"""
     try:
         colaborador = (
             db.query(colaborador_models.Colaborador)
-            .filter(colaborador_models.Colaborador.email == current_user.email)
+            .filter(colaborador_models.Colaborador.id == token_data["user_id"])
             .first()
         )
         if colaborador is None:
             logger.warning(
-                f"Colaborador não encontrado para o usuário. User ID: {current_user.id}, Email: {current_user.email}"
+                f"Colaborador não encontrado no banco de dados. Colaborador ID: {token_data.get('user_id')}"
             )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Colaborador não encontrado para este usuário",
+                detail="Colaborador not found",
+            )
+        if not colaborador.is_active:
+            logger.warning(
+                f"Colaborador inativo tentando acessar. Colaborador ID: {colaborador.id}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Colaborador inativo",
             )
         return colaborador
     except HTTPException:
         raise
     except Exception as e:
         logger.error(
-            f"Erro ao buscar colaborador no banco de dados. User ID: {current_user.id}. Erro: {str(e)}",
+            f"Erro ao buscar colaborador no banco de dados. Colaborador ID: {token_data.get('user_id')}. Erro: {str(e)}",
             exc_info=True,
         )
         raise HTTPException(

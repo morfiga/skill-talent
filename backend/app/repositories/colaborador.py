@@ -18,8 +18,6 @@ class ColaboradorRepository(BaseRepository[Colaborador]):
 
     def get_active(
         self,
-        skip: int = 0,
-        limit: int = 100,
         departamento: Optional[str] = None,
         email: Optional[str] = None,
     ) -> List[Colaborador]:
@@ -32,7 +30,7 @@ class ColaboradorRepository(BaseRepository[Colaborador]):
         if email:
             query = query.filter(self.model.email == email)
 
-        return query.offset(skip).limit(limit).all()
+        return query.all()
 
     def get_by_ids(self, ids: List[int]) -> List[Colaborador]:
         """Busca colaboradores por uma lista de IDs"""

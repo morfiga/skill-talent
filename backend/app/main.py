@@ -12,7 +12,6 @@ from app.api.v1 import (
     entregas_outstanding,
     niveis_carreira,
     registros_valor,
-    users,
     valores,
 )
 from app.core.config import settings
@@ -73,7 +72,6 @@ app.add_middleware(
 
 # Incluir routers
 app.include_router(auth.router, prefix="/api/v1")
-app.include_router(users.router, prefix="/api/v1")
 app.include_router(colaboradores.router, prefix="/api/v1")
 app.include_router(eixos_avaliacao.router, prefix="/api/v1")
 app.include_router(niveis_carreira.router, prefix="/api/v1")

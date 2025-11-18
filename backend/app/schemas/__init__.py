@@ -5,11 +5,9 @@ from app.schemas import (
     eixo_avaliacao,
     entrega_outstanding,
     registro_valor,
-    user,
 )
 
 __all__ = [
-    "user",
     "colaborador",
     "eixo_avaliacao",
     "ciclo_avaliacao",
