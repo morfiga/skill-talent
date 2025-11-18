@@ -152,6 +152,10 @@ export const avaliacoesAPI = {
     body: JSON.stringify(data),
   }),
   getFeedback: (cicloId) => request(`/avaliacoes/ciclo/${cicloId}/feedback`),
+  getAvaliacoesColaboradorAdmin: (colaboradorId, cicloId = null) => {
+    const params = cicloId ? `?ciclo_id=${cicloId}` : ''
+    return request(`/avaliacoes/admin/colaborador/${colaboradorId}${params}`)
+  },
 }
 
 // API de Entregas Outstanding

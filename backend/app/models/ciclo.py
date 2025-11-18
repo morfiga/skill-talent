@@ -23,6 +23,7 @@ class EtapaCiclo(str, enum.Enum):
     ESCOLHA_PARES = "escolha_pares"
     APROVACAO_PARES = "aprovacao_pares"
     AVALIACOES = "avaliacoes"
+    CALIBRACAO = "calibracao"
     FEEDBACK = "feedback"
 
 

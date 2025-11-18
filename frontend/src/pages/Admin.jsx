@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Avatar from '../components/Avatar'
 import { useAuth } from '../hooks/useAuth'
-import { ciclosAPI, ciclosAvaliacaoAPI, colaboradoresAPI } from '../services/api'
+import { avaliacoesAPI, ciclosAPI, ciclosAvaliacaoAPI, colaboradoresAPI, eixosAvaliacaoAPI } from '../services/api'
 import './Admin.css'
 import './Page.css'
 
@@ -11,7 +11,7 @@ function Admin({ onLogout }) {
   const { colaborador, user } = useAuth()
   // Usar user.is_admin primeiro (vem mais rápido do authAPI.verify), depois colaborador.is_admin
   const isAdmin = user?.is_admin || colaborador?.is_admin || false
-  const [abaAtiva, setAbaAtiva] = useState('colaboradores') // 'colaboradores', 'ciclos' ou 'aprovacao_pares'
+  const [abaAtiva, setAbaAtiva] = useState('colaboradores') // 'colaboradores', 'ciclos', 'aprovacao_pares' ou 'calibracao'
 
   // Estados para Colaboradores
   const [colaboradores, setColaboradores] = useState([])
@@ -51,6 +51,15 @@ function Admin({ onLogout }) {
   const [colaboradoresDisponiveis, setColaboradoresDisponiveis] = useState([])
   const [mostrarFormularioPares, setMostrarFormularioPares] = useState(false)
 
+  // Estados para Calibração
+  const [colaboradorCalibracao, setColaboradorCalibracao] = useState(null)
+  const [cicloCalibracao, setCicloCalibracao] = useState(null)
+  const [avaliacoesCalibracao, setAvaliacoesCalibracao] = useState([])
+  const [loadingCalibracao, setLoadingCalibracao] = useState(false)
+  const [colaboradoresInfoCalibracao, setColaboradoresInfoCalibracao] = useState({}) // { colaboradorId: { temAutoavaliacao: bool, qtdAvaliacoes: number } }
+  const [eixosAvaliacao, setEixosAvaliacao] = useState([])
+  const [comentariosExpandidos, setComentariosExpandidos] = useState({}) // { avaliacaoId: bool }
+
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -73,6 +82,8 @@ function Admin({ onLogout }) {
       loadCiclos()
     } else if (abaAtiva === 'aprovacao_pares') {
       loadCicloAprovacao()
+    } else if (abaAtiva === 'calibracao') {
+      loadCicloCalibracao()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, navigate, user, colaborador, abaAtiva])
@@ -152,6 +163,131 @@ function Admin({ onLogout }) {
     } catch (err) {
       console.error('Erro ao carregar colaboradores:', err)
     }
+  }
+
+  // Funções para Calibração
+  const loadCicloCalibracao = async () => {
+    try {
+      setError(null)
+      // Carregar colaboradores primeiro (necessário para exibir lista)
+      await loadColaboradores()
+
+      // Buscar ciclo na etapa de calibração
+      const response = await ciclosAPI.getAll()
+      const ciclosCalibracao = (response.ciclos || []).filter(c => c.etapa_atual === 'calibracao')
+
+      if (ciclosCalibracao.length > 0) {
+        const ciclo = ciclosCalibracao[0] // Pegar o primeiro ciclo em calibração
+        setCicloCalibracao(ciclo)
+        // Carregar informações de autoavaliação e quantidade de avaliações para cada colaborador
+        await loadColaboradoresInfoCalibracao(ciclo.id)
+      } else {
+        setCicloCalibracao(null)
+        setColaboradoresInfoCalibracao({})
+      }
+    } catch (err) {
+      console.error('Erro ao carregar ciclo de calibração:', err)
+      setError('Erro ao carregar ciclo de calibração. Tente novamente.')
+    }
+  }
+
+  const loadColaboradoresInfoCalibracao = async (cicloId) => {
+    try {
+      const info = {}
+
+      // Buscar informações de todos os colaboradores em paralelo
+      const promises = colaboradores.map(async (colaborador) => {
+        try {
+          // Buscar autoavaliação e todas as avaliações em paralelo
+          const [autoavaliacaoResponse, todasAvaliacoesResponse] = await Promise.all([
+            avaliacoesAPI.getAll({
+              ciclo_id: cicloId,
+              avaliado_id: colaborador.id,
+              tipo: 'autoavaliacao'
+            }),
+            avaliacoesAPI.getAvaliacoesColaboradorAdmin(colaborador.id, cicloId)
+          ])
+
+          const temAutoavaliacao = (autoavaliacaoResponse.avaliacoes || []).length > 0
+          const qtdAvaliacoes = (todasAvaliacoesResponse.avaliacoes || []).length
+
+          return {
+            colaboradorId: colaborador.id,
+            temAutoavaliacao,
+            qtdAvaliacoes
+          }
+        } catch (err) {
+          console.error(`Erro ao carregar info do colaborador ${colaborador.id}:`, err)
+          return {
+            colaboradorId: colaborador.id,
+            temAutoavaliacao: false,
+            qtdAvaliacoes: 0
+          }
+        }
+      })
+
+      const results = await Promise.all(promises)
+
+      // Converter array de resultados em objeto
+      results.forEach(result => {
+        info[result.colaboradorId] = {
+          temAutoavaliacao: result.temAutoavaliacao,
+          qtdAvaliacoes: result.qtdAvaliacoes
+        }
+      })
+
+      setColaboradoresInfoCalibracao(info)
+    } catch (err) {
+      console.error('Erro ao carregar informações dos colaboradores:', err)
+    }
+  }
+
+  const handleSelecionarColaboradorCalibracao = async (colaborador) => {
+    try {
+      setLoadingCalibracao(true)
+      setColaboradorCalibracao(colaborador)
+      setError(null)
+      setComentariosExpandidos({})
+
+      // Carregar eixos de avaliação se ainda não foram carregados
+      if (eixosAvaliacao.length === 0) {
+        try {
+          const eixosResponse = await eixosAvaliacaoAPI.getAll()
+          setEixosAvaliacao(eixosResponse.eixos || [])
+        } catch (err) {
+          console.error('Erro ao carregar eixos:', err)
+        }
+      }
+
+      const cicloId = cicloCalibracao?.id || null
+      const response = await avaliacoesAPI.getAvaliacoesColaboradorAdmin(colaborador.id, cicloId)
+      setAvaliacoesCalibracao(response.avaliacoes || [])
+    } catch (err) {
+      console.error('Erro ao carregar avaliações:', err)
+      setError('Erro ao carregar avaliações do colaborador. Tente novamente.')
+    } finally {
+      setLoadingCalibracao(false)
+    }
+  }
+
+  const toggleComentarios = (avaliacaoId) => {
+    setComentariosExpandidos(prev => ({
+      ...prev,
+      [avaliacaoId]: !prev[avaliacaoId]
+    }))
+  }
+
+  const getNivelEixo = (avaliacao, eixoId) => {
+    // Usar eixos_detalhados que é a lista retornada pela API
+    const eixosList = avaliacao.eixos_detalhados || avaliacao.eixos || []
+    if (!Array.isArray(eixosList)) return '-'
+    const eixoAvaliado = eixosList.find(e => e.eixo_id === eixoId)
+    return eixoAvaliado ? eixoAvaliado.nivel : '-'
+  }
+
+  const handleVoltarCalibracao = () => {
+    setColaboradorCalibracao(null)
+    setAvaliacoesCalibracao([])
   }
 
   // Handlers para Colaboradores
@@ -505,6 +641,12 @@ function Admin({ onLogout }) {
                 onClick={() => setAbaAtiva('aprovacao_pares')}
               >
                 ✅ Aprovação de Pares
+              </button>
+              <button
+                className={`admin-nav-item ${abaAtiva === 'calibracao' ? 'active' : ''}`}
+                onClick={() => setAbaAtiva('calibracao')}
+              >
+                📋 Calibração
               </button>
             </nav>
           </div>
@@ -1220,6 +1362,371 @@ function Admin({ onLogout }) {
                     </>
                   )}
                 </div>
+              </>
+            )}
+
+            {abaAtiva === 'calibracao' && (
+              <>
+                <div className="admin-panel-header">
+                  <div>
+                    <h2 className="panel-title">Calibração de Avaliações</h2>
+                    <p className="panel-subtitle">
+                      {cicloCalibracao
+                        ? `Visualize as avaliações recebidas por cada colaborador no ciclo "${cicloCalibracao.nome}"`
+                        : 'Nenhum ciclo na etapa de calibração encontrado'}
+                    </p>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="error-message" style={{
+                    padding: '12px',
+                    background: '#ffebee',
+                    color: '#c62828',
+                    borderRadius: '8px',
+                    marginBottom: '20px'
+                  }}>
+                    {error}
+                  </div>
+                )}
+
+                {!cicloCalibracao ? (
+                  <div className="empty-state">
+                    <div className="empty-icon">📋</div>
+                    <p className="empty-text">Nenhum ciclo na etapa de calibração encontrado.</p>
+                    <p className="empty-text" style={{ fontSize: '0.9rem', color: '#666', marginTop: '8px' }}>
+                      Avance um ciclo para a etapa de calibração para visualizar as avaliações.
+                    </p>
+                  </div>
+                ) : !colaboradorCalibracao ? (
+                  <div>
+                    <div className="admin-filtros">
+                      <input
+                        type="text"
+                        className="filtro-input"
+                        placeholder="Buscar colaborador por nome, email, cargo ou departamento..."
+                        value={filtroColaboradores}
+                        onChange={(e) => setFiltroColaboradores(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="colaboradores-lista">
+                      <h3 className="lista-title">
+                        {colaboradoresFiltrados.length > 0
+                          ? `Colaboradores (${colaboradoresFiltrados.length})`
+                          : 'Nenhum colaborador encontrado'}
+                      </h3>
+
+                      {colaboradoresFiltrados.length === 0 ? (
+                        <div className="empty-state">
+                          <div className="empty-icon">👥</div>
+                          <p className="empty-text">
+                            {filtroColaboradores ? 'Nenhum colaborador encontrado com o filtro aplicado.' : 'Nenhum colaborador cadastrado.'}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="table-container">
+                          <table className="colaboradores-table">
+                            <thead>
+                              <tr>
+                                <th>Colaborador</th>
+                                <th>Departamento</th>
+                                <th>Autoavaliação</th>
+                                <th>Avaliações Recebidas</th>
+                                <th>Ações</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {colaboradoresFiltrados.map((colaborador) => {
+                                const info = colaboradoresInfoCalibracao[colaborador.id] || { temAutoavaliacao: false, qtdAvaliacoes: 0 }
+                                return (
+                                  <tr key={colaborador.id}>
+                                    <td>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <Avatar
+                                          avatar={colaborador.avatar}
+                                          nome={colaborador.nome}
+                                          size={50}
+                                        />
+                                        <div>
+                                          <div className="colaborador-nome">{colaborador.nome}</div>
+                                          <div className="colaborador-email" style={{ fontSize: '0.85rem' }}>
+                                            {colaborador.cargo || '-'}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td>{colaborador.departamento || '-'}</td>
+                                    <td>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        {info.temAutoavaliacao ? (
+                                          <span
+                                            style={{
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              padding: '2px 8px',
+                                              background: '#4caf50',
+                                              color: '#fff',
+                                              borderRadius: '12px',
+                                              fontSize: '0.75rem',
+                                              fontWeight: '500'
+                                            }}
+                                            title="Autoavaliação realizada"
+                                          >
+                                            ✓
+                                          </span>
+                                        ) : (
+                                          <span
+                                            style={{
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              padding: '2px 8px',
+                                              background: '#ff9800',
+                                              color: '#fff',
+                                              borderRadius: '12px',
+                                              fontSize: '0.75rem',
+                                              fontWeight: '500'
+                                            }}
+                                            title="Autoavaliação não realizada"
+                                          >
+                                            ✗
+                                          </span>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        minWidth: '30px',
+                                        padding: '4px 12px',
+                                        background: '#e3f2fd',
+                                        color: '#1976d2',
+                                        borderRadius: '16px',
+                                        fontSize: '0.9rem',
+                                        fontWeight: '600'
+                                      }}>
+                                        {info.qtdAvaliacoes}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <button
+                                        className="action-button"
+                                        onClick={() => handleSelecionarColaboradorCalibracao(colaborador)}
+                                      >
+                                        Ver Avaliações
+                                      </button>
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ marginBottom: '20px' }}>
+                      <button
+                        className="voltar-button"
+                        onClick={handleVoltarCalibracao}
+                        style={{ marginBottom: '20px' }}
+                      >
+                        ← Voltar para Lista
+                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+                        <Avatar
+                          avatar={colaboradorCalibracao.avatar}
+                          nome={colaboradorCalibracao.nome}
+                          size={60}
+                        />
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '1.5rem' }}>{colaboradorCalibracao.nome}</h3>
+                          <p style={{ margin: '4px 0 0 0', color: '#666' }}>
+                            {colaboradorCalibracao.cargo || ''} {colaboradorCalibracao.departamento ? `• ${colaboradorCalibracao.departamento}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {loadingCalibracao ? (
+                      <div className="empty-state">
+                        <div className="empty-icon">⏳</div>
+                        <p className="empty-text">Carregando avaliações...</p>
+                      </div>
+                    ) : avaliacoesCalibracao.length === 0 ? (
+                      <div className="empty-state">
+                        <div className="empty-icon">📝</div>
+                        <p className="empty-text">Nenhuma avaliação encontrada para este colaborador.</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <h3 style={{ marginBottom: '20px' }}>Avaliações Recebidas ({avaliacoesCalibracao.length})</h3>
+                        {eixosAvaliacao.length > 0 ? (
+                          <div className="table-container" style={{ overflowX: 'auto' }}>
+                            <table className="colaboradores-table" style={{ minWidth: '800px' }}>
+                              <thead>
+                                <tr>
+                                  <th style={{ position: 'sticky', left: 0, background: '#fff', zIndex: 10 }}>
+                                    Tipo / Avaliador
+                                  </th>
+                                  {eixosAvaliacao.map((eixo) => (
+                                    <th key={eixo.id} style={{ textAlign: 'center', minWidth: '100px' }}>
+                                      {eixo.nome}
+                                    </th>
+                                  ))}
+                                  <th style={{ minWidth: '120px' }}>Comentários</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {avaliacoesCalibracao.map((avaliacao) => {
+                                  const comentariosAberto = comentariosExpandidos[avaliacao.id] || false
+                                  const eixosList = avaliacao.eixos_detalhados || avaliacao.eixos || []
+                                  const temComentarios = avaliacao.avaliacao_geral ||
+                                    (Array.isArray(eixosList) && eixosList.some(e => e.justificativa))
+
+                                  return (
+                                    <>
+                                      <tr key={avaliacao.id}>
+                                        <td style={{ position: 'sticky', left: 0, background: '#fff', zIndex: 9 }}>
+                                          <div>
+                                            <div style={{ fontWeight: '600', marginBottom: '4px' }}>
+                                              {avaliacao.tipo === 'autoavaliacao' ? 'Autoavaliação' :
+                                                avaliacao.tipo === 'gestor' ? 'Avaliação do Gestor' :
+                                                  'Avaliação de Par'}
+                                            </div>
+                                            {avaliacao.avaliador && avaliacao.tipo !== 'autoavaliacao' && (
+                                              <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                                                {avaliacao.avaliador.nome}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </td>
+                                        {eixosAvaliacao.map((eixo) => {
+                                          const nivel = getNivelEixo(avaliacao, eixo.id)
+                                          return (
+                                            <td key={eixo.id} style={{ textAlign: 'center' }}>
+                                              {nivel !== '-' ? (
+                                                <span style={{
+                                                  display: 'inline-flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'center',
+                                                  width: '36px',
+                                                  height: '36px',
+                                                  borderRadius: '50%',
+                                                  background: '#e3f2fd',
+                                                  color: '#1976d2',
+                                                  fontSize: '0.9rem',
+                                                  fontWeight: '600'
+                                                }}>
+                                                  {nivel}
+                                                </span>
+                                              ) : (
+                                                <span style={{ color: '#999' }}>-</span>
+                                              )}
+                                            </td>
+                                          )
+                                        })}
+                                        <td>
+                                          {temComentarios ? (
+                                            <button
+                                              className="action-button"
+                                              onClick={() => toggleComentarios(avaliacao.id)}
+                                              style={{
+                                                padding: '6px 12px',
+                                                fontSize: '0.85rem',
+                                                minWidth: 'auto'
+                                              }}
+                                            >
+                                              {comentariosAberto ? 'Ocultar' : 'Ver'}
+                                            </button>
+                                          ) : (
+                                            <span style={{ color: '#999', fontSize: '0.85rem' }}>-</span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                      {comentariosAberto && temComentarios && (
+                                        <tr key={`${avaliacao.id}-comentarios`}>
+                                          <td colSpan={eixosAvaliacao.length + 2} style={{
+                                            background: '#f9f9f9',
+                                            padding: '20px',
+                                            borderTop: 'none'
+                                          }}>
+                                            <div style={{ maxWidth: '100%' }}>
+                                              {avaliacao.avaliacao_geral && (
+                                                <div style={{ marginBottom: '16px' }}>
+                                                  <h5 style={{ margin: '0 0 8px 0', fontSize: '0.95rem', color: '#333', fontWeight: '600' }}>
+                                                    Avaliação Geral
+                                                  </h5>
+                                                  <p style={{ margin: 0, color: '#666', lineHeight: '1.6', fontSize: '0.9rem' }}>
+                                                    {avaliacao.avaliacao_geral}
+                                                  </p>
+                                                </div>
+                                              )}
+                                              {eixosList && eixosList.length > 0 && (
+                                                <div>
+                                                  <h5 style={{ margin: '0 0 12px 0', fontSize: '0.95rem', color: '#333', fontWeight: '600' }}>
+                                                    Justificativas por Eixo
+                                                  </h5>
+                                                  <div style={{ display: 'grid', gap: '12px' }}>
+                                                    {eixosList
+                                                      .filter(e => e.justificativa)
+                                                      .map((eixo) => (
+                                                        <div
+                                                          key={eixo.id}
+                                                          style={{
+                                                            padding: '12px',
+                                                            background: '#fff',
+                                                            borderRadius: '6px',
+                                                            border: '1px solid #e0e0e0'
+                                                          }}
+                                                        >
+                                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                            <strong style={{ fontSize: '0.9rem' }}>
+                                                              {eixo.eixo?.nome || `Eixo ${eixo.eixo_id}`}
+                                                            </strong>
+                                                            <span style={{
+                                                              padding: '4px 8px',
+                                                              background: '#e3f2fd',
+                                                              color: '#1976d2',
+                                                              borderRadius: '4px',
+                                                              fontSize: '0.8rem',
+                                                              fontWeight: '500'
+                                                            }}>
+                                                              Nível {eixo.nivel}
+                                                            </span>
+                                                          </div>
+                                                          <p style={{ margin: 0, color: '#666', fontSize: '0.85rem', lineHeight: '1.5' }}>
+                                                            {eixo.justificativa}
+                                                          </p>
+                                                        </div>
+                                                      ))}
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      )}
+                                    </>
+                                  )
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <div className="empty-state">
+                            <div className="empty-icon">⏳</div>
+                            <p className="empty-text">Carregando eixos de avaliação...</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </div>

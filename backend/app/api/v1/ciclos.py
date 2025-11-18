@@ -1,12 +1,11 @@
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
 from app.database import get_db
 from app.models import ciclo as ciclo_models
 from app.schemas import ciclo as ciclo_schemas
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +82,9 @@ def update_ciclo(
     # Converter etapa_atual string para enum se fornecido
     if "etapa_atual" in update_data and update_data["etapa_atual"]:
         try:
-            update_data["etapa_atual"] = ciclo_models.EtapaCiclo(update_data["etapa_atual"])
+            update_data["etapa_atual"] = ciclo_models.EtapaCiclo(
+                update_data["etapa_atual"]
+            )
         except ValueError:
             raise HTTPException(status_code=400, detail="Etapa inválida")
 
@@ -99,7 +100,7 @@ def update_ciclo(
 def get_ciclo_aberto(db: Session = Depends(get_db)):
     """Obtém o ciclo aberto ativo"""
     logger.debug("GET /ciclos/ativo/aberto - Buscando ciclo aberto")
-    
+
     ciclo = (
         db.query(ciclo_models.Ciclo)
         .filter(ciclo_models.Ciclo.status == ciclo_models.StatusCiclo.ABERTO)
@@ -114,7 +115,9 @@ def get_ciclo_aberto(db: Session = Depends(get_db)):
             detail="Nenhum ciclo aberto encontrado",
         )
 
-    logger.debug(f"Ciclo aberto encontrado. ID: {ciclo.id}, Nome: {ciclo.nome}, Status: {ciclo.status}")
+    logger.debug(
+        f"Ciclo aberto encontrado. ID: {ciclo.id}, Nome: {ciclo.nome}, Status: {ciclo.status}"
+    )
     return ciclo
 
 
@@ -133,6 +136,7 @@ def avancar_etapa(ciclo_id: int, db: Session = Depends(get_db)):
         ciclo_models.EtapaCiclo.ESCOLHA_PARES,
         ciclo_models.EtapaCiclo.APROVACAO_PARES,
         ciclo_models.EtapaCiclo.AVALIACOES,
+        ciclo_models.EtapaCiclo.CALIBRACAO,
         ciclo_models.EtapaCiclo.FEEDBACK,
     ]
 
@@ -144,9 +148,7 @@ def avancar_etapa(ciclo_id: int, db: Session = Depends(get_db)):
             db.refresh(db_ciclo)
             return db_ciclo
         else:
-            raise HTTPException(
-                status_code=400, detail="Ciclo já está na última etapa"
-            )
+            raise HTTPException(status_code=400, detail="Ciclo já está na última etapa")
     except ValueError:
         raise HTTPException(status_code=400, detail="Etapa atual inválida")
 

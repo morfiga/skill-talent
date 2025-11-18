@@ -75,6 +75,24 @@ def create_avaliacao(
                 status_code=404, detail="Ciclo de avaliação não encontrado"
             )
 
+        # Verificar se o ciclo está na etapa de calibração
+        # Durante esta etapa, colaboradores não podem criar avaliações
+        from app.models import ciclo as ciclo_models
+
+        ciclo_obj = (
+            db.query(ciclo_models.Ciclo)
+            .filter(ciclo_models.Ciclo.id == avaliacao.ciclo_id)
+            .first()
+        )
+        if ciclo_obj and ciclo_obj.etapa_atual == ciclo_models.EtapaCiclo.CALIBRACAO:
+            logger.warning(
+                f"Tentativa de criar avaliação durante etapa de calibração. Ciclo ID: {avaliacao.ciclo_id}, Etapa: {ciclo_obj.etapa_atual}"
+            )
+            raise HTTPException(
+                status_code=403,
+                detail="Não é possível criar avaliações durante a etapa de calibração",
+            )
+
         # Verificar se já existe avaliação deste tipo
         existing = avaliacao_repo.check_duplicate(
             ciclo_id=avaliacao.ciclo_id,
@@ -178,7 +196,11 @@ def get_avaliacoes(
     else:
         # Validar que o usuário só pode ver suas próprias avaliações
         # Se avaliador_id for especificado, deve ser o usuário logado
-        if avaliador_id is not None and avaliador_id != current_colaborador.id:
+        if (
+            avaliador_id is not None
+            and avaliador_id != current_colaborador.id
+            and not current_colaborador.is_admin
+        ):
             logger.warning(
                 f"Tentativa de buscar avaliações de outro avaliador. Avaliador ID: {avaliador_id}, Colaborador logado: {current_colaborador.id}"
             )
@@ -194,6 +216,7 @@ def get_avaliacoes(
             avaliador_id is None
             and avaliado_id is not None
             and avaliado_id != current_colaborador.id
+            and not current_colaborador.is_admin
         ):
             logger.warning(
                 f"Tentativa de buscar avaliações de outro avaliado sem ser o avaliador. Avaliado ID: {avaliado_id}, Colaborador logado: {current_colaborador.id}"
@@ -300,6 +323,20 @@ def update_avaliacao(
             raise HTTPException(
                 status_code=403,
                 detail="Você só pode atualizar avaliações onde você é o avaliador",
+            )
+
+        # Verificar se o ciclo está na etapa de calibração
+        # Durante esta etapa, colaboradores não podem alterar avaliações
+        from app.models import ciclo as ciclo_models
+
+        ciclo = db_avaliacao.ciclo
+        if ciclo and ciclo.etapa_atual == ciclo_models.EtapaCiclo.CALIBRACAO:
+            logger.warning(
+                f"Tentativa de atualizar avaliação durante etapa de calibração. Avaliação ID: {avaliacao_id}, Ciclo: {ciclo.id}, Etapa: {ciclo.etapa_atual}"
+            )
+            raise HTTPException(
+                status_code=403,
+                detail="Não é possível alterar avaliações durante a etapa de calibração",
             )
 
         logger.info(f"Atualizando avaliação. ID: {avaliacao_id}")
@@ -446,3 +483,69 @@ def get_feedback(
             exc_info=True,
         )
         raise HTTPException(status_code=500, detail="Erro ao gerar feedback")
+
+
+@router.get(
+    "/admin/colaborador/{colaborador_id}",
+    response_model=avaliacao_schemas.AvaliacaoListResponse,
+)
+def get_avaliacoes_colaborador_admin(
+    colaborador_id: int,
+    ciclo_id: Optional[int] = None,
+    current_colaborador: colaborador_models.Colaborador = Depends(
+        get_current_colaborador
+    ),
+    db: Session = Depends(get_db),
+):
+    """Endpoint para admin buscar todas as avaliações de um colaborador específico"""
+    # Verificar se o usuário é admin
+    if not current_colaborador.is_admin:
+        logger.warning(
+            f"Tentativa de acessar endpoint admin sem permissão. Colaborador ID: {current_colaborador.id}"
+        )
+        raise HTTPException(
+            status_code=403, detail="Apenas administradores podem acessar este endpoint"
+        )
+
+    logger.debug(
+        f"GET /avaliacoes/admin/colaborador/{colaborador_id} - Admin buscando avaliações do colaborador {colaborador_id}"
+    )
+
+    avaliacao_repo = AvaliacaoRepository(db)
+
+    # Buscar todas as avaliações onde o colaborador é o avaliado
+    avaliacoes = avaliacao_repo.get_by_filters(
+        ciclo_id=ciclo_id,
+        avaliador_id=None,
+        avaliado_id=colaborador_id,
+        tipo=None,
+    )
+
+    # Carregar relacionamentos
+    from sqlalchemy.orm import joinedload
+
+    avaliacoes_completas = (
+        db.query(avaliacao_models.Avaliacao)
+        .options(
+            joinedload(avaliacao_models.Avaliacao.avaliador),
+            joinedload(avaliacao_models.Avaliacao.avaliado),
+            joinedload(avaliacao_models.Avaliacao.ciclo),
+            joinedload(avaliacao_models.Avaliacao.eixos).joinedload(
+                avaliacao_models.AvaliacaoEixo.eixo
+            ),
+        )
+        .filter(avaliacao_models.Avaliacao.avaliado_id == colaborador_id)
+    )
+
+    if ciclo_id:
+        avaliacoes_completas = avaliacoes_completas.filter(
+            avaliacao_models.Avaliacao.ciclo_id == ciclo_id
+        )
+
+    avaliacoes_completas = avaliacoes_completas.order_by(
+        avaliacao_models.Avaliacao.created_at.desc()
+    ).all()
+
+    total = len(avaliacoes_completas)
+    logger.debug(f"Total de avaliações encontradas: {total}")
+    return {"avaliacoes": avaliacoes_completas, "total": total}
