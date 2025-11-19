@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models.avaliacao import Avaliacao, AvaliacaoEixo, TipoAvaliacao
 from app.models.ciclo import Ciclo, EtapaCiclo
 from app.models.colaborador import Colaborador
-from app.repositories import AvaliacaoRepository, CicloAvaliacaoRepository
+from app.repositories import AvaliacaoRepository, ColaboradorRepository
 from app.schemas.avaliacao import (
     AvaliacaoCreate,
     AvaliacaoListResponse,
@@ -374,7 +374,6 @@ def get_feedback(
     logger.debug(f"GET /avaliacoes/ciclo/{ciclo_id}/feedback - Gerando feedback")
 
     avaliacao_repo = AvaliacaoRepository(db)
-    ciclo_avaliacao_repo = CicloAvaliacaoRepository(db)
     colaborador_repo = ColaboradorRepository(db)
 
     try:
