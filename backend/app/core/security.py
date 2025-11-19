@@ -4,7 +4,7 @@ from typing import Optional
 
 from app.core.config import settings
 from app.database import get_db
-from app.models import colaborador as colaborador_models
+from app.models.colaborador import Colaborador
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from google.auth.transport import requests
@@ -113,8 +113,8 @@ def get_current_colaborador(
     """Retorna o colaborador atual baseado no token"""
     try:
         colaborador = (
-            db.query(colaborador_models.Colaborador)
-            .filter(colaborador_models.Colaborador.id == token_data["user_id"])
+            db.query(Colaborador)
+            .filter(Colaborador.id == token_data["user_id"])
             .first()
         )
         if colaborador is None:

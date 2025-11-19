@@ -8,10 +8,11 @@ from app.core.security import (
     verify_google_token,
 )
 from app.database import get_db
-from app.models import colaborador as colaborador_models
-from app.schemas import auth as auth_schemas
+from app.models.colaborador import Colaborador
+from app.repositories.colaborador import ColaboradorRepository
+from app.schemas.auth import GoogleToken, Token
+from app.schemas.colaborador import ColaboradorAuthResponse
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -19,13 +20,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/google", response_model=auth_schemas.Token)
-async def google_login(
-    google_token: auth_schemas.GoogleToken, db: Session = Depends(get_db)
-):
+@router.post("/google", response_model=Token)
+async def google_login(google_token: GoogleToken, db: Session = Depends(get_db)):
     """Autentica usuário via Google OAuth"""
     try:
-        # Verificar token do Google
         google_user_info = verify_google_token(google_token.token)
     except HTTPException as e:
         logger.warning(f"Falha na verificação do token Google: {e.detail}")
@@ -51,59 +49,23 @@ async def google_login(
             detail="Email not provided by Google",
         )
 
-    try:
-        # Buscar ou criar colaborador
-        colaborador = (
-            db.query(colaborador_models.Colaborador)
-            .filter(colaborador_models.Colaborador.google_id == google_id)
-            .first()
-        )
+    colaborador_repo = ColaboradorRepository(db)
+    colaborador = colaborador_repo.get_by_google_id(google_id)
+
+    if not colaborador:
+        colaborador = colaborador_repo.get_by_email(email)
 
         if not colaborador:
-            # Tentar buscar por email
-            colaborador = (
-                db.query(colaborador_models.Colaborador)
-                .filter(colaborador_models.Colaborador.email == email)
-                .first()
+            # Colaborador não encontrado
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Usuário não autorizado",
             )
 
-            if colaborador:
-                # Atualizar colaborador existente com google_id
-                logger.info(
-                    f"Atualizando colaborador existente com Google ID. Email: {email}"
-                )
-                colaborador.google_id = google_id
-                colaborador.avatar = avatar
-                if name:
-                    colaborador.nome = name
-            else:
-                # Criar novo colaborador
-                logger.info(f"Criando novo colaborador. Email: {email}")
-                colaborador = colaborador_models.Colaborador(
-                    email=email,
-                    nome=name or email.split("@")[0],
-                    google_id=google_id,
-                    avatar=avatar,
-                )
-                db.add(colaborador)
-        else:
-            # Atualizar informações do colaborador
-            if avatar:
-                colaborador.avatar = avatar
-            if name:
-                colaborador.nome = name
-
-        db.commit()
-        db.refresh(colaborador)
-    except SQLAlchemyError as e:
-        logger.error(
-            f"Erro ao salvar colaborador no banco de dados. Email: {email}. Erro: {str(e)}",
-            exc_info=True,
-        )
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao processar autenticação",
+        # Atualizar colaborador existente com google_id
+        logger.info(f"Atualizando colaborador existente com Google ID. Email: {email}")
+        colaborador = colaborador_repo.update(
+            colaborador.id, google_id=google_id, avatar=avatar, nome=name
         )
 
     # Criar token JWT
@@ -125,17 +87,11 @@ async def google_login(
 
 @router.get("/verify")
 async def verify_auth(
-    current_colaborador: colaborador_models.Colaborador = Depends(
-        get_current_colaborador
-    ),
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
 ):
     """Verifica se o token é válido e retorna informações do colaborador"""
     try:
-        from app.schemas import colaborador as colaborador_schemas
-
-        return colaborador_schemas.ColaboradorAuthResponse.model_validate(
-            current_colaborador
-        )
+        return ColaboradorAuthResponse.model_validate(current_colaborador)
     except Exception as e:
         logger.error(
             f"Erro ao verificar autenticação. Colaborador ID: {current_colaborador.id}. Erro: {str(e)}",

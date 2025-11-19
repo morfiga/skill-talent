@@ -1,17 +1,19 @@
 import logging
-from typing import Dict, List, Optional
+from typing import Optional
 
 from app.core.security import get_current_colaborador
 from app.database import get_db
-from app.models import avaliacao as avaliacao_models
-from app.models import colaborador as colaborador_models
-from app.repositories import (
-    AvaliacaoRepository,
-    CicloAvaliacaoRepository,
-    ColaboradorRepository,
-    EixoAvaliacaoRepository,
+from app.models.avaliacao import Avaliacao, AvaliacaoEixo, TipoAvaliacao
+from app.models.ciclo import Ciclo, EtapaCiclo
+from app.models.colaborador import Colaborador
+from app.repositories import AvaliacaoRepository, CicloAvaliacaoRepository
+from app.schemas.avaliacao import (
+    AvaliacaoCreate,
+    AvaliacaoListResponse,
+    AvaliacaoResponse,
+    AvaliacaoUpdate,
+    FeedbackResponse,
 )
-from app.schemas import avaliacao as avaliacao_schemas
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -21,17 +23,14 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/avaliacoes", tags=["avaliacoes"])
 
 
-@router.post("/", response_model=avaliacao_schemas.AvaliacaoResponse, status_code=201)
+@router.post("/", response_model=AvaliacaoResponse, status_code=201)
 def create_avaliacao(
-    avaliacao: avaliacao_schemas.AvaliacaoCreate,
-    current_colaborador: colaborador_models.Colaborador = Depends(
-        get_current_colaborador
-    ),
+    avaliacao: AvaliacaoCreate,
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
     """Cria uma nova avaliação"""
     avaliacao_repo = AvaliacaoRepository(db)
-    colaborador_repo = ColaboradorRepository(db)
 
     try:
         # Validar que o avaliado existe
@@ -77,14 +76,9 @@ def create_avaliacao(
 
         # Verificar se o ciclo está na etapa de calibração
         # Durante esta etapa, colaboradores não podem criar avaliações
-        from app.models import ciclo as ciclo_models
 
-        ciclo_obj = (
-            db.query(ciclo_models.Ciclo)
-            .filter(ciclo_models.Ciclo.id == avaliacao.ciclo_id)
-            .first()
-        )
-        if ciclo_obj and ciclo_obj.etapa_atual == ciclo_models.EtapaCiclo.CALIBRACAO:
+        ciclo_obj = db.query(Ciclo).filter(Ciclo.id == avaliacao.ciclo_id).first()
+        if ciclo_obj and ciclo_obj.etapa_atual == EtapaCiclo.CALIBRACAO:
             logger.warning(
                 f"Tentativa de criar avaliação durante etapa de calibração. Ciclo ID: {avaliacao.ciclo_id}, Etapa: {ciclo_obj.etapa_atual}"
             )
@@ -98,7 +92,7 @@ def create_avaliacao(
             ciclo_id=avaliacao.ciclo_id,
             avaliador_id=avaliador_id,
             avaliado_id=avaliacao.avaliado_id,
-            tipo=avaliacao_models.TipoAvaliacao(avaliacao.tipo),
+            tipo=TipoAvaliacao(avaliacao.tipo),
         )
 
         if existing:
@@ -124,7 +118,7 @@ def create_avaliacao(
             ciclo_id=avaliacao.ciclo_id,
             avaliador_id=avaliador_id,
             avaliado_id=avaliacao.avaliado_id,
-            tipo=avaliacao_models.TipoAvaliacao(avaliacao.tipo),
+            tipo=TipoAvaliacao(avaliacao.tipo),
             avaliacao_geral=avaliacao.avaliacao_geral,
             eixos_data=avaliacao.eixos,
         )
@@ -155,15 +149,13 @@ def create_avaliacao(
         )
 
 
-@router.get("/", response_model=avaliacao_schemas.AvaliacaoListResponse)
+@router.get("/", response_model=AvaliacaoListResponse)
 def get_avaliacoes(
     ciclo_id: Optional[int] = None,
     avaliador_id: Optional[int] = None,
     avaliado_id: Optional[int] = None,
     tipo: Optional[str] = None,
-    current_colaborador: colaborador_models.Colaborador = Depends(
-        get_current_colaborador
-    ),
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
     """Lista avaliações. Por padrão, retorna apenas avaliações onde o usuário logado é avaliador ou avaliado"""
@@ -251,12 +243,10 @@ def get_avaliacoes(
     return {"avaliacoes": avaliacoes, "total": total}
 
 
-@router.get("/{avaliacao_id}", response_model=avaliacao_schemas.AvaliacaoResponse)
+@router.get("/{avaliacao_id}", response_model=AvaliacaoResponse)
 def get_avaliacao(
     avaliacao_id: int,
-    current_colaborador: colaborador_models.Colaborador = Depends(
-        get_current_colaborador
-    ),
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
     """Obtém uma avaliação por ID (apenas se o usuário logado for avaliador ou avaliado)"""
@@ -294,13 +284,11 @@ def get_avaliacao(
         raise HTTPException(status_code=500, detail="Erro ao buscar avaliação")
 
 
-@router.put("/{avaliacao_id}", response_model=avaliacao_schemas.AvaliacaoResponse)
+@router.put("/{avaliacao_id}", response_model=AvaliacaoResponse)
 def update_avaliacao(
     avaliacao_id: int,
-    avaliacao: avaliacao_schemas.AvaliacaoUpdate,
-    current_colaborador: colaborador_models.Colaborador = Depends(
-        get_current_colaborador
-    ),
+    avaliacao: AvaliacaoUpdate,
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
     """Atualiza uma avaliação (apenas se o usuário logado for o avaliador)"""
@@ -327,10 +315,9 @@ def update_avaliacao(
 
         # Verificar se o ciclo está na etapa de calibração
         # Durante esta etapa, colaboradores não podem alterar avaliações
-        from app.models import ciclo as ciclo_models
 
         ciclo = db_avaliacao.ciclo
-        if ciclo and ciclo.etapa_atual == ciclo_models.EtapaCiclo.CALIBRACAO:
+        if ciclo and ciclo.etapa_atual == EtapaCiclo.CALIBRACAO:
             logger.warning(
                 f"Tentativa de atualizar avaliação durante etapa de calibração. Avaliação ID: {avaliacao_id}, Ciclo: {ciclo.id}, Etapa: {ciclo.etapa_atual}"
             )
@@ -377,14 +364,10 @@ def update_avaliacao(
         )
 
 
-@router.get(
-    "/ciclo/{ciclo_id}/feedback", response_model=avaliacao_schemas.FeedbackResponse
-)
+@router.get("/ciclo/{ciclo_id}/feedback", response_model=FeedbackResponse)
 def get_feedback(
     ciclo_id: int,
-    current_colaborador: colaborador_models.Colaborador = Depends(
-        get_current_colaborador
-    ),
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
     """Obtém dados consolidados de feedback para um ciclo"""
@@ -428,7 +411,7 @@ def get_feedback(
         logger.debug("Buscando autoavaliação")
         autoavaliacao = avaliacao_repo.get_by_ciclo_and_tipo(
             ciclo_id=ciclo_ciclo_id,
-            tipo=avaliacao_models.TipoAvaliacao.AUTOAVALIACAO,
+            tipo=TipoAvaliacao.AUTOAVALIACAO,
         )
         logger.debug(
             f"Autoavaliação {'encontrada' if autoavaliacao else 'não encontrada'}"
@@ -438,7 +421,7 @@ def get_feedback(
         logger.debug("Buscando avaliação do gestor")
         avaliacao_gestor = avaliacao_repo.get_by_ciclo_and_tipo(
             ciclo_id=ciclo_ciclo_id,
-            tipo=avaliacao_models.TipoAvaliacao.GESTOR,
+            tipo=TipoAvaliacao.GESTOR,
         )
         logger.debug(
             f"Avaliação do gestor {'encontrada' if avaliacao_gestor else 'não encontrada'}"
@@ -448,7 +431,7 @@ def get_feedback(
         logger.debug("Buscando avaliações de pares")
         avaliacoes_pares = avaliacao_repo.get_all_by_ciclo_and_tipo(
             ciclo_id=ciclo_ciclo_id,
-            tipo=avaliacao_models.TipoAvaliacao.PAR,
+            tipo=TipoAvaliacao.PAR,
         )
         logger.debug(f"Encontradas {len(avaliacoes_pares)} avaliações de pares")
 
@@ -487,14 +470,12 @@ def get_feedback(
 
 @router.get(
     "/admin/colaborador/{colaborador_id}",
-    response_model=avaliacao_schemas.AvaliacaoListResponse,
+    response_model=AvaliacaoListResponse,
 )
 def get_avaliacoes_colaborador_admin(
     colaborador_id: int,
     ciclo_id: Optional[int] = None,
-    current_colaborador: colaborador_models.Colaborador = Depends(
-        get_current_colaborador
-    ),
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
     """Endpoint para admin buscar todas as avaliações de um colaborador específico"""
@@ -525,25 +506,23 @@ def get_avaliacoes_colaborador_admin(
     from sqlalchemy.orm import joinedload
 
     avaliacoes_completas = (
-        db.query(avaliacao_models.Avaliacao)
+        db.query(Avaliacao)
         .options(
-            joinedload(avaliacao_models.Avaliacao.avaliador),
-            joinedload(avaliacao_models.Avaliacao.avaliado),
-            joinedload(avaliacao_models.Avaliacao.ciclo),
-            joinedload(avaliacao_models.Avaliacao.eixos).joinedload(
-                avaliacao_models.AvaliacaoEixo.eixo
-            ),
+            joinedload(Avaliacao.avaliador),
+            joinedload(Avaliacao.avaliado),
+            joinedload(Avaliacao.ciclo),
+            joinedload(Avaliacao.eixos).joinedload(AvaliacaoEixo.eixo),
         )
-        .filter(avaliacao_models.Avaliacao.avaliado_id == colaborador_id)
+        .filter(Avaliacao.avaliado_id == colaborador_id)
     )
 
     if ciclo_id:
         avaliacoes_completas = avaliacoes_completas.filter(
-            avaliacao_models.Avaliacao.ciclo_id == ciclo_id
+            Avaliacao.ciclo_id == ciclo_id
         )
 
     avaliacoes_completas = avaliacoes_completas.order_by(
-        avaliacao_models.Avaliacao.created_at.desc()
+        Avaliacao.created_at.desc()
     ).all()
 
     total = len(avaliacoes_completas)

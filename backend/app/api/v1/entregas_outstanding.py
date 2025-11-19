@@ -1,27 +1,29 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
 from app.core.security import get_current_colaborador
 from app.database import get_db
-from app.models import colaborador as colaborador_models
-from app.models import entrega_outstanding as entrega_models
-from app.schemas import entrega_outstanding as entrega_schemas
+from app.models.colaborador import Colaborador
+from app.models.entrega_outstanding import EntregaOutstanding
+from app.schemas.entrega_outstanding import (
+    EntregaOutstandingCreate,
+    EntregaOutstandingListResponse,
+    EntregaOutstandingResponse,
+    EntregaOutstandingUpdate,
+)
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/entregas-outstanding", tags=["entregas-outstanding"])
 
 
-@router.post(
-    "/", response_model=entrega_schemas.EntregaOutstandingResponse, status_code=201
-)
+@router.post("/", response_model=EntregaOutstandingResponse, status_code=201)
 def create_entrega_outstanding(
-    entrega: entrega_schemas.EntregaOutstandingCreate,
-    current_colaborador: colaborador_models.Colaborador = Depends(get_current_colaborador),
+    entrega: EntregaOutstandingCreate,
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
     """Cria uma nova entrega outstanding para o usuário logado"""
-    db_entrega = entrega_models.EntregaOutstanding(
+    db_entrega = EntregaOutstanding(
         colaborador_id=current_colaborador.id, **entrega.model_dump()
     )
     db.add(db_entrega)
@@ -30,33 +32,31 @@ def create_entrega_outstanding(
     return db_entrega
 
 
-@router.get("/", response_model=entrega_schemas.EntregaOutstandingListResponse)
+@router.get("/", response_model=EntregaOutstandingListResponse)
 def get_entregas_outstanding(
-    current_colaborador: colaborador_models.Colaborador = Depends(get_current_colaborador),
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
     """Lista entregas outstanding do usuário logado"""
-    query = db.query(entrega_models.EntregaOutstanding).filter(
-        entrega_models.EntregaOutstanding.colaborador_id == current_colaborador.id
+    query = db.query(EntregaOutstanding).filter(
+        EntregaOutstanding.colaborador_id == current_colaborador.id
     )
 
-    entregas = query.order_by(entrega_models.EntregaOutstanding.created_at.desc()).all()
+    entregas = query.order_by(EntregaOutstanding.created_at.desc()).all()
     total = len(entregas)
 
     return {"entregas": entregas, "total": total}
 
 
-@router.get("/{entrega_id}", response_model=entrega_schemas.EntregaOutstandingResponse)
+@router.get("/{entrega_id}", response_model=EntregaOutstandingResponse)
 def get_entrega_outstanding(
     entrega_id: int,
-    current_colaborador: colaborador_models.Colaborador = Depends(get_current_colaborador),
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
     """Obtém uma entrega outstanding por ID (apenas se pertencer ao usuário logado)"""
     entrega = (
-        db.query(entrega_models.EntregaOutstanding)
-        .filter(entrega_models.EntregaOutstanding.id == entrega_id)
-        .first()
+        db.query(EntregaOutstanding).filter(EntregaOutstanding.id == entrega_id).first()
     )
 
     if not entrega:
@@ -74,18 +74,16 @@ def get_entrega_outstanding(
     return entrega
 
 
-@router.put("/{entrega_id}", response_model=entrega_schemas.EntregaOutstandingResponse)
+@router.put("/{entrega_id}", response_model=EntregaOutstandingResponse)
 def update_entrega_outstanding(
     entrega_id: int,
-    entrega: entrega_schemas.EntregaOutstandingUpdate,
-    current_colaborador: colaborador_models.Colaborador = Depends(get_current_colaborador),
+    entrega: EntregaOutstandingUpdate,
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
     """Atualiza uma entrega outstanding (apenas se pertencer ao usuário logado)"""
     db_entrega = (
-        db.query(entrega_models.EntregaOutstanding)
-        .filter(entrega_models.EntregaOutstanding.id == entrega_id)
-        .first()
+        db.query(EntregaOutstanding).filter(EntregaOutstanding.id == entrega_id).first()
     )
 
     if not db_entrega:
@@ -112,14 +110,12 @@ def update_entrega_outstanding(
 @router.delete("/{entrega_id}", status_code=204)
 def delete_entrega_outstanding(
     entrega_id: int,
-    current_colaborador: colaborador_models.Colaborador = Depends(get_current_colaborador),
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
     """Deleta uma entrega outstanding (apenas se pertencer ao usuário logado)"""
     entrega = (
-        db.query(entrega_models.EntregaOutstanding)
-        .filter(entrega_models.EntregaOutstanding.id == entrega_id)
-        .first()
+        db.query(EntregaOutstanding).filter(EntregaOutstanding.id == entrega_id).first()
     )
 
     if not entrega:

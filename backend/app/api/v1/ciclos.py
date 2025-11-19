@@ -2,8 +2,8 @@ import logging
 from typing import Optional
 
 from app.database import get_db
-from app.models import ciclo as ciclo_models
-from app.schemas import ciclo as ciclo_schemas
+from app.models.ciclo import Ciclo, EtapaCiclo, StatusCiclo
+from app.schemas.ciclo import CicloCreate, CicloListResponse, CicloResponse, CicloUpdate
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -12,43 +12,41 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/ciclos", tags=["ciclos"])
 
 
-@router.post("/", response_model=ciclo_schemas.CicloResponse, status_code=201)
-def create_ciclo(ciclo: ciclo_schemas.CicloCreate, db: Session = Depends(get_db)):
+@router.post("/", response_model=CicloResponse, status_code=201)
+def create_ciclo(ciclo: CicloCreate, db: Session = Depends(get_db)):
     """Cria um novo ciclo"""
-    db_ciclo = ciclo_models.Ciclo(**ciclo.model_dump())
+    db_ciclo = Ciclo(**ciclo.model_dump())
     db.add(db_ciclo)
     db.commit()
     db.refresh(db_ciclo)
     return db_ciclo
 
 
-@router.get("/", response_model=ciclo_schemas.CicloListResponse)
+@router.get("/", response_model=CicloListResponse)
 def get_ciclos(
     status: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
     """Lista todos os ciclos"""
-    query = db.query(ciclo_models.Ciclo)
+    query = db.query(Ciclo)
 
     if status:
         try:
-            status_enum = ciclo_models.StatusCiclo(status)
-            query = query.filter(ciclo_models.Ciclo.status == status_enum)
+            status_enum = StatusCiclo(status)
+            query = query.filter(Ciclo.status == status_enum)
         except ValueError:
             raise HTTPException(status_code=400, detail="Status inválido")
 
-    ciclos = query.order_by(ciclo_models.Ciclo.created_at.desc()).all()
+    ciclos = query.order_by(Ciclo.created_at.desc()).all()
     total = len(ciclos)
 
     return {"ciclos": ciclos, "total": total}
 
 
-@router.get("/{ciclo_id}", response_model=ciclo_schemas.CicloResponse)
+@router.get("/{ciclo_id}", response_model=CicloResponse)
 def get_ciclo(ciclo_id: int, db: Session = Depends(get_db)):
     """Obtém um ciclo por ID"""
-    ciclo = (
-        db.query(ciclo_models.Ciclo).filter(ciclo_models.Ciclo.id == ciclo_id).first()
-    )
+    ciclo = db.query(Ciclo).filter(Ciclo.id == ciclo_id).first()
 
     if not ciclo:
         raise HTTPException(status_code=404, detail="Ciclo não encontrado")
@@ -56,16 +54,14 @@ def get_ciclo(ciclo_id: int, db: Session = Depends(get_db)):
     return ciclo
 
 
-@router.put("/{ciclo_id}", response_model=ciclo_schemas.CicloResponse)
+@router.put("/{ciclo_id}", response_model=CicloResponse)
 def update_ciclo(
     ciclo_id: int,
-    ciclo: ciclo_schemas.CicloUpdate,
+    ciclo: CicloUpdate,
     db: Session = Depends(get_db),
 ):
     """Atualiza um ciclo"""
-    db_ciclo = (
-        db.query(ciclo_models.Ciclo).filter(ciclo_models.Ciclo.id == ciclo_id).first()
-    )
+    db_ciclo = db.query(Ciclo).filter(Ciclo.id == ciclo_id).first()
 
     if not db_ciclo:
         raise HTTPException(status_code=404, detail="Ciclo não encontrado")
@@ -75,16 +71,14 @@ def update_ciclo(
     # Converter status string para enum se fornecido
     if "status" in update_data and update_data["status"]:
         try:
-            update_data["status"] = ciclo_models.StatusCiclo(update_data["status"])
+            update_data["status"] = StatusCiclo(update_data["status"])
         except ValueError:
             raise HTTPException(status_code=400, detail="Status inválido")
 
     # Converter etapa_atual string para enum se fornecido
     if "etapa_atual" in update_data and update_data["etapa_atual"]:
         try:
-            update_data["etapa_atual"] = ciclo_models.EtapaCiclo(
-                update_data["etapa_atual"]
-            )
+            update_data["etapa_atual"] = EtapaCiclo(update_data["etapa_atual"])
         except ValueError:
             raise HTTPException(status_code=400, detail="Etapa inválida")
 
@@ -96,15 +90,15 @@ def update_ciclo(
     return db_ciclo
 
 
-@router.get("/ativo/aberto", response_model=ciclo_schemas.CicloResponse)
+@router.get("/ativo/aberto", response_model=CicloResponse)
 def get_ciclo_aberto(db: Session = Depends(get_db)):
     """Obtém o ciclo aberto ativo"""
     logger.debug("GET /ciclos/ativo/aberto - Buscando ciclo aberto")
 
     ciclo = (
-        db.query(ciclo_models.Ciclo)
-        .filter(ciclo_models.Ciclo.status == ciclo_models.StatusCiclo.ABERTO)
-        .order_by(ciclo_models.Ciclo.created_at.desc())
+        db.query(Ciclo)
+        .filter(Ciclo.status == StatusCiclo.ABERTO)
+        .order_by(Ciclo.created_at.desc())
         .first()
     )
 
@@ -121,23 +115,21 @@ def get_ciclo_aberto(db: Session = Depends(get_db)):
     return ciclo
 
 
-@router.post("/{ciclo_id}/avancar-etapa", response_model=ciclo_schemas.CicloResponse)
+@router.post("/{ciclo_id}/avancar-etapa", response_model=CicloResponse)
 def avancar_etapa(ciclo_id: int, db: Session = Depends(get_db)):
     """Avança a etapa atual do ciclo para a próxima"""
-    db_ciclo = (
-        db.query(ciclo_models.Ciclo).filter(ciclo_models.Ciclo.id == ciclo_id).first()
-    )
+    db_ciclo = db.query(Ciclo).filter(Ciclo.id == ciclo_id).first()
 
     if not db_ciclo:
         raise HTTPException(status_code=404, detail="Ciclo não encontrado")
 
     # Sequência de etapas
     etapas_sequencia = [
-        ciclo_models.EtapaCiclo.ESCOLHA_PARES,
-        ciclo_models.EtapaCiclo.APROVACAO_PARES,
-        ciclo_models.EtapaCiclo.AVALIACOES,
-        ciclo_models.EtapaCiclo.CALIBRACAO,
-        ciclo_models.EtapaCiclo.FEEDBACK,
+        EtapaCiclo.ESCOLHA_PARES,
+        EtapaCiclo.APROVACAO_PARES,
+        EtapaCiclo.AVALIACOES,
+        EtapaCiclo.CALIBRACAO,
+        EtapaCiclo.FEEDBACK,
     ]
 
     try:
@@ -156,9 +148,7 @@ def avancar_etapa(ciclo_id: int, db: Session = Depends(get_db)):
 @router.delete("/{ciclo_id}", status_code=204)
 def delete_ciclo(ciclo_id: int, db: Session = Depends(get_db)):
     """Exclui um ciclo"""
-    db_ciclo = (
-        db.query(ciclo_models.Ciclo).filter(ciclo_models.Ciclo.id == ciclo_id).first()
-    )
+    db_ciclo = db.query(Ciclo).filter(Ciclo.id == ciclo_id).first()
 
     if not db_ciclo:
         raise HTTPException(status_code=404, detail="Ciclo não encontrado")

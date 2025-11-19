@@ -1,11 +1,15 @@
 import logging
-from typing import Optional
 
 from app.core.security import get_current_colaborador
 from app.database import get_db
 from app.models.colaborador import Colaborador
 from app.repositories import CicloAvaliacaoRepository
-from app.schemas import ciclo_avaliacao as ciclo_schemas
+from app.schemas.ciclo_avaliacao import (
+    CicloAvaliacaoCreate,
+    CicloAvaliacaoListResponse,
+    CicloAvaliacaoResponse,
+    CicloAvaliacaoUpdate,
+)
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -59,12 +63,12 @@ def enrich_ciclo_avaliacao_with_pares_para_avaliar(
             for ps in ciclo_avaliacao.pares_selecionados
         ]
 
-    return ciclo_schemas.CicloAvaliacaoResponse.model_validate(ciclo_dict)
+    return CicloAvaliacaoResponse.model_validate(ciclo_dict)
 
 
-@router.post("/", response_model=ciclo_schemas.CicloAvaliacaoResponse, status_code=201)
+@router.post("/", response_model=CicloAvaliacaoResponse, status_code=201)
 def create_ciclo_avaliacao(
-    ciclo: ciclo_schemas.CicloAvaliacaoCreate,
+    ciclo: CicloAvaliacaoCreate,
     current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
@@ -147,7 +151,7 @@ def create_ciclo_avaliacao(
     return db_ciclo
 
 
-@router.get("/", response_model=ciclo_schemas.CicloAvaliacaoListResponse)
+@router.get("/", response_model=CicloAvaliacaoListResponse)
 def get_ciclos_avaliacao(
     current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
@@ -164,7 +168,7 @@ def get_ciclos_avaliacao(
     ciclos = ciclo_avaliacao_repo.get_by_colaborador(colaborador_id=colaborador_id)
 
     # Carregar relacionamentos necessários
-    from app.models import ciclo_avaliacao as ciclo_avaliacao_models
+    from app.models.ciclo_avaliacao import CicloAvaliacao, ParSelecionado
     from sqlalchemy.orm import joinedload
 
     ciclos_enriched = []
@@ -172,15 +176,15 @@ def get_ciclos_avaliacao(
         logger.debug(f"Buscando pares para avaliar para o ciclo {ciclo.id}")
         # Carregar relacionamentos
         ciclo_completo = (
-            db.query(ciclo_avaliacao_models.CicloAvaliacao)
+            db.query(CicloAvaliacao)
             .options(
-                joinedload(ciclo_avaliacao_models.CicloAvaliacao.ciclo),
-                joinedload(ciclo_avaliacao_models.CicloAvaliacao.colaborador),
-                joinedload(
-                    ciclo_avaliacao_models.CicloAvaliacao.pares_selecionados
-                ).joinedload(ciclo_avaliacao_models.ParSelecionado.par),
+                joinedload(CicloAvaliacao.ciclo),
+                joinedload(CicloAvaliacao.colaborador),
+                joinedload(CicloAvaliacao.pares_selecionados).joinedload(
+                    ParSelecionado.par
+                ),
             )
-            .filter(ciclo_avaliacao_models.CicloAvaliacao.id == ciclo.id)
+            .filter(CicloAvaliacao.id == ciclo.id)
             .first()
         )
         ciclo_enriched = enrich_ciclo_avaliacao_with_pares_para_avaliar(
@@ -195,7 +199,7 @@ def get_ciclos_avaliacao(
 
 @router.get(
     "/ativo",
-    response_model=ciclo_schemas.CicloAvaliacaoResponse,
+    response_model=CicloAvaliacaoResponse,
 )
 def get_ciclo_avaliacao_ativo(
     current_colaborador: Colaborador = Depends(get_current_colaborador),
@@ -220,19 +224,19 @@ def get_ciclo_avaliacao_ativo(
         )
 
     # Carregar relacionamentos necessários
-    from app.models import ciclo_avaliacao as ciclo_avaliacao_models
+    from app.models.ciclo_avaliacao import CicloAvaliacao, ParSelecionado
     from sqlalchemy.orm import joinedload
 
     ciclo_completo = (
-        db.query(ciclo_avaliacao_models.CicloAvaliacao)
+        db.query(CicloAvaliacao)
         .options(
-            joinedload(ciclo_avaliacao_models.CicloAvaliacao.ciclo),
-            joinedload(ciclo_avaliacao_models.CicloAvaliacao.colaborador),
-            joinedload(
-                ciclo_avaliacao_models.CicloAvaliacao.pares_selecionados
-            ).joinedload(ciclo_avaliacao_models.ParSelecionado.par),
+            joinedload(CicloAvaliacao.ciclo),
+            joinedload(CicloAvaliacao.colaborador),
+            joinedload(CicloAvaliacao.pares_selecionados).joinedload(
+                ParSelecionado.par
+            ),
         )
-        .filter(ciclo_avaliacao_models.CicloAvaliacao.id == ciclo.id)
+        .filter(CicloAvaliacao.id == ciclo.id)
         .first()
     )
 
@@ -246,7 +250,7 @@ def get_ciclo_avaliacao_ativo(
     return ciclo_enriched
 
 
-@router.get("/{ciclo_id}", response_model=ciclo_schemas.CicloAvaliacaoResponse)
+@router.get("/{ciclo_id}", response_model=CicloAvaliacaoResponse)
 def get_ciclo_avaliacao(
     ciclo_id: int,
     current_colaborador: Colaborador = Depends(get_current_colaborador),
@@ -278,10 +282,10 @@ def get_ciclo_avaliacao(
     return ciclo
 
 
-@router.put("/{ciclo_id}", response_model=ciclo_schemas.CicloAvaliacaoResponse)
+@router.put("/{ciclo_id}", response_model=CicloAvaliacaoResponse)
 def update_ciclo_avaliacao(
     ciclo_id: int,
-    ciclo_update: ciclo_schemas.CicloAvaliacaoUpdate,
+    ciclo_update: CicloAvaliacaoUpdate,
     current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):
@@ -293,13 +297,13 @@ def update_ciclo_avaliacao(
     ciclo_avaliacao_repo = CicloAvaliacaoRepository(db)
 
     # Buscar ciclo de avaliação com relacionamento ciclo carregado
-    from app.models import ciclo_avaliacao as ciclo_avaliacao_models
+    from app.models.ciclo_avaliacao import CicloAvaliacao
     from sqlalchemy.orm import joinedload
 
     db_ciclo = (
-        db.query(ciclo_avaliacao_models.CicloAvaliacao)
-        .options(joinedload(ciclo_avaliacao_models.CicloAvaliacao.ciclo))
-        .filter(ciclo_avaliacao_models.CicloAvaliacao.id == ciclo_id)
+        db.query(CicloAvaliacao)
+        .options(joinedload(CicloAvaliacao.ciclo))
+        .filter(CicloAvaliacao.id == ciclo_id)
         .first()
     )
 
@@ -323,10 +327,10 @@ def update_ciclo_avaliacao(
 
     # Verificar se o ciclo está na etapa de aprovação de pares
     # Durante esta etapa, colaboradores não podem alterar seus pares
-    from app.models import ciclo as ciclo_models
+    from app.models.ciclo import EtapaCiclo
 
     ciclo_obj = db_ciclo.ciclo
-    if ciclo_obj and ciclo_obj.etapa_atual == ciclo_models.EtapaCiclo.APROVACAO_PARES:
+    if ciclo_obj and ciclo_obj.etapa_atual == EtapaCiclo.APROVACAO_PARES:
         logger.warning(
             f"Tentativa de atualizar pares durante etapa de aprovação. Ciclo ID: {ciclo_id}, Etapa: {ciclo_obj.etapa_atual}"
         )
@@ -376,7 +380,7 @@ def update_ciclo_avaliacao(
 
 @router.get(
     "/gestor/liderados",
-    response_model=ciclo_schemas.CicloAvaliacaoListResponse,
+    response_model=CicloAvaliacaoListResponse,
 )
 def get_ciclos_avaliacao_liderados(
     ciclo_id: int = Query(..., description="ID do ciclo"),
@@ -408,19 +412,19 @@ def get_ciclos_avaliacao_liderados(
     logger.debug(f"Liderados encontrados: {len(liderados_ids)}. IDs: {liderados_ids}")
 
     # Buscar ciclos de avaliação dos liderados para o ciclo especificado
-    from app.models import ciclo_avaliacao as ciclo_avaliacao_models
+    from app.models.ciclo_avaliacao import CicloAvaliacao, ParSelecionado
     from sqlalchemy.orm import joinedload
 
     ciclos = (
-        db.query(ciclo_avaliacao_models.CicloAvaliacao)
+        db.query(CicloAvaliacao)
         .options(
-            joinedload(ciclo_avaliacao_models.CicloAvaliacao.colaborador),
-            joinedload(
-                ciclo_avaliacao_models.CicloAvaliacao.pares_selecionados
-            ).joinedload(ciclo_avaliacao_models.ParSelecionado.par),
+            joinedload(CicloAvaliacao.colaborador),
+            joinedload(CicloAvaliacao.pares_selecionados).joinedload(
+                ParSelecionado.par
+            ),
         )
-        .filter(ciclo_avaliacao_models.CicloAvaliacao.ciclo_id == ciclo_id)
-        .filter(ciclo_avaliacao_models.CicloAvaliacao.colaborador_id.in_(liderados_ids))
+        .filter(CicloAvaliacao.ciclo_id == ciclo_id)
+        .filter(CicloAvaliacao.colaborador_id.in_(liderados_ids))
         .all()
     )
 
@@ -432,11 +436,11 @@ def get_ciclos_avaliacao_liderados(
 
 @router.put(
     "/gestor/{ciclo_avaliacao_id}/pares",
-    response_model=ciclo_schemas.CicloAvaliacaoResponse,
+    response_model=CicloAvaliacaoResponse,
 )
 def update_pares_liderado(
     ciclo_avaliacao_id: int,
-    ciclo_update: ciclo_schemas.CicloAvaliacaoUpdate,
+    ciclo_update: CicloAvaliacaoUpdate,
     current_colaborador: Colaborador = Depends(get_current_colaborador),
     db: Session = Depends(get_db),
 ):

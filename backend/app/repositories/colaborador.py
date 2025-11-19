@@ -1,9 +1,8 @@
 from typing import List, Optional
 
-from sqlalchemy.orm import Session
-
 from app.models.colaborador import Colaborador
 from app.repositories.base import BaseRepository
+from sqlalchemy.orm import Session
 
 
 class ColaboradorRepository(BaseRepository[Colaborador]):
@@ -15,6 +14,12 @@ class ColaboradorRepository(BaseRepository[Colaborador]):
     def get_by_email(self, email: str) -> Optional[Colaborador]:
         """Busca um colaborador por email"""
         return self.db.query(self.model).filter(self.model.email == email).first()
+
+    def get_by_google_id(self, google_id: str) -> Optional[Colaborador]:
+        """Busca um colaborador por google_id"""
+        return (
+            self.db.query(self.model).filter(self.model.google_id == google_id).first()
+        )
 
     def get_active(
         self,
