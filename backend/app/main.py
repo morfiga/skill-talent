@@ -15,7 +15,6 @@ from app.api.v1 import (
     valores,
 )
 from app.core.config import settings
-from app.database import Base, engine
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,16 +38,11 @@ async def lifespan(app: FastAPI):
     """Lifecycle events da aplicação"""
     # Startup
     logger.info("Iniciando aplicação...")
-    try:
-        # Criar tabelas (em produção, usar migrations)
-        Base.metadata.create_all(bind=engine)
-        logger.info("Tabelas do banco de dados verificadas/criadas com sucesso")
-
-    except Exception as e:
-        logger.error(
-            f"Erro ao criar tabelas do banco de dados: {str(e)}", exc_info=True
-        )
-        raise
+    # Nota: As tabelas do banco de dados são gerenciadas via Alembic migrations.
+    # Execute 'alembic upgrade head' para aplicar as migrations.
+    logger.debug(
+        "Aplicação iniciada. Certifique-se de que as migrations foram aplicadas."
+    )
     yield
     # Shutdown
     logger.info("Encerrando aplicação...")
