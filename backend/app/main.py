@@ -15,10 +15,11 @@ from app.api.v1 import (
     valores,
 )
 from app.core.config import settings
+from app.core.error_responses import create_error_response, get_request_id
+from app.core.exceptions import BaseAPIException
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 # Configurar logging
@@ -88,41 +89,107 @@ async def health_check():
 
 
 # Exception handlers globais
+@app.exception_handler(BaseAPIException)
+async def base_api_exception_handler(request: Request, exc: BaseAPIException):
+    """Handler para exceções customizadas da API"""
+    request_id = get_request_id(request)
+
+    # Log apenas em modo debug ou para erros 5xx
+    if exc.status_code >= 500:
+        logger.error(
+            f"Erro da API na requisição {request.method} {request.url.path}: {exc.detail}",
+            exc_info=True,
+            extra={"request_id": request_id, "error_code": exc.error_code},
+        )
+    else:
+        logger.warning(
+            f"Erro da API na requisição {request.method} {request.url.path}: {exc.detail}",
+            extra={"request_id": request_id, "error_code": exc.error_code},
+        )
+
+    return create_error_response(
+        status_code=exc.status_code,
+        error_code=exc.error_code,
+        message=exc.detail,
+        request_id=request_id,
+    )
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """Handler para erros de validação"""
+    """Handler para erros de validação do Pydantic"""
+    request_id = get_request_id(request)
+
+    # Extrair primeiro erro para mensagem principal
+    errors = exc.errors()
+    first_error = errors[0] if errors else {}
+    field = ".".join(str(loc) for loc in first_error.get("loc", []))
+    message = first_error.get("msg", "Erro de validação")
+
     logger.warning(
-        f"Erro de validação na requisição {request.method} {request.url.path}: {exc.errors()}"
+        f"Erro de validação na requisição {request.method} {request.url.path}: {errors}",
+        extra={"request_id": request_id, "field": field},
     )
-    return JSONResponse(
+
+    return create_error_response(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": exc.errors(), "body": exc.body},
+        error_code="VALIDATION_ERROR",
+        message=message,
+        field=field if field else None,
+        details={"errors": errors} if settings.DEBUG else None,
+        request_id=request_id,
     )
 
 
 @app.exception_handler(SQLAlchemyError)
 async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
     """Handler para erros do SQLAlchemy"""
+    request_id = get_request_id(request)
+
+    # Log detalhado do erro
     logger.error(
         f"Erro de banco de dados na requisição {request.method} {request.url.path}: {str(exc)}",
         exc_info=True,
+        extra={"request_id": request_id},
     )
-    return JSONResponse(
+
+    # Em produção, não expor detalhes do erro de banco
+    detail_message = (
+        "Erro ao processar operação no banco de dados"
+        if not settings.DEBUG
+        else f"Erro de banco de dados: {str(exc)}"
+    )
+
+    return create_error_response(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "detail": "Erro interno do servidor ao processar requisição no banco de dados"
-        },
+        error_code="DATABASE_ERROR",
+        message=detail_message,
+        request_id=request_id,
     )
 
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Handler para erros genéricos não tratados"""
+    request_id = get_request_id(request)
+
+    # Log detalhado do erro
     logger.error(
         f"Erro não tratado na requisição {request.method} {request.url.path}: {str(exc)}",
         exc_info=True,
+        extra={"request_id": request_id, "exception_type": type(exc).__name__},
     )
-    return JSONResponse(
+
+    # Em produção, não expor detalhes do erro
+    detail_message = (
+        "Erro interno do servidor"
+        if not settings.DEBUG
+        else f"Erro interno: {str(exc)}"
+    )
+
+    return create_error_response(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "Erro interno do servidor"},
+        error_code="INTERNAL_SERVER_ERROR",
+        message=detail_message,
+        request_id=request_id,
     )

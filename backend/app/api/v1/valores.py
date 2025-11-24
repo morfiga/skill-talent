@@ -1,27 +1,26 @@
 from app.database import get_db
 from app.models.registro_valor import Valor
 from app.schemas.registro_valor import ValorListResponse, ValorResponse
+from app.services.valor_service import ValorService
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/valores", tags=["valores"])
 
 
+def get_valor_service(db: Session = Depends(get_db)) -> ValorService:
+    return ValorService(db)
+
+
 @router.get("/", response_model=ValorListResponse)
-def get_valores(db: Session = Depends(get_db)):
+def get_valores(service: ValorService = Depends(get_valor_service)):
     """Lista todos os valores disponíveis"""
-    valores = db.query(Valor).all()
+    valores = service.get_valores()
     return {"valores": valores}
 
 
 @router.get("/{valor_id}", response_model=ValorResponse)
-def get_valor(valor_id: int, db: Session = Depends(get_db)):
+def get_valor(valor_id: int, service: ValorService = Depends(get_valor_service)):
     """Obtém um valor por ID"""
-    valor = db.query(Valor).filter(Valor.id == valor_id).first()
-
-    if not valor:
-        from fastapi import HTTPException
-
-        raise HTTPException(status_code=404, detail="Valor não encontrado")
-
+    valor = service.get_valor(valor_id)
     return valor

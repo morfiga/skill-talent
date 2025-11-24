@@ -1,11 +1,12 @@
 from typing import List, Optional
 
+from sqlalchemy import and_
+from sqlalchemy.orm import Session, joinedload
+
 from app.models.ciclo import Ciclo, StatusCiclo
 from app.models.ciclo_avaliacao import CicloAvaliacao, ParSelecionado
 from app.models.colaborador import Colaborador
 from app.repositories.base import BaseRepository
-from sqlalchemy import and_
-from sqlalchemy.orm import Session, joinedload
 
 
 class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
@@ -13,6 +14,14 @@ class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
 
     def __init__(self, db: Session):
         super().__init__(CicloAvaliacao, db)
+
+    def get(self, id: int) -> Optional[CicloAvaliacao]:
+        return (
+            self.db.query(self.model)
+            .options(joinedload(self.model.ciclo))
+            .filter(self.model.id == id)
+            .first()
+        )
 
     def get_by_colaborador(self, colaborador_id: int) -> List[CicloAvaliacao]:
         """Busca ciclos de avaliação por colaborador"""
@@ -48,6 +57,20 @@ class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
             .first()
         )
 
+    def get_completo(self, ciclo_id: int) -> Optional[CicloAvaliacao]:
+        return (
+            self.db.query(CicloAvaliacao)
+            .options(
+                joinedload(CicloAvaliacao.ciclo),
+                joinedload(CicloAvaliacao.colaborador),
+                joinedload(CicloAvaliacao.pares_selecionados).joinedload(
+                    ParSelecionado.par
+                ),
+            )
+            .filter(CicloAvaliacao.id == ciclo_id)
+            .first()
+        )
+
     def create_with_pares(
         self,
         ciclo_id: int,
@@ -65,6 +88,8 @@ class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
             )
             self.db.add(par_selecionado)
 
+        self.db.commit()
+        self.db.refresh(db_ciclo)
         return db_ciclo
 
     def update_pares(
@@ -109,22 +134,33 @@ class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
         self, avaliador_id: int, ciclo_id: int
     ) -> List[Colaborador]:
         """Busca os colaboradores que selecionaram o avaliador_id como par no ciclo_id"""
-        # Buscar todos os ciclos de avaliação do ciclo especificado
-        # onde o avaliador_id foi selecionado como par
-        # Retorna os colaboradores (colaborador_id) desses ciclos de avaliação
         return (
             self.db.query(Colaborador)
             .join(
-                CicloAvaliacao,
-                CicloAvaliacao.colaborador_id == Colaborador.id,
+                self.model,
+                self.model.colaborador_id == Colaborador.id,
             )
             .join(
                 ParSelecionado,
-                ParSelecionado.ciclo_avaliacao_id == CicloAvaliacao.id,
+                ParSelecionado.ciclo_avaliacao_id == self.model.id,
             )
             .filter(ParSelecionado.par_id == avaliador_id)
-            .filter(CicloAvaliacao.ciclo_id == ciclo_id)
-            .filter(CicloAvaliacao.colaborador_id != avaliador_id)
+            .filter(self.model.ciclo_id == ciclo_id)
+            .filter(self.model.colaborador_id != avaliador_id)
             .distinct()
+            .all()
+        )
+
+    def get_by_liderados(self, liderados_ids: List[int]) -> List[CicloAvaliacao]:
+        return (
+            self.db.query(self.model)
+            .options(
+                joinedload(self.model.colaborador),
+                joinedload(self.model.pares_selecionados).joinedload(
+                    ParSelecionado.par
+                ),
+            )
+            .filter(self.model.ciclo_id == ciclo_id)
+            .filter(self.model.colaborador_id.in_(liderados_ids))
             .all()
         )

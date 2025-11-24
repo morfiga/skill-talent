@@ -1,8 +1,9 @@
 from typing import List, Optional
 
+from sqlalchemy.orm import Session
+
 from app.models.colaborador import Colaborador
 from app.repositories.base import BaseRepository
-from sqlalchemy.orm import Session
 
 
 class ColaboradorRepository(BaseRepository[Colaborador]):
@@ -40,3 +41,14 @@ class ColaboradorRepository(BaseRepository[Colaborador]):
     def get_by_ids(self, ids: List[int]) -> List[Colaborador]:
         """Busca colaboradores por uma lista de IDs"""
         return self.db.query(self.model).filter(self.model.id.in_(ids)).all()
+
+    def get_liderados(
+        self, gestor_id: int, is_active: bool = True
+    ) -> List[Colaborador]:
+        """Busca colaboradores liderados por um gestor"""
+        return (
+            self.db.query(self.model)
+            .filter(self.model.gestor_id == gestor_id)
+            .filter(self.model.is_active == is_active)
+            .all()
+        )

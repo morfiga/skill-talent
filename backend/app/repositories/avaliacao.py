@@ -6,7 +6,7 @@ from app.models.colaborador import Colaborador
 from app.models.eixo_avaliacao import EixoAvaliacao
 from app.repositories.base import BaseRepository
 from sqlalchemy import and_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 
 class AvaliacaoRepository(BaseRepository[Avaliacao]):
@@ -26,17 +26,6 @@ class AvaliacaoRepository(BaseRepository[Avaliacao]):
         query = self._build_filter_query(ciclo_id, avaliador_id, avaliado_id, tipo)
 
         return query.order_by(self.model.created_at.desc()).all()
-
-    def count_by_filters(
-        self,
-        ciclo_id: Optional[int] = None,
-        avaliador_id: Optional[int] = None,
-        avaliado_id: Optional[int] = None,
-        tipo: Optional[str] = None,
-    ) -> int:
-        """Conta avaliações com filtros"""
-        query = self._build_filter_query(ciclo_id, avaliador_id, avaliado_id, tipo)
-        return query.count()
 
     def _build_filter_query(
         self,
@@ -220,12 +209,11 @@ class AvaliacaoRepository(BaseRepository[Avaliacao]):
         """Valida se o ciclo de avaliação existe"""
         return (
             self.db.query(CicloAvaliacao)
-            .filter(
-                and_(
-                    CicloAvaliacao.ciclo_id == ciclo_id,
-                    CicloAvaliacao.colaborador_id == colaborador_id,
-                )
+            .options(
+                joinedload(CicloAvaliacao.ciclo),
             )
+            .filter(CicloAvaliacao.ciclo_id == ciclo_id)
+            .filter(CicloAvaliacao.colaborador_id == colaborador_id)
             .first()
         )
 
@@ -234,3 +222,28 @@ class AvaliacaoRepository(BaseRepository[Avaliacao]):
         return (
             self.db.query(Colaborador).filter(Colaborador.id == colaborador_id).first()
         )
+
+    def get_all_by_colaborador(
+        self, colaborador_id: int, ciclo_id: Optional[int] = None
+    ) -> List[Avaliacao]:
+        avaliacoes_completas = (
+            self.db.query(self.model)
+            .options(
+                joinedload(self.model.avaliador),
+                joinedload(self.model.avaliado),
+                joinedload(self.model.ciclo),
+                joinedload(self.model.eixos).joinedload(AvaliacaoEixo.eixo),
+            )
+            .filter(self.model.avaliado_id == colaborador_id)
+        )
+
+        if ciclo_id:
+            avaliacoes_completas = avaliacoes_completas.filter(
+                self.model.ciclo_id == ciclo_id
+            )
+
+        avaliacoes_completas = avaliacoes_completas.order_by(
+            self.model.created_at.desc()
+        ).all()
+
+        return avaliacoes_completas

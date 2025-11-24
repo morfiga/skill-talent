@@ -27,11 +27,10 @@ class RegistroValorBase(BaseModel):
     descricao: str
     reflexao: str
     impacto: str
-    valores_ids: List[int]
 
 
 class RegistroValorCreate(RegistroValorBase):
-    pass
+    valores_ids: List[int]
 
 
 class RegistroValorUpdate(BaseModel):

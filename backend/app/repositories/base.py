@@ -1,6 +1,5 @@
 from typing import Generic, List, Optional, Type, TypeVar
 
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 ModelType = TypeVar("ModelType")
@@ -36,7 +35,11 @@ class BaseRepository(Generic[ModelType]):
 
         # Aplicar filtros
         for key, value in filters.items():
-            if hasattr(self.model, key) and value is not None:
+            if "__in" in key:
+                query = query.filter(
+                    getattr(self.model, key.replace("__in", "")).in_(value)
+                )
+            elif hasattr(self.model, key) and value is not None:
                 query = query.filter(getattr(self.model, key) == value)
 
         # Aplicar ordenação se fornecida
