@@ -20,26 +20,19 @@ Este documento apresenta um roadmap estruturado com melhorias sugeridas para o c
 ## 🚨 Prioridade Alta
 
 ### 1. Sistema de Migrations com Alembic
-**Status:** ❌ Não implementado  
+**Status:** ✅ Implementado  
 **Impacto:** 🔴 Crítico para produção  
 **Esforço:** 🟡 Médio
 
-**Problema:**
-- Atualmente usa `Base.metadata.create_all()` no startup (linha 44 de `main.py`)
-- Não há controle de versão do schema
-- Impossível fazer rollback de mudanças
-- Não é adequado para ambientes de produção
+**Solução implementada:**
+- ✅ Alembic configurado (`alembic.ini`)
+- ✅ Migrations iniciais criadas (`alembic/versions/`)
+- ✅ Estrutura de migrations funcional
 
-**Solução:**
-- Implementar Alembic para gerenciamento de migrations
-- Criar migrations iniciais baseadas nos modelos existentes
-- Configurar scripts de migração para CI/CD
-- Documentar processo de deploy com migrations
-
-**Arquivos afetados:**
-- `app/main.py` (remover `create_all`)
-- Criar `alembic.ini` e `alembic/` directory
-- `requirements.txt` (adicionar alembic)
+**Arquivos criados:**
+- `alembic.ini`
+- `alembic/env.py`
+- `alembic/versions/49dcbad550f6_initial_migration.py`
 
 ---
 
@@ -86,8 +79,8 @@ backend/
 **Impacto:** 🟡 Médio  
 **Esforço:** 🟢 Baixo
 
-**Problema:**
-- Health check atual (`/health`) apenas retorna `{"status": "healthy"}`
+**Estado atual:**
+- Health check básico em `/health` retorna apenas `{"status": "healthy"}`
 - Não verifica conectividade com banco de dados
 - Não verifica dependências externas
 
@@ -135,27 +128,19 @@ backend/
 ---
 
 ### 5. Tratamento de Erros Consistente
-**Status:** ⚠️ Parcialmente implementado  
+**Status:** ✅ Implementado  
 **Impacto:** 🟡 Médio  
 **Esforço:** 🟡 Médio
 
-**Problema:**
-- Tratamento de erros inconsistente entre endpoints
-- Alguns endpoints têm try/except detalhado, outros não
-- Mensagens de erro podem expor detalhes internos
-- Falta padronização de códigos HTTP
+**Solução implementada:**
+- ✅ Classes de exceção customizadas criadas
+- ✅ `BaseAPIException` com código de erro e conversão para dict
+- ✅ Exceções específicas: `NotFoundException`, `ValidationException`, `ForbiddenException`, etc.
+- ✅ Tratamento padronizado em todos os services
 
-**Solução:**
-- Criar classes de exceção customizadas
-- Implementar handler centralizado para exceções de negócio
-- Padronizar formato de resposta de erro
-- Adicionar códigos de erro customizados
-- Logar erros sem expor detalhes sensíveis em produção
-
-**Arquivos afetados:**
-- Criar `app/core/exceptions.py`
-- Atualizar `app/main.py` (exception handlers)
-- Refatorar endpoints para usar exceções customizadas
+**Arquivos criados/atualizados:**
+- ✅ `app/core/exceptions.py` - 8 classes de exceção customizadas
+- ✅ Todos os services refatorados para usar exceções customizadas
 
 ---
 
@@ -182,24 +167,25 @@ backend/
 ---
 
 ### 7. Validação de Dados Mais Robusta
-**Status:** ⚠️ Básico com Pydantic  
+**Status:** ✅ Implementado  
 **Impacto:** 🟡 Médio  
 **Esforço:** 🟡 Médio
 
-**Problema:**
-- Validações de negócio misturadas com lógica de endpoint
-- Falta validação de relacionamentos (ex: gestor_id deve existir)
-- Validações duplicadas em vários lugares
+**Solução implementada:**
+- ✅ Validadores centralizados em `app/core/validators.py`
+- ✅ Schemas com `Field()` e constraints (min/max length, patterns, etc.)
+- ✅ Enums validados nos schemas (`TipoAvaliacao`, `StatusCiclo`, `EtapaCiclo`)
+- ✅ `field_validator` customizados para validações complexas
+- ✅ Eliminação de duplicação de código de validação
 
-**Solução:**
-- Criar validadores customizados no Pydantic
-- Mover validações de negócio para services
-- Implementar validação de relacionamentos no schema
-- Adicionar validações de constraints de negócio
-
-**Arquivos afetados:**
-- Schemas em `app/schemas/`
-- Criar `app/services/validators.py`
+**Arquivos criados/atualizados:**
+- ✅ `app/core/validators.py` - Constantes e funções de validação
+- ✅ `app/schemas/colaborador.py` - Com Field() e field_validator
+- ✅ `app/schemas/avaliacao.py` - Com TipoAvaliacao enum
+- ✅ `app/schemas/ciclo.py` - Com StatusCiclo e EtapaCiclo enums
+- ✅ `app/schemas/ciclo_avaliacao.py` - Com validação de pares_ids
+- ✅ `app/schemas/registro_valor.py` - Com Field() constraints
+- ✅ `app/schemas/entrega_outstanding.py` - Com Field() constraints
 
 ---
 
@@ -325,89 +311,93 @@ backend/
 ## 🏗️ Melhorias de Arquitetura
 
 ### 15. Service Layer Consistente
-**Status:** ✅ Parcialmente implementado (ColaboradorService e CicloService criados)  
+**Status:** ✅ Implementado  
 **Impacto:** 🟡 Médio  
 **Esforço:** 🔴 Alto
 
-**Problema:**
-- Lógica de negócio misturada com controllers
-- Repositories fazem validações de negócio
-- Dificulta testes e reutilização
-
-**Solução:**
-- ✅ Criar service layer para cada domínio
-- ✅ Mover lógica de negócio para services
+**Solução implementada:**
+- ✅ Service layer para cada domínio
+- ✅ Lógica de negócio movida para services
 - ✅ Repositories apenas para acesso a dados
 - ✅ Controllers apenas orquestram
-- ⏳ Criar services restantes (AvaliacaoService, CicloAvaliacaoService, etc.)
+- ✅ Dependency Injection padronizada
 
 **Estrutura implementada:**
 ```
 app/services/
-├── base.py                    # Classe base para services
-├── colaborador.py     # ✅ Implementado
-├── ciclo.py           # ✅ Implementado
-├── avaliacao.py       # ⏳ Pendente
-└── ...
+├── __init__.py           # Exports de todos services
+├── base.py               # ✅ Classe base para services
+├── colaborador.py        # ✅ Implementado
+├── ciclo.py              # ✅ Implementado
+├── avaliacao.py          # ✅ Implementado
+├── ciclo_avaliacao.py    # ✅ Implementado
+├── eixo_avaliacao.py     # ✅ Implementado
+├── entrega_outstanding.py # ✅ Implementado
+├── registro_valor.py     # ✅ Implementado
+└── valor.py              # ✅ Implementado
 ```
 
-**Arquivos afetados:**
-- ✅ `app/services/base.py` - Classe base criada
-- ✅ `app/services/colaborador.py` - Service criado
-- ✅ `app/services/ciclo.py` - Service criado
-- ✅ `app/api/v1/colaboradores.py` - Refatorado para usar service
-- ✅ `app/api/v1/ciclos.py` - Refatorado para usar service
+**Arquivos atualizados:**
+- ✅ Todos os controllers em `app/api/v1/` usando services
+- ✅ Dependency Injection com `get_*_service` + `Depends()`
 
 ---
 
 ### 16. Dependency Injection Melhorada
-**Status:** ⚠️ Básico  
+**Status:** ✅ Implementado  
 **Impacto:** 🟡 Médio  
 **Esforço:** 🟡 Médio
 
-**Problema:**
-- Repositories instanciados dentro dos endpoints
-- Dificulta testes e mock
+**Solução implementada:**
+- ✅ Factories para services (`get_*_service`)
+- ✅ Dependency injection do FastAPI em todos os endpoints
+- ✅ Padrão consistente em todos os controllers
 
-**Solução:**
-- Criar factories para repositories
-- Usar dependency injection do FastAPI
-- Facilitar testes com mocks
+**Exemplo de implementação:**
+```python
+def get_colaborador_service(db: Session = Depends(get_db)) -> ColaboradorService:
+    return ColaboradorService(db)
+
+@router.get("/")
+def get_colaboradores(
+    service: ColaboradorService = Depends(get_colaborador_service),
+):
+    ...
+```
 
 ---
 
 ### 17. Query Optimization (N+1 Problems)
-**Status:** ⚠️ Possíveis problemas  
+**Status:** ⚠️ Parcialmente implementado  
 **Impacto:** 🟡 Médio  
 **Esforço:** 🟡 Médio
 
-**Problema:**
-- Queries podem ter problemas N+1
-- Falta eager loading em alguns lugares
+**Estado atual:**
+- Alguns repositories usam `joinedload` (13 ocorrências encontradas)
+- Implementado em `ciclo_avaliacao.py` e `avaliacao.py`
 
-**Solução:**
-- Auditar queries com SQLAlchemy logging
-- Implementar eager loading onde necessário
-- Usar `joinedload` ou `selectinload`
-- Adicionar índices no banco
-
-**Exemplo de problema:**
-- `avaliacoes.py` linha 505-516: usa `joinedload` mas pode ser otimizado
+**Melhorias pendentes:**
+- Auditar todas as queries com SQLAlchemy logging
+- Verificar se há problemas N+1 remanescentes
+- Adicionar índices no banco onde necessário
 
 ---
 
 ## ⚡ Melhorias de Performance
 
 ### 18. Database Connection Pooling
-**Status:** ⚠️ Configurado mas pode melhorar  
+**Status:** ⚠️ Configurado basicamente  
 **Impacto:** 🟡 Médio  
 **Esforço:** 🟢 Baixo
 
-**Solução:**
-- Otimizar configuração do pool
+**Estado atual:**
+- `pool_pre_ping=True` configurado
+- `pool_recycle=300` configurado
+
+**Melhorias pendentes:**
 - Ajustar `pool_size`, `max_overflow`
 - Monitorar uso do pool
-- Configurar pool recycling
+- Avaliar configurações para produção
 
 **Arquivos afetados:**
 - `app/database.py`
@@ -442,15 +432,15 @@ app/services/
 ## 🔒 Melhorias de Segurança
 
 ### 21. Validação de Input Mais Rigorosa
-**Status:** ⚠️ Básico  
+**Status:** ✅ Implementado  
 **Impacto:** 🟡 Médio  
 **Esforço:** 🟡 Médio
 
-**Solução:**
-- Sanitizar inputs
-- Validar tamanhos máximos
-- Prevenir SQL injection (já protegido pelo ORM, mas validar)
-- Validar tipos e formatos
+**Solução implementada:**
+- ✅ Schemas com `Field()` e constraints (min/max length)
+- ✅ Validação de tipos com enums
+- ✅ Pattern regex para campos específicos (nivel_carreira)
+- ✅ Proteção contra SQL injection via ORM
 
 ---
 
@@ -465,7 +455,7 @@ app/services/
 - Validar origins dinamicamente se necessário
 
 **Arquivos afetados:**
-- `app/main.py` (linha 65-71)
+- `app/main.py`
 
 ---
 
@@ -523,33 +513,26 @@ app/services/
 ---
 
 ### 27. Remover Código Duplicado
-**Status:** ⚠️ Alguma duplicação  
+**Status:** ✅ Implementado  
 **Impacto:** 🟡 Médio  
 **Esforço:** 🟡 Médio
 
-**Problema:**
-- Validações repetidas
-- Lógica similar em vários endpoints
-
-**Solução:**
-- Extrair funções comuns
-- Criar decorators para validações
-- Reutilizar código entre endpoints
+**Solução implementada:**
+- ✅ Validadores centralizados em `app/core/validators.py`
+- ✅ Exceções customizadas em `app/core/exceptions.py`
+- ✅ Service layer eliminando duplicação entre controllers
 
 ---
 
 ### 28. Constants e Enums
-**Status:** ⚠️ Alguns enums existem  
+**Status:** ✅ Implementado  
 **Impacto:** 🟢 Baixo  
 **Esforço:** 🟢 Baixo
 
-**Solução:**
-- Centralizar constantes
-- Usar enums ao invés de strings mágicas
-- Criar `app/core/constants.py`
-
-**Exemplo:**
-- `NIVEIS_ESPERADOS_POR_CARREIRA` em `niveis_carreira.py` poderia estar em constants
+**Solução implementada:**
+- ✅ Constantes centralizadas em `app/core/validators.py`
+- ✅ Enums usados nos schemas (`TipoAvaliacao`, `StatusCiclo`, `EtapaCiclo`)
+- ✅ Constantes de validação (`NIVEIS_CARREIRA_VALIDOS`, `NUMERO_PARES_OBRIGATORIO`, etc.)
 
 ---
 
@@ -593,56 +576,91 @@ app/services/
 
 ---
 
-## 📊 Resumo de Prioridades
+## 📊 Resumo de Status
 
-### 🔴 Crítico (Implementar Primeiro)
+### ✅ Implementados (9 itens)
 1. Sistema de Migrations (Alembic)
-2. Testes Automatizados
-3. Health Check Robusto
-
-### 🟡 Importante (Próximas Sprints)
-4. Paginação
 5. Tratamento de Erros Consistente
-6. Service Layer
-7. Logging Estruturado
-8. Cache
+7. Validação de Dados Mais Robusta
+15. Service Layer Consistente
+16. Dependency Injection Melhorada
+21. Validação de Input Mais Rigorosa
+27. Remover Código Duplicado
+28. Constants e Enums
 
-### 🟢 Desejável (Backlog)
-9. Async/Await
-10. Rate Limiting
-11. Monitoring
-12. Documentação
+### ⚠️ Parcialmente Implementados (8 itens)
+3. Health Check Robusto
+8. Logging Estruturado
+10. Documentação de Código
+14. Versionamento de API
+17. Query Optimization
+18. Database Connection Pooling
+19. Índices no Banco de Dados
+22. CORS Mais Restritivo
+
+### ❌ Não Implementados (14 itens)
+2. Testes Automatizados
+4. Paginação em Endpoints
+6. Async/Await nos Endpoints
+9. Cache para Dados Estáticos
+11. Rate Limiting
+12. Monitoring e Observabilidade
+13. Background Tasks
+20. Response Compression
+23. Headers de Segurança
+24. Rate Limiting por Usuário
+25. Type Hints Completos
+26. Linting e Formatação
+29. CI/CD Pipeline
+30. Docker Multi-stage Build
+31. Environment-specific Configs
 
 ---
 
-## 📅 Sugestão de Roadmap Temporal
+## 📊 Resumo de Prioridades
 
-### Sprint 1-2 (Alta Prioridade)
+### 🔴 Crítico (Implementar Primeiro)
+1. ~~Sistema de Migrations (Alembic)~~ ✅
+2. Testes Automatizados ❌
+3. Health Check Robusto ⚠️
+
+### 🟡 Importante (Próximas Sprints)
+4. Paginação ❌
+5. ~~Tratamento de Erros Consistente~~ ✅
+6. ~~Service Layer~~ ✅
+7. Logging Estruturado ⚠️
+8. Cache ❌
+
+### 🟢 Desejável (Backlog)
+9. Async/Await ❌
+10. Rate Limiting ❌
+11. Monitoring ❌
+12. Documentação ⚠️
+
+---
+
+## 📅 Progresso do Roadmap
+
+### Concluído
 - ✅ Migrations com Alembic
-- ✅ Health Check Robusto
-- ✅ Paginação básica
-
-### Sprint 3-4 (Testes e Qualidade)
-- ✅ Estrutura de testes
-- ✅ Testes unitários de repositories
-- ✅ Testes de integração de endpoints críticos
-- ✅ Linting e formatação
-
-### Sprint 5-6 (Arquitetura)
+- ✅ Tratamento de Erros
+- ✅ Validação de Dados
 - ✅ Service Layer
-- ✅ Tratamento de erros consistente
-- ✅ Logging estruturado
+- ✅ Dependency Injection
+- ✅ Constantes e Enums
+- ✅ Remoção de Código Duplicado
 
-### Sprint 7+ (Otimizações)
-- ✅ Cache
-- ✅ Query optimization
-- ✅ Performance improvements
+### Em Progresso / Próximos Passos
+- ⏳ Testes Automatizados (alta prioridade)
+- ⏳ Paginação (média prioridade)
+- ⏳ Health Check Robusto (média prioridade)
+- ⏳ Logging Estruturado (média prioridade)
 
 ---
 
 ## 📚 Referências e Ferramentas Sugeridas
 
-- **Migrations:** Alembic
+- **Migrations:** Alembic ✅
 - **Testes:** pytest, pytest-asyncio, httpx
 - **Linting:** black, ruff, mypy
 - **Cache:** Redis ou cachetools
@@ -661,6 +679,6 @@ app/services/
 
 ---
 
-**Última atualização:** 2024  
-**Versão:** 1.0.0
+**Última atualização:** Novembro 2025  
+**Versão:** 2.0.0
 
