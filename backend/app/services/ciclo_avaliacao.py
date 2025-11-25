@@ -1,11 +1,12 @@
 import logging
+from typing import List
 
 from app.core.exceptions import (
     BusinessRuleException,
     ForbiddenException,
     NotFoundException,
-    ValidationException,
 )
+from app.core.validators import validate_pares_existem
 from app.models.ciclo import EtapaCiclo
 from app.models.ciclo_avaliacao import CicloAvaliacao
 from app.models.colaborador import Colaborador
@@ -29,6 +30,11 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
         self.repository = CicloAvaliacaoRepository(db)
         self.colaborador_service = ColaboradorService(db)
 
+    def _validate_pares_exist(self, pares_ids: List[int]) -> None:
+        """Valida que todos os pares existem no banco de dados"""
+        pares = self.repository.validate_pares(pares_ids)
+        validate_pares_existem(len(pares), len(pares_ids))
+
     def create(
         self, ciclo_avaliacao: CicloAvaliacaoCreate, current_colaborador: Colaborador
     ) -> CicloAvaliacao:
@@ -36,31 +42,17 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
 
         # Validar que o colaborador existe
         colaborador = self.repository.validate_colaborador(colaborador_id)
-
         if not colaborador:
-            raise NotFoundException(f"Colaborador", colaborador_id)
+            raise NotFoundException("Colaborador", colaborador_id)
 
         # Validar que o ciclo existe
         ciclo_obj = self.repository.validate_ciclo(ciclo_avaliacao.ciclo_id)
-
         if not ciclo_obj:
-            raise NotFoundException(f"Ciclo", ciclo_avaliacao.ciclo_id)
+            raise NotFoundException("Ciclo", ciclo_avaliacao.ciclo_id)
 
-        # Validar que foram selecionados exatamente 4 pares
-        if len(ciclo_avaliacao.pares_ids) != 4:
-            raise ValidationException(
-                f"É necessário selecionar exatamente 4 pares",
-                field="pares_ids",
-            )
-
-        # Validar que os pares existem
-        pares = self.repository.validate_pares(ciclo_avaliacao.pares_ids)
-
-        if len(pares) != 4:
-            raise ValidationException(
-                f"Um ou mais pares não encontrados. Esperado: 4, Encontrado: {len(pares)}",
-                field="pares_ids",
-            )
+        # Validar que os pares existem no banco
+        # (validação de quantidade já feita no schema)
+        self._validate_pares_exist(ciclo_avaliacao.pares_ids)
 
         # Criar ciclo de avaliação com pares
         db_ciclo = self.repository.create_with_pares(
@@ -95,7 +87,7 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
         ciclo = self.repository.get_ativo_by_colaborador(colaborador_id)
 
         if not ciclo:
-            raise NotFoundException(f"Ciclo de avaliação", colaborador_id)
+            raise NotFoundException("Ciclo de avaliação ativo", colaborador_id)
 
         ciclo_completo = self.repository.get_completo(ciclo.id)
         ciclo_enriched = self._enrich_ciclo_avaliacao_with_pares_para_avaliar(
@@ -109,11 +101,13 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
         ciclo = self.repository.get(ciclo_id)
 
         if not ciclo:
-            raise NotFoundException(f"Ciclo de avaliação", ciclo_id)
+            raise NotFoundException("Ciclo de avaliação", ciclo_id)
 
         # Validar que o ciclo pertence ao colaborador logado
         if ciclo.colaborador_id != colaborador_id:
-            raise ForbiddenException(f"Ciclo de avaliação", ciclo_id)
+            raise ForbiddenException(
+                "Você só pode acessar seus próprios ciclos de avaliação"
+            )
 
         return ciclo
 
@@ -123,29 +117,22 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
         db_ciclo = self.repository.get(ciclo_id)
 
         if not db_ciclo:
-            raise NotFoundException(f"Ciclo de avaliação", ciclo_id)
+            raise NotFoundException("Ciclo de avaliação", ciclo_id)
 
         if db_ciclo.colaborador_id != colaborador_id:
-            raise ForbiddenException(f"Ciclo de avaliação", ciclo_id)
+            raise ForbiddenException(
+                "Você só pode atualizar seus próprios ciclos de avaliação"
+            )
 
         if db_ciclo.ciclo.etapa_atual == EtapaCiclo.APROVACAO_PARES:
             raise BusinessRuleException(
-                "Não é possível alterar os pares durante a etapa de aprovação de pares. Aguarde a aprovação do gestor."
+                "Não é possível alterar os pares durante a etapa de aprovação de pares. "
+                "Aguarde a aprovação do gestor."
             )
 
-        if len(ciclo_update.pares_ids) != 4:
-            raise ValidationException(
-                f"É necessário selecionar exatamente 4 pares",
-                field="pares_ids",
-            )
-
-        pares = self.repository.validate_pares(ciclo_update.pares_ids)
-
-        if len(pares) != 4:
-            raise ValidationException(
-                f"Um ou mais pares não encontrados. Esperado: 4, Encontrado: {len(pares)}",
-                field="pares_ids",
-            )
+        # Validar que os pares existem no banco
+        # (validação de quantidade já feita no schema)
+        self._validate_pares_exist(ciclo_update.pares_ids)
 
         return self.repository.update_pares(ciclo_id, ciclo_update.pares_ids)
 
@@ -175,34 +162,25 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
         db_ciclo = self.repository.get(ciclo_avaliacao_id)
 
         if not db_ciclo:
-            raise NotFoundException(f"Ciclo de avaliação", ciclo_avaliacao_id)
+            raise NotFoundException("Ciclo de avaliação", ciclo_avaliacao_id)
 
         # Verificar se o colaborador do ciclo é liderado do gestor
         if db_ciclo.colaborador.gestor_id != current_colaborador.id:
             logger.warning(
-                f"Tentativa de atualizar pares de colaborador que não é liderado. Ciclo ID: {ciclo_avaliacao_id}, Colaborador do ciclo: {current_colaborador.id}, Gestor: {current_colaborador.gestor_id}"
+                f"Tentativa de atualizar pares de colaborador que não é liderado. "
+                f"Ciclo ID: {ciclo_avaliacao_id}, "
+                f"Colaborador do ciclo: {db_ciclo.colaborador_id}, "
+                f"Gestor tentando: {current_colaborador.id}"
             )
             raise ForbiddenException("Você só pode atualizar pares dos seus liderados")
 
-        # Validar que foram selecionados exatamente 4 pares
-        if len(ciclo_update.pares_ids) != 4:
-            raise ValidationException(
-                "É necessário selecionar exatamente 4 pares",
-                field="pares_ids",
-            )
-
-        # Validar que os pares existem
+        # Validar que os pares existem no banco
+        # (validação de quantidade já feita no schema)
         logger.debug(f"Validando existência dos pares. IDs: {ciclo_update.pares_ids}")
-        pares = self.repository.validate_pares(ciclo_update.pares_ids)
-
-        if len(pares) != 4:
-            raise ValidationException(
-                f"Um ou mais pares não encontrados. Esperado: 4, Encontrado: {len(pares)}",
-                field="pares_ids",
-            )
+        self._validate_pares_exist(ciclo_update.pares_ids)
 
         # Atualizar pares selecionados
-        logger.debug(f"Atualizando pares selecionados")
+        logger.debug("Atualizando pares selecionados")
         db_ciclo = self.repository.update_pares(
             ciclo_avaliacao_id, ciclo_update.pares_ids
         )

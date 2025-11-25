@@ -1,16 +1,18 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.core.validators import CAMPO_TEXTO_LONGO_MAX
+from app.models.avaliacao import TipoAvaliacao
 from app.schemas.colaborador import ColaboradorResponse
 from app.schemas.eixo_avaliacao import EixoAvaliacaoResponse
 
 
 class AvaliacaoEixoBase(BaseModel):
-    eixo_id: int
-    nivel: int
-    justificativa: str
+    eixo_id: int = Field(..., gt=0)
+    nivel: int = Field(..., ge=1, le=5, description="Nível de 1 a 5")
+    justificativa: str = Field(..., min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
 
 
 class AvaliacaoEixoResponse(AvaliacaoEixoBase):
@@ -24,29 +26,51 @@ class AvaliacaoEixoResponse(AvaliacaoEixoBase):
 
 
 class AvaliacaoBase(BaseModel):
-    tipo: str  # autoavaliacao, par, gestor
-    avaliacao_geral: Optional[str] = None
+    tipo: TipoAvaliacao  # Enum validado automaticamente
+    avaliacao_geral: Optional[str] = Field(None, max_length=CAMPO_TEXTO_LONGO_MAX)
     eixos: Dict[str, Dict[str, Any]]  # {eixo_id: {nivel: int, justificativa: str}}
+
+    @field_validator("tipo", mode="before")
+    @classmethod
+    def validate_tipo(cls, v: Any) -> TipoAvaliacao:
+        if isinstance(v, TipoAvaliacao):
+            return v
+        if isinstance(v, str):
+            try:
+                return TipoAvaliacao(v)
+            except ValueError:
+                valid_types = [t.value for t in TipoAvaliacao]
+                raise ValueError(f"Tipo inválido. Valores aceitos: {', '.join(valid_types)}")
+        raise ValueError("Tipo deve ser uma string válida")
 
 
 class AvaliacaoCreate(AvaliacaoBase):
-    ciclo_id: int
-    avaliador_id: Optional[int] = (
-        None  # Ignorado - sempre será o colaborador_id do usuário logado (exceto autoavaliacao onde será igual ao avaliado_id)
+    ciclo_id: int = Field(..., gt=0)
+    avaliador_id: Optional[int] = Field(
+        None,
+        gt=0,
+        description="Ignorado - sempre será o colaborador_id do usuário logado"
     )
-    avaliado_id: int  # Para autoavaliacao, deve ser o próprio usuário logado
+    avaliado_id: int = Field(
+        ...,
+        gt=0,
+        description="Para autoavaliacao, deve ser o próprio usuário logado"
+    )
 
 
 class AvaliacaoUpdate(BaseModel):
-    avaliacao_geral: Optional[str] = None
+    avaliacao_geral: Optional[str] = Field(None, max_length=CAMPO_TEXTO_LONGO_MAX)
     eixos: Optional[Dict[str, Dict[str, Any]]] = None
 
 
-class AvaliacaoResponse(AvaliacaoBase):
+class AvaliacaoResponse(BaseModel):
     id: int
     ciclo_id: int
     avaliador_id: int
     avaliado_id: int
+    tipo: str
+    avaliacao_geral: Optional[str] = None
+    eixos: Dict[str, Dict[str, Any]] = {}
     avaliador: Optional[ColaboradorResponse] = None
     avaliado: Optional[ColaboradorResponse] = None
     eixos_detalhados: List[AvaliacaoEixoResponse] = []
@@ -111,6 +135,4 @@ class FeedbackResponse(BaseModel):
     avaliacao_gestor: Optional[AvaliacaoResponse] = None
     avaliacoes_pares: List[AvaliacaoResponse] = []
     media_pares_por_eixo: Dict[str, float] = {}  # {eixo_id: media}
-    niveis_esperados: List[int] = (
-        []
-    )  # Níveis esperados por eixo baseado no nível de carreira
+    niveis_esperados: List[int] = []  # Níveis esperados por eixo baseado no nível de carreira

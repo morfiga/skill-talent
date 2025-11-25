@@ -1,15 +1,16 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from app.core.validators import CAMPO_TEXTO_LONGO_MAX, CAMPO_TEXTO_MAX
 from app.schemas.colaborador import ColaboradorResponse
 
 
 class ValorBase(BaseModel):
-    codigo: str
-    nome: str
-    icone: Optional[str] = None
+    codigo: str = Field(..., min_length=1, max_length=50)
+    nome: str = Field(..., min_length=1, max_length=100)
+    icone: Optional[str] = Field(None, max_length=100)
 
 
 class ValorResponse(ValorBase):
@@ -24,20 +25,20 @@ class ValorListResponse(BaseModel):
 
 
 class RegistroValorBase(BaseModel):
-    descricao: str
-    reflexao: str
-    impacto: str
+    descricao: str = Field(..., min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
+    reflexao: str = Field(..., min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
+    impacto: str = Field(..., min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
 
 
 class RegistroValorCreate(RegistroValorBase):
-    valores_ids: List[int]
+    valores_ids: List[int] = Field(..., min_length=1, description="IDs dos valores associados")
 
 
 class RegistroValorUpdate(BaseModel):
-    descricao: Optional[str] = None
-    reflexao: Optional[str] = None
-    impacto: Optional[str] = None
-    valores_ids: Optional[List[int]] = None
+    descricao: Optional[str] = Field(None, min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
+    reflexao: Optional[str] = Field(None, min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
+    impacto: Optional[str] = Field(None, min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
+    valores_ids: Optional[List[int]] = Field(None, min_length=1)
 
 
 class RegistroValorResponse(RegistroValorBase):

@@ -1,9 +1,11 @@
 from datetime import datetime
 from typing import List, Optional
 
+from pydantic import BaseModel, Field, field_validator
+
+from app.core.validators import NUMERO_PARES_OBRIGATORIO, validate_pares_ids
 from app.schemas.ciclo import CicloResponse
 from app.schemas.colaborador import ColaboradorResponse
-from pydantic import BaseModel
 
 
 class CicloAvaliacaoBase(BaseModel):
@@ -11,13 +13,32 @@ class CicloAvaliacaoBase(BaseModel):
 
 
 class CicloAvaliacaoCreate(CicloAvaliacaoBase):
-    ciclo_id: int
-    pares_ids: List[int]  # IDs dos 4 pares selecionados
-    # colaborador_id será sempre do usuário logado
+    ciclo_id: int = Field(..., gt=0)
+    pares_ids: List[int] = Field(
+        ...,
+        min_length=NUMERO_PARES_OBRIGATORIO,
+        max_length=NUMERO_PARES_OBRIGATORIO,
+        description=f"IDs dos {NUMERO_PARES_OBRIGATORIO} pares selecionados"
+    )
+
+    @field_validator("pares_ids")
+    @classmethod
+    def validate_pares(cls, v: List[int]) -> List[int]:
+        return validate_pares_ids(v)
 
 
 class CicloAvaliacaoUpdate(BaseModel):
-    pares_ids: List[int]  # IDs dos 4 pares selecionados
+    pares_ids: List[int] = Field(
+        ...,
+        min_length=NUMERO_PARES_OBRIGATORIO,
+        max_length=NUMERO_PARES_OBRIGATORIO,
+        description=f"IDs dos {NUMERO_PARES_OBRIGATORIO} pares selecionados"
+    )
+
+    @field_validator("pares_ids")
+    @classmethod
+    def validate_pares(cls, v: List[int]) -> List[int]:
+        return validate_pares_ids(v)
 
 
 class ParSelecionadoResponse(BaseModel):

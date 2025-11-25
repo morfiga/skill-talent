@@ -1,15 +1,16 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from app.core.validators import CAMPO_TEXTO_LONGO_MAX
 from app.schemas.colaborador import ColaboradorResponse
 
 
 class EntregaOutstandingBase(BaseModel):
-    descricao: str
-    impacto: str
-    evidencias: str
+    descricao: str = Field(..., min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
+    impacto: str = Field(..., min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
+    evidencias: str = Field(..., min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
 
 
 class EntregaOutstandingCreate(EntregaOutstandingBase):
@@ -17,9 +18,9 @@ class EntregaOutstandingCreate(EntregaOutstandingBase):
 
 
 class EntregaOutstandingUpdate(BaseModel):
-    descricao: Optional[str] = None
-    impacto: Optional[str] = None
-    evidencias: Optional[str] = None
+    descricao: Optional[str] = Field(None, min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
+    impacto: Optional[str] = Field(None, min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
+    evidencias: Optional[str] = Field(None, min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
 
 
 class EntregaOutstandingResponse(EntregaOutstandingBase):

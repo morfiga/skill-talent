@@ -2,6 +2,9 @@ from typing import Dict, List
 
 from fastapi import APIRouter
 
+from app.core.exceptions import NotFoundException
+from app.core.validators import NIVEIS_CARREIRA_VALIDOS
+
 router = APIRouter(prefix="/niveis-carreira", tags=["niveis-carreira"])
 
 # Níveis esperados por nível de carreira para cada eixo
@@ -32,11 +35,9 @@ def get_niveis_esperados():
 def get_niveis_esperados_por_carreira(nivel_carreira: str):
     """Retorna os níveis esperados para um nível de carreira específico"""
     if nivel_carreira not in NIVEIS_ESPERADOS_POR_CARREIRA:
-        from fastapi import HTTPException
-
-        raise HTTPException(
-            status_code=404,
-            detail=f"Nível de carreira '{nivel_carreira}' não encontrado",
+        raise NotFoundException(
+            f"Nível de carreira '{nivel_carreira}'",
+            identifier=f"Valores válidos: {', '.join(NIVEIS_CARREIRA_VALIDOS)}"
         )
 
     return {
