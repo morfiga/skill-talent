@@ -1,12 +1,11 @@
 from typing import List, Optional
 
-from sqlalchemy import and_
-from sqlalchemy.orm import Session, joinedload
-
 from app.models.ciclo import Ciclo, StatusCiclo
 from app.models.ciclo_avaliacao import CicloAvaliacao, ParSelecionado
 from app.models.colaborador import Colaborador
 from app.repositories.base import BaseRepository
+from sqlalchemy import and_
+from sqlalchemy.orm import Session, joinedload
 
 
 class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
@@ -151,7 +150,9 @@ class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
             .all()
         )
 
-    def get_by_liderados(self, liderados_ids: List[int]) -> List[CicloAvaliacao]:
+    def get_by_liderados(
+        self, ciclo_id: int, liderados_ids: List[int]
+    ) -> List[CicloAvaliacao]:
         return (
             self.db.query(self.model)
             .options(

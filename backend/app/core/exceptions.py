@@ -117,10 +117,9 @@ class ForbiddenException(BaseAPIException):
 class UnauthorizedActionException(ForbiddenException):
     """Ação não autorizada"""
 
-    def __init__(self, action: str, resource: Optional[str] = None):
-        detail = f"Você não tem permissão para {action}"
-        if resource:
-            detail += f" {resource}"
+    def __init__(
+        self, detail: str = "Você não tem permissão para acessar este recurso"
+    ):
         super().__init__(detail)
 
 

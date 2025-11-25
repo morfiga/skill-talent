@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from app.database import get_db
 from app.schemas.colaborador import (
@@ -14,14 +14,16 @@ from sqlalchemy.orm import Session
 router = APIRouter(prefix="/colaboradores", tags=["colaboradores"])
 
 
+def get_colaborador_service(db: Session = Depends(get_db)) -> ColaboradorService:
+    return ColaboradorService(db)
+
+
 @router.get("/", response_model=ColaboradorListResponse)
 def get_colaboradores(
     departamento: Optional[str] = None,
     email: Optional[str] = None,
-    db: Session = Depends(get_db),
+    service: ColaboradorService = Depends(get_colaborador_service),
 ):
-    """Lista todos os colaboradores"""
-    service = ColaboradorService(db)
     colaboradores, total = service.get_colaboradores(
         departamento=departamento, email=email
     )
@@ -29,16 +31,18 @@ def get_colaboradores(
 
 
 @router.get("/{colaborador_id}", response_model=ColaboradorResponse)
-def get_colaborador(colaborador_id: int, db: Session = Depends(get_db)):
-    """Obtém um colaborador por ID"""
-    service = ColaboradorService(db)
+def get_colaborador(
+    colaborador_id: int,
+    service: ColaboradorService = Depends(get_colaborador_service),
+):
     return service.get_colaborador_by_id(colaborador_id)
 
 
 @router.post("/", response_model=ColaboradorResponse, status_code=201)
-def create_colaborador(colaborador: ColaboradorCreate, db: Session = Depends(get_db)):
-    """Cria um novo colaborador"""
-    service = ColaboradorService(db)
+def create_colaborador(
+    colaborador: ColaboradorCreate,
+    service: ColaboradorService = Depends(get_colaborador_service),
+):
     return service.create_colaborador(colaborador)
 
 
@@ -46,8 +50,6 @@ def create_colaborador(colaborador: ColaboradorCreate, db: Session = Depends(get
 def update_colaborador(
     colaborador_id: int,
     colaborador: ColaboradorUpdate,
-    db: Session = Depends(get_db),
+    service: ColaboradorService = Depends(get_colaborador_service),
 ):
-    """Atualiza um colaborador"""
-    service = ColaboradorService(db)
     return service.update_colaborador(colaborador_id, colaborador)

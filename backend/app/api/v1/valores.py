@@ -1,7 +1,6 @@
 from app.database import get_db
-from app.models.registro_valor import Valor
 from app.schemas.registro_valor import ValorListResponse, ValorResponse
-from app.services.valor_service import ValorService
+from app.services.valor import ValorService
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 

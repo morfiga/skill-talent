@@ -1,19 +1,15 @@
-from typing import Optional
-
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
 from app.core.security import get_current_colaborador
 from app.database import get_db
 from app.models.colaborador import Colaborador
-from app.models.entrega_outstanding import EntregaOutstanding
 from app.schemas.entrega_outstanding import (
     EntregaOutstandingCreate,
     EntregaOutstandingListResponse,
     EntregaOutstandingResponse,
     EntregaOutstandingUpdate,
 )
-from app.services.entrega_outstanding_service import EntregaOutstandingService
+from app.services.entrega_outstanding import EntregaOutstandingService
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/entregas-outstanding", tags=["entregas-outstanding"])
 

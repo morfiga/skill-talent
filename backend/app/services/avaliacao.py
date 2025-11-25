@@ -5,31 +5,22 @@ from app.core.exceptions import (
     BusinessRuleException,
     ForbiddenException,
     NotFoundException,
-    ValidationException,
 )
 from app.models.avaliacao import Avaliacao, TipoAvaliacao
-from app.models.ciclo_avaliacao import CicloAvaliacao
+from app.models.ciclo import EtapaCiclo
 from app.models.colaborador import Colaborador
 from app.repositories import AvaliacaoRepository
-from app.schemas.ciclo_avaliacao import (
-    CicloAvaliacaoCreate,
-    CicloAvaliacaoListResponse,
-    CicloAvaliacaoResponse,
-    CicloAvaliacaoUpdate,
-)
-from app.services.base import BaseService
-from app.services.colaborador_service import ColaboradorService
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
-
-from backend.app.models.ciclo import EtapaCiclo
-from backend.app.schemas.avaliacao import (
+from app.schemas.avaliacao import (
     AvaliacaoCreate,
     AvaliacaoListResponse,
     AvaliacaoResponse,
     AvaliacaoUpdate,
     FeedbackResponse,
 )
+from app.services.base import BaseService
+from app.services.colaborador import ColaboradorService
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +29,7 @@ class AvaliacaoService(BaseService[Avaliacao]):
     def __init__(self, db: Session):
         super().__init__(db)
         self.repository = AvaliacaoRepository(db)
+        self.colaborador_service = ColaboradorService(db)
 
     def create(
         self, avaliacao: AvaliacaoCreate, current_colaborador: Colaborador
@@ -215,7 +207,6 @@ class AvaliacaoService(BaseService[Avaliacao]):
                 tipo=tipo,
             )
 
-        logger.debug(f"Total de avaliações encontradas: {total}")
         logger.debug(f"Retornando {len(avaliacoes)} avaliações")
         return {"avaliacoes": avaliacoes, "total": len(avaliacoes)}
 

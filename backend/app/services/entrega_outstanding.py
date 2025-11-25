@@ -1,7 +1,4 @@
-from typing import List, Optional
-
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from typing import List
 
 from app.core.exceptions import NotFoundException, UnauthorizedActionException
 from app.models.colaborador import Colaborador
@@ -12,6 +9,7 @@ from app.schemas.entrega_outstanding import (
     EntregaOutstandingUpdate,
 )
 from app.services.base import BaseService
+from sqlalchemy.orm import Session
 
 
 class EntregaOutstandingService(BaseService[EntregaOutstanding]):

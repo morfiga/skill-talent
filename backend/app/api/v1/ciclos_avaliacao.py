@@ -1,19 +1,17 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-
 from app.core.security import get_current_colaborador
 from app.database import get_db
 from app.models.colaborador import Colaborador
-from app.repositories import CicloAvaliacaoRepository
 from app.schemas.ciclo_avaliacao import (
     CicloAvaliacaoCreate,
     CicloAvaliacaoListResponse,
     CicloAvaliacaoResponse,
     CicloAvaliacaoUpdate,
 )
-from app.services.ciclo_avaliacao_service import CicloAvaliacaoService
+from app.services.ciclo_avaliacao import CicloAvaliacaoService
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

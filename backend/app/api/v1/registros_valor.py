@@ -1,10 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
 from app.core.security import get_current_colaborador
 from app.database import get_db
 from app.models.colaborador import Colaborador
-from app.models.registro_valor import RegistroValor, Valor
 from app.schemas.registro_valor import (
     RegistroValorCreate,
     RegistroValorListResponse,
@@ -12,6 +8,8 @@ from app.schemas.registro_valor import (
     RegistroValorUpdate,
 )
 from app.services.registro_valor import RegistroValorService
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/registros-valor", tags=["registros-valor"])
 
@@ -44,22 +42,9 @@ def get_registros_valor(
 def get_registro_valor(
     registro_id: int,
     current_colaborador: Colaborador = Depends(get_current_colaborador),
-    db: Session = Depends(get_db),
+    service: RegistroValorService = Depends(get_registro_valor_service),
 ):
-    """Obtém um registro de valor por ID (apenas se pertencer ao usuário logado)"""
-    registro = db.query(RegistroValor).filter(RegistroValor.id == registro_id).first()
-
-    if not registro:
-        raise HTTPException(status_code=404, detail="Registro de valor não encontrado")
-
-    # Validar que o registro pertence ao colaborador logado
-    if registro.colaborador_id != current_colaborador.id:
-        raise HTTPException(
-            status_code=403,
-            detail="Você só pode buscar seus próprios registros de valor",
-        )
-
-    return registro
+    return service.get(registro_id, current_colaborador)
 
 
 @router.put("/{registro_id}", response_model=RegistroValorResponse)

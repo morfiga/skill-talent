@@ -1,4 +1,3 @@
-import logging
 from typing import List, Optional
 
 from app.models.registro_valor import Valor

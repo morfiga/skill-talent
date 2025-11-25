@@ -10,7 +10,7 @@ from app.schemas.avaliacao import (
     AvaliacaoUpdate,
     FeedbackResponse,
 )
-from app.services.avaliacao_service import AvaliacaoService
+from app.services.avaliacao import AvaliacaoService
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 

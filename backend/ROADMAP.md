@@ -345,16 +345,16 @@ backend/
 ```
 app/services/
 ├── base.py                    # Classe base para services
-├── colaborador_service.py     # ✅ Implementado
-├── ciclo_service.py           # ✅ Implementado
-├── avaliacao_service.py       # ⏳ Pendente
+├── colaborador.py     # ✅ Implementado
+├── ciclo.py           # ✅ Implementado
+├── avaliacao.py       # ⏳ Pendente
 └── ...
 ```
 
 **Arquivos afetados:**
 - ✅ `app/services/base.py` - Classe base criada
-- ✅ `app/services/colaborador_service.py` - Service criado
-- ✅ `app/services/ciclo_service.py` - Service criado
+- ✅ `app/services/colaborador.py` - Service criado
+- ✅ `app/services/ciclo.py` - Service criado
 - ✅ `app/api/v1/colaboradores.py` - Refatorado para usar service
 - ✅ `app/api/v1/ciclos.py` - Refatorado para usar service
 

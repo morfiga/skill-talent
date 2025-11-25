@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-
 from app.database import get_db
 from app.schemas.eixo_avaliacao import EixoAvaliacaoListResponse, EixoAvaliacaoResponse
-from app.services.eixo_avaliacao_service import EixoAvaliacaoService
+from app.services.eixo_avaliacao import EixoAvaliacaoService
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/eixos-avaliacao", tags=["eixos-avaliacao"])
 

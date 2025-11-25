@@ -1,8 +1,4 @@
-from ast import Not
 from typing import List
-
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundException, UnauthorizedActionException
 from app.models.colaborador import Colaborador
@@ -11,6 +7,8 @@ from app.repositories.registro_valor import RegistroValorRepository
 from app.repositories.valor import ValorRepository
 from app.schemas.registro_valor import RegistroValorCreate, RegistroValorUpdate
 from app.services.base import BaseService
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 
 class RegistroValorService(BaseService[RegistroValor]):
@@ -18,6 +16,17 @@ class RegistroValorService(BaseService[RegistroValor]):
         super().__init__(db)
         self.repository = RegistroValorRepository(db)
         self.valor_repository = ValorRepository(db)
+
+    def get(self, registro_id: int, current_colaborador: Colaborador) -> RegistroValor:
+        registro = self.repository.get(registro_id)
+
+        if not registro:
+            raise NotFoundException("Registro de valor", registro_id)
+
+        if registro.colaborador_id != current_colaborador.id:
+            raise UnauthorizedActionException()
+
+        return registro
 
     def create(
         self, registro_valor_data: RegistroValorCreate, current_colaborador: Colaborador
@@ -42,11 +51,7 @@ class RegistroValorService(BaseService[RegistroValor]):
             self._handle_database_error("criar registro de valor")
 
     def get_by_colaborador(self, colaborador_id: int) -> List[RegistroValor]:
-        query = self.db.query(RegistroValor).filter(
-            RegistroValor.colaborador_id == colaborador_id
-        )
-
-        return query.order_by(RegistroValor.created_at.desc()).all()
+        return self.repository.get_by_colaborador(colaborador_id)
 
     def update(
         self,
@@ -86,13 +91,13 @@ class RegistroValorService(BaseService[RegistroValor]):
         self.db.commit()
         self.db.refresh(registro)
 
-    def delete(self, registro_id: int, current_colaborador: Colaborador) -> bool:
+    def delete(self, registro_id: int, current_colaborador_id: int) -> bool:
         registro = self.repository.get(registro_id)
 
         if not registro:
             raise NotFoundException("Registro de valor", registro_id)
 
-        if registro.colaborador_id != current_colaborador.id:
+        if registro.colaborador_id != current_colaborador_id:
             raise UnauthorizedActionException()
 
         return self.repository.delete(registro_id)

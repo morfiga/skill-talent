@@ -1,7 +1,5 @@
 import logging
 
-from sqlalchemy.orm import Session
-
 from app.core.exceptions import (
     BusinessRuleException,
     ForbiddenException,
@@ -19,7 +17,8 @@ from app.schemas.ciclo_avaliacao import (
     CicloAvaliacaoUpdate,
 )
 from app.services.base import BaseService
-from app.services.colaborador_service import ColaboradorService
+from app.services.colaborador import ColaboradorService
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -160,7 +159,7 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
             return {"ciclos": [], "total": 0}
 
         liderados_ids = [sub.id for sub in liderados]
-        ciclos = self.repository.get_by_liderados(liderados_ids)
+        ciclos = self.repository.get_by_liderados(ciclo_id, liderados_ids)
 
         total = len(ciclos)
         logger.debug(f"Total de ciclos de avaliação encontrados: {total}")
@@ -179,7 +178,7 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
             raise NotFoundException(f"Ciclo de avaliação", ciclo_avaliacao_id)
 
         # Verificar se o colaborador do ciclo é liderado do gestor
-        if current_colaborador.gestor_id != current_colaborador.gestor_id:
+        if db_ciclo.colaborador.gestor_id != current_colaborador.id:
             logger.warning(
                 f"Tentativa de atualizar pares de colaborador que não é liderado. Ciclo ID: {ciclo_avaliacao_id}, Colaborador do ciclo: {current_colaborador.id}, Gestor: {current_colaborador.gestor_id}"
             )
