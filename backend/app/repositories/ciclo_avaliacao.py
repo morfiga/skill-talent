@@ -78,7 +78,8 @@ class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
     ) -> CicloAvaliacao:
         """Cria um ciclo de avaliação com seus pares selecionados"""
         # Criar ciclo de avaliação
-        db_ciclo = self.create(ciclo_id=ciclo_id, colaborador_id=colaborador_id)
+        db_ciclo = CicloAvaliacao(ciclo_id=ciclo_id, colaborador_id=colaborador_id)
+        db_ciclo = self.create(db_ciclo)
 
         # Criar pares selecionados
         for par_id in pares_ids:
@@ -87,8 +88,6 @@ class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
             )
             self.db.add(par_selecionado)
 
-        self.db.commit()
-        self.db.refresh(db_ciclo)
         return db_ciclo
 
     def update_pares(
@@ -102,9 +101,6 @@ class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
         # Remover pares selecionados existentes
         for par_selecionado in db_ciclo.pares_selecionados:
             self.db.delete(par_selecionado)
-
-        self.db.commit()
-        self.db.refresh(db_ciclo)
 
         # Criar novos pares selecionados
         for par_id in pares_ids:

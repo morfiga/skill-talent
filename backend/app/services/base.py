@@ -4,11 +4,12 @@ Classe base para services.
 Esta classe fornece funcionalidades comuns para todos os services,
 como gerenciamento de transações e tratamento de erros.
 """
+
 from typing import Generic, TypeVar
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.exceptions import DatabaseException
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 ModelType = TypeVar("ModelType")
 
@@ -35,17 +36,4 @@ class BaseService(Generic[ModelType]):
         Raises:
             DatabaseException: Sempre que chamado
         """
-        self.db.rollback()
         raise DatabaseException(f"Erro ao {operation} no banco de dados")
-
-    def commit(self) -> None:
-        """Confirma as alterações no banco de dados"""
-        try:
-            self.db.commit()
-        except SQLAlchemyError:
-            self._handle_database_error("confirmar alterações")
-
-    def rollback(self) -> None:
-        """Reverte as alterações no banco de dados"""
-        self.db.rollback()
-

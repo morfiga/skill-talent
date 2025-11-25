@@ -7,9 +7,6 @@ separando-a dos controllers e repositories.
 
 from typing import List, Optional
 
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
-
 from app.core.exceptions import (
     BusinessRuleException,
     NotFoundException,
@@ -19,6 +16,8 @@ from app.models.ciclo import Ciclo, EtapaCiclo, StatusCiclo
 from app.repositories.ciclo import CicloRepository
 from app.schemas.ciclo import CicloCreate, CicloUpdate
 from app.services.base import BaseService
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 
 class CicloService(BaseService[Ciclo]):
@@ -70,9 +69,7 @@ class CicloService(BaseService[Ciclo]):
                 data_inicio=ciclo_data.data_inicio,
                 data_fim=ciclo_data.data_fim,
             )
-            self.db.add(db_ciclo)
-            self.commit()
-            self.db.refresh(db_ciclo)
+            db_ciclo = self.repository.create(db_ciclo)
             return db_ciclo
         except SQLAlchemyError:
             self._handle_database_error("criar ciclo")
@@ -91,9 +88,7 @@ class CicloService(BaseService[Ciclo]):
                 if value is not None:
                     setattr(db_ciclo, field, value)
 
-            self.commit()
-            self.db.refresh(db_ciclo)
-            return db_ciclo
+            return self.repository.update(ciclo_id, **update_data)
         except SQLAlchemyError:
             self._handle_database_error("atualizar ciclo")
 
@@ -111,20 +106,19 @@ class CicloService(BaseService[Ciclo]):
         # Validar e avançar etapa
         try:
             etapa_atual_idx = self.ETAPAS_SEQUENCIA.index(db_ciclo.etapa_atual)
-            
+
             if etapa_atual_idx >= len(self.ETAPAS_SEQUENCIA) - 1:
                 raise BusinessRuleException(
                     "Ciclo já está na última etapa e não pode ser avançado"
                 )
-            
+
             try:
-                db_ciclo.etapa_atual = self.ETAPAS_SEQUENCIA[etapa_atual_idx + 1]
-                self.commit()
-                self.db.refresh(db_ciclo)
-                return db_ciclo
+                return self.repository.update(
+                    ciclo_id, etapa_atual=self.ETAPAS_SEQUENCIA[etapa_atual_idx + 1]
+                )
             except SQLAlchemyError:
                 self._handle_database_error("atualizar etapa do ciclo")
-                
+
         except ValueError:
             raise ValidationException(
                 f"Etapa atual inválida: {db_ciclo.etapa_atual}",

@@ -1,13 +1,15 @@
+import logging
 from typing import List, Optional
-
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
 
 from app.core.exceptions import DuplicateResourceException, NotFoundException
 from app.models.colaborador import Colaborador
 from app.repositories.colaborador import ColaboradorRepository
 from app.schemas.colaborador import ColaboradorCreate, ColaboradorUpdate
 from app.services.base import BaseService
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 
 class ColaboradorService(BaseService[Colaborador]):
@@ -65,7 +67,8 @@ class ColaboradorService(BaseService[Colaborador]):
                 )
 
         try:
-            self.repository.update(colaborador_id, colaborador_data)
+            colaborador = self.repository.update(colaborador_id, **update_data)
+            return colaborador
         except SQLAlchemyError:
             self._handle_database_error("atualizar colaborador")
 

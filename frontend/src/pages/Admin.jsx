@@ -511,6 +511,7 @@ function Admin({ onLogout }) {
       'escolha_pares': 'Escolha de Pares',
       'aprovacao_pares': 'Aprovação de Pares',
       'avaliacoes': 'Avaliações',
+      'calibracao': 'Calibração',
       'feedback': 'Feedback'
     }
     return labels[etapa] || etapa
@@ -521,6 +522,7 @@ function Admin({ onLogout }) {
       'escolha_pares': 'status-badge etapa-escolha-pares',
       'aprovacao_pares': 'status-badge etapa-aprovacao-pares',
       'avaliacoes': 'status-badge etapa-avaliacoes',
+      'calibracao': 'status-badge etapa-calibracao',
       'feedback': 'status-badge etapa-feedback'
     }
     return classes[etapa] || 'status-badge'
@@ -1103,7 +1105,7 @@ function Admin({ onLogout }) {
                                       title="Avançar Etapa"
                                       style={{ background: '#4caf50', color: 'white' }}
                                     >
-                                      ⏭️
+                                      ➤
                                     </button>
                                   )}
                                   <button
@@ -1514,8 +1516,9 @@ function Admin({ onLogout }) {
                                       <button
                                         className="action-button"
                                         onClick={() => handleSelecionarColaboradorCalibracao(colaborador)}
+                                        style={{ padding: '6px 12px', fontSize: '0.85rem', minWidth: 'auto' }}
                                       >
-                                        Ver Avaliações
+                                        Ver
                                       </button>
                                     </td>
                                   </tr>

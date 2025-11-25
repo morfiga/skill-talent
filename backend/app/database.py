@@ -18,10 +18,26 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-# Dependency para obter a sessão do banco
+"""
+Dependência para obter a sessão do banco.
+
+Cada requisição que usar `get_db` terá uma transação aberta automaticamente:
+- Se o endpoint terminar sem erro, é feito `commit`.
+- Se acontecer qualquer exceção, é feito `rollback`.
+"""
+
+
 def get_db():
     db = SessionLocal()
     try:
+        # Entrega a sessão para o endpoint / service
         yield db
+        # Se chegou aqui sem exceção, confirma a transação
+        db.commit()
+    except Exception:
+        # Qualquer erro durante o processamento da requisição faz rollback
+        db.rollback()
+        raise
     finally:
+        # Sempre fecha a sessão ao final da requisição
         db.close()

@@ -17,6 +17,7 @@ from app.api.v1 import (
 from app.core.config import settings
 from app.core.error_responses import create_error_response, get_request_id
 from app.core.exceptions import BaseAPIException
+from app.core.health import get_liveness_payload, get_readiness_payload
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -83,9 +84,35 @@ async def root():
     return {"message": "Skill Talent API", "version": settings.APP_VERSION}
 
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+@app.get("/health/live")
+async def health_live():
+    """
+    Liveness probe.
+
+    Indica apenas se o processo da aplicação está vivo.
+    Não verifica dependências externas.
+    """
+    return get_liveness_payload()
+
+
+@app.get("/health/ready")
+async def health_ready():
+    """
+    Readiness probe.
+
+    Verifica se a aplicação está pronta para receber tráfego,
+    incluindo conectividade com o banco de dados.
+    """
+    payload = get_readiness_payload()
+    # Em caso de degradação, retornar 503 para sinalizar ao orquestrador
+    status_code = status.HTTP_200_OK
+    if payload.get("status") != "ok":
+        status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    return (
+        payload
+        if status_code == status.HTTP_200_OK
+        else FastAPI().response_class(content=payload, status_code=status_code)
+    )
 
 
 # Exception handlers globais

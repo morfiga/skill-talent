@@ -107,8 +107,6 @@ class AvaliacaoService(BaseService[Avaliacao]):
                 eixos_data=avaliacao.eixos,
             )
 
-            self.repository.commit()
-            self.repository.refresh(db_avaliacao)
             logger.info(f"Avaliação criada com sucesso. ID: {db_avaliacao.id}")
             return db_avaliacao
         except SQLAlchemyError:
@@ -249,7 +247,6 @@ class AvaliacaoService(BaseService[Avaliacao]):
                 eixos_data=avaliacao.eixos,
             )
 
-            self.repository.commit()
             self.repository.refresh(db_avaliacao)
 
             logger.info(f"Avaliação atualizada com sucesso. ID: {avaliacao_id}")

@@ -9,6 +9,7 @@ from app.schemas.entrega_outstanding import (
     EntregaOutstandingUpdate,
 )
 from app.services.base import BaseService
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 
@@ -32,14 +33,18 @@ class EntregaOutstandingService(BaseService[EntregaOutstanding]):
         current_colaborador: Colaborador,
     ) -> EntregaOutstanding:
         self._validate(entrega_id, current_colaborador)
-        return self.repository.update(entrega_id, entrega_data)
+        update_data = entrega_data.model_dump(exclude_unset=True)
+        try:
+            entrega = self.repository.update(entrega_id, **update_data)
+            return entrega
+        except SQLAlchemyError:
+            self._handle_database_error("atualizar entrega outstanding")
 
     def get_by_colaborador(
         self, current_colaborador: Colaborador
     ) -> List[EntregaOutstanding]:
-        return self.repository.get_all(
-            filters={"colaborador_id": current_colaborador.id}
-        )
+        # Filtra corretamente usando kwargs, compatível com BaseRepository.get_all
+        return self.repository.get_all(colaborador_id=current_colaborador.id)
 
     def get_by_id(
         self, entrega_id: int, current_colaborador: Colaborador

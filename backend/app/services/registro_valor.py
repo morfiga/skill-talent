@@ -67,29 +67,33 @@ class RegistroValorService(BaseService[RegistroValor]):
         if registro.colaborador_id != current_colaborador.id:
             raise UnauthorizedActionException()
 
-        # Atualizar campos básicos
-        if registro_valor_data.descricao is not None:
-            registro.descricao = registro_valor_data.descricao
-        if registro_valor_data.reflexao is not None:
-            registro.reflexao = registro_valor_data.reflexao
-        if registro_valor_data.impacto is not None:
-            registro.impacto = registro_valor_data.impacto
+        try:
+            # Atualizar campos básicos manualmente
+            if registro_valor_data.descricao is not None:
+                registro.descricao = registro_valor_data.descricao
+            if registro_valor_data.reflexao is not None:
+                registro.reflexao = registro_valor_data.reflexao
+            if registro_valor_data.impacto is not None:
+                registro.impacto = registro_valor_data.impacto
 
-        # Atualizar valores se fornecidos
-        if registro_valor_data.valores_ids is not None:
-            valores = self.valor_repository.get_all(
-                id__in=registro_valor_data.valores_ids
-            )
-
-            if len(valores) != len(registro_valor_data.valores_ids):
-                raise ValueError(
-                    "Um ou mais valores selecionados não foram encontrados"
+            # Atualizar valores se fornecidos
+            if registro_valor_data.valores_ids is not None:
+                valores = self.valor_repository.get_all(
+                    id__in=registro_valor_data.valores_ids
                 )
 
-            registro.valores = valores
+                if len(valores) != len(registro_valor_data.valores_ids):
+                    raise ValueError(
+                        "Um ou mais valores selecionados não foram encontrados"
+                    )
 
-        self.db.commit()
-        self.db.refresh(registro)
+                registro.valores = valores
+
+            # Deixar o SQLAlchemy persistir as mudanças deste registro
+            self.db.flush()
+            return registro
+        except SQLAlchemyError:
+            self._handle_database_error("atualizar registro de valor")
 
     def delete(self, registro_id: int, current_colaborador_id: int) -> bool:
         registro = self.repository.get(registro_id)

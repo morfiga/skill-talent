@@ -59,9 +59,8 @@ class BaseRepository(Generic[ModelType]):
 
         return query.count()
 
-    def create(self, **kwargs) -> ModelType:
+    def create(self, db_obj: ModelType) -> ModelType:
         """Cria um novo registro"""
-        db_obj = self.model(**kwargs)
         self.db.add(db_obj)
         self.db.flush()
         return db_obj
@@ -89,14 +88,6 @@ class BaseRepository(Generic[ModelType]):
         self.db.flush()
         return True
 
-    def commit(self):
-        """Confirma as alterações no banco de dados"""
-        self.db.commit()
-
     def refresh(self, obj: ModelType):
         """Atualiza o objeto com dados do banco"""
         self.db.refresh(obj)
-
-    def rollback(self):
-        """Reverte as alterações"""
-        self.db.rollback()
