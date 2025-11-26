@@ -81,7 +81,7 @@ app.include_router(registros_valor.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
-    return {"message": "Skill Talent API", "version": settings.APP_VERSION}
+    return get_liveness_payload()
 
 
 @app.get("/health/live")

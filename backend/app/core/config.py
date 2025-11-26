@@ -1,7 +1,6 @@
-from typing import List, Union
+from typing import List, Optional, Union
 
 from pydantic_settings import BaseSettings
-from sqlalchemy import false
 
 
 class Settings(BaseSettings):
@@ -13,11 +12,12 @@ class Settings(BaseSettings):
     SECRET_KEY: str
 
     # Database
-    DB_HOST: str
-    DB_PORT: int = 3306
-    DB_USER: str
-    DB_PASSWORD: str
-    DB_NAME: str
+    DB_HOST: Optional[str] = None
+    DB_PORT: Optional[int] = None
+    DB_USER: Optional[str] = None
+    DB_PASSWORD: Optional[str] = None
+    DB_NAME: Optional[str] = None
+    DB_URL: Optional[str] = None
 
     # CORS
     CORS_ORIGINS: Union[str, List[str]] = [
@@ -40,6 +40,8 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
+        if self.DB_URL is not None:
+            return self.DB_URL
         return f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     @property
