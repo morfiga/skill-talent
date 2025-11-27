@@ -190,7 +190,6 @@ CREATE TABLE `registros_valor` (
   `id` int NOT NULL AUTO_INCREMENT,
   `colaborador_id` int NOT NULL,
   `descricao` text NOT NULL,
-  `reflexao` text NOT NULL,
   `impacto` text NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

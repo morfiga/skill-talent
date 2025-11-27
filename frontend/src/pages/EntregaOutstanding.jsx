@@ -113,7 +113,7 @@ function EntregaOutstanding({ onLogout }) {
           <div className="entrega-header">
             <h2 className="entrega-title">Entregas Outstanding</h2>
             <p className="entrega-subtitle">
-              Registre entregas excepcionais que tiveram impacto significativo
+              Queremos reconhecer entregas que foram além do esperado: aquelas que moveram a Ada de um jeito visível. São iniciativas que mudaram um processo, aceleraram resultados ou encantaram nossos clientes. Conte-nos o que você fez e por que isso merece destaque.
             </p>
             {!mostrarFormulario && (
               <button
@@ -131,10 +131,10 @@ function EntregaOutstanding({ onLogout }) {
 
               <div className="formulario-campo">
                 <label className="campo-label">
-                  Descrição <span className="required">*</span>
+                  O que você fez e por que considera essa entrega outstanding <span className="required">*</span>
                 </label>
                 <p className="campo-descricao">
-                  Explique o que foi feito e por que considera essa entrega outstanding.
+                  Dê contexto: qual problema você quis resolver, o que te motivou, e o que foi além do “escopo normal”.
                 </p>
                 <textarea
                   className="campo-textarea"
@@ -147,10 +147,10 @@ function EntregaOutstanding({ onLogout }) {
 
               <div className="formulario-campo">
                 <label className="campo-label">
-                  Impacto gerado <span className="required">*</span>
+                  Qual transformação essa entrega trouxe para o time, para nossos clientes ou para a Ada como um todo? <span className="required">*</span>
                 </label>
                 <p className="campo-descricao">
-                  Descreva o impacto direto que essa entrega teve no time, nos clientes ou na empresa.
+                  Pense em termos de avanço de cultura, eficiência, receita, experiência do cliente, ou aprendizado coletivo.
                 </p>
                 <textarea
                   className="campo-textarea"
@@ -163,10 +163,10 @@ function EntregaOutstanding({ onLogout }) {
 
               <div className="formulario-campo">
                 <label className="campo-label">
-                  Evidências ou resultados mensuráveis <span className="required">*</span>
+                  Quais fatos, números ou indicadores mostram o impacto real dessa entrega? <span className="required">*</span>
                 </label>
                 <p className="campo-descricao">
-                  Quais números, métricas ou fatos demonstram o impacto?
+                  Podem ser métricas com tempo, custo, conversão, aumento de receita, etc.
                 </p>
                 <textarea
                   className="campo-textarea"

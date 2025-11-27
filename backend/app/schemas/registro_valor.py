@@ -1,10 +1,9 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
-
 from app.core.validators import CAMPO_TEXTO_LONGO_MAX, CAMPO_TEXTO_MAX
 from app.schemas.colaborador import ColaboradorResponse
+from pydantic import BaseModel, Field
 
 
 class ValorBase(BaseModel):
@@ -26,17 +25,19 @@ class ValorListResponse(BaseModel):
 
 class RegistroValorBase(BaseModel):
     descricao: str = Field(..., min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
-    reflexao: str = Field(..., min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
     impacto: str = Field(..., min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
 
 
 class RegistroValorCreate(RegistroValorBase):
-    valores_ids: List[int] = Field(..., min_length=1, description="IDs dos valores associados")
+    valores_ids: List[int] = Field(
+        ..., min_length=1, description="IDs dos valores associados"
+    )
 
 
 class RegistroValorUpdate(BaseModel):
-    descricao: Optional[str] = Field(None, min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
-    reflexao: Optional[str] = Field(None, min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
+    descricao: Optional[str] = Field(
+        None, min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX
+    )
     impacto: Optional[str] = Field(None, min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)
     valores_ids: Optional[List[int]] = Field(None, min_length=1)
 

@@ -1,7 +1,6 @@
+from app.database import Base
 from sqlalchemy import Column, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-
-from app.database import Base
 
 
 class EixoAvaliacao(Base):
@@ -30,5 +29,3 @@ class NivelEixo(Base):
 
     # Relacionamentos
     eixo = relationship("EixoAvaliacao", back_populates="niveis")
-
-    __table_args__ = ({"mysql_engine": "InnoDB"},)

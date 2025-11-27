@@ -16,7 +16,6 @@ function RegistroValor({ onLogout }) {
   const [formulario, setFormulario] = useState({
     descricao: '',
     valoresSelecionados: [],
-    reflexao: '',
     impacto: ''
   })
 
@@ -79,13 +78,11 @@ function RegistroValor({ onLogout }) {
     if (
       formulario.descricao.trim() &&
       formulario.valoresSelecionados.length > 0 &&
-      formulario.reflexao.trim() &&
       formulario.impacto.trim()
     ) {
       try {
         await registrosValorAPI.create(colaboradorId, {
           descricao: formulario.descricao,
-          reflexao: formulario.reflexao,
           impacto: formulario.impacto,
           valores_ids: formulario.valoresSelecionados
         })
@@ -93,7 +90,6 @@ function RegistroValor({ onLogout }) {
         setFormulario({
           descricao: '',
           valoresSelecionados: [],
-          reflexao: '',
           impacto: ''
         })
         setMostrarFormulario(false)
@@ -110,7 +106,6 @@ function RegistroValor({ onLogout }) {
     setFormulario({
       descricao: '',
       valoresSelecionados: [],
-      reflexao: '',
       impacto: ''
     })
     setMostrarFormulario(false)
@@ -120,7 +115,6 @@ function RegistroValor({ onLogout }) {
     return (
       formulario.descricao.trim() &&
       formulario.valoresSelecionados.length > 0 &&
-      formulario.reflexao.trim() &&
       formulario.impacto.trim()
     )
   }
@@ -161,7 +155,7 @@ function RegistroValor({ onLogout }) {
           <div className="registro-header">
             <h2 className="registro-title">Registros de Valor</h2>
             <p className="registro-subtitle">
-              Registre ações que refletem os valores da organização
+              Queremos reconhecer atitudes que mostram a cultura da Ada acontecendo no dia a dia, momentos em que alguém fez algo que representa nossos valores de verdade. Esses registros ajudam a fortalecer o que temos de melhor e inspirar o time todo.
             </p>
             {!mostrarFormulario && (
               <button
@@ -179,10 +173,10 @@ function RegistroValor({ onLogout }) {
 
               <div className="formulario-campo">
                 <label className="campo-label">
-                  Descreva o que aconteceu <span className="required">*</span>
+                  O que aconteceu? <span className="required">*</span>
                 </label>
                 <p className="campo-descricao">
-                  O que foi feito, em que contexto e por quem (pode ser você ou outra pessoa).
+                  Conte de forma simples o que aconteceu, em que contexto e quem estava envolvido.
                 </p>
                 <textarea
                   className="campo-textarea"
@@ -195,7 +189,7 @@ function RegistroValor({ onLogout }) {
 
               <div className="formulario-campo">
                 <label className="campo-label">
-                  Seleção de valor <span className="required">*</span>
+                  Qual valor da Ada foi representado? <span className="required">*</span>
                 </label>
                 <p className="campo-descricao">
                   Selecione um ou mais valores que essa ação reflete.
@@ -222,26 +216,10 @@ function RegistroValor({ onLogout }) {
 
               <div className="formulario-campo">
                 <label className="campo-label">
-                  Como essa ação reflete o(s) valor(es)? <span className="required">*</span>
+                  Por que isso representa esse valor e qual foi o impacto? <span className="required">*</span>
                 </label>
                 <p className="campo-descricao">
-                  Explique por que você acredita que essa ação está alinhada ao(s) valor(es) escolhido(s).
-                </p>
-                <textarea
-                  className="campo-textarea"
-                  placeholder="Explique como a ação reflete os valores selecionados..."
-                  value={formulario.reflexao}
-                  onChange={(e) => handleInputChange('reflexao', e.target.value)}
-                  rows={5}
-                />
-              </div>
-
-              <div className="formulario-campo">
-                <label className="campo-label">
-                  Impacto da ação <span className="required">*</span>
-                </label>
-                <p className="campo-descricao">
-                  Que impacto essa atitude gerou no time, nos resultados ou na cultura?
+                  Conte qual efeito isso teve no time, no cliente ou na cultura. Pode ser algo mensurável, uma ideia que inspirou outros, etc.
                 </p>
                 <textarea
                   className="campo-textarea"
@@ -301,17 +279,12 @@ function RegistroValor({ onLogout }) {
 
                 <div className="registro-card-body">
                   <div className="registro-secao">
-                    <h4 className="secao-title">O que aconteceu</h4>
+                    <h4 className="secao-title">O que aconteceu?</h4>
                     <p className="secao-conteudo">{registro.descricao}</p>
                   </div>
 
                   <div className="registro-secao">
-                    <h4 className="secao-title">Como reflete o(s) valor(es)</h4>
-                    <p className="secao-conteudo">{registro.reflexao}</p>
-                  </div>
-
-                  <div className="registro-secao">
-                    <h4 className="secao-title">Impacto da ação</h4>
+                    <h4 className="secao-title">Por que isso representa esse valor e qual foi o impacto?</h4>
                     <p className="secao-conteudo">{registro.impacto}</p>
                   </div>
                 </div>

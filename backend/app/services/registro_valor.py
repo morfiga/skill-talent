@@ -40,7 +40,6 @@ class RegistroValorService(BaseService[RegistroValor]):
             db_registro_valor = RegistroValor(
                 colaborador_id=current_colaborador.id,
                 descricao=registro_valor_data.descricao,
-                reflexao=registro_valor_data.reflexao,
                 impacto=registro_valor_data.impacto,
                 valores=valores,
             )
@@ -71,10 +70,6 @@ class RegistroValorService(BaseService[RegistroValor]):
             # Atualizar campos básicos manualmente
             if registro_valor_data.descricao is not None:
                 registro.descricao = registro_valor_data.descricao
-            if registro_valor_data.reflexao is not None:
-                registro.reflexao = registro_valor_data.reflexao
-            if registro_valor_data.impacto is not None:
-                registro.impacto = registro_valor_data.impacto
 
             # Atualizar valores se fornecidos
             if registro_valor_data.valores_ids is not None:
