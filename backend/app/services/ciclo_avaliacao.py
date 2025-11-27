@@ -137,12 +137,19 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
         return self.repository.update_pares(ciclo_id, ciclo_update.pares_ids)
 
     def get_ciclos_avaliacao_liderados(
-        self, ciclo_id: int, gestor_id: int
+        self, ciclo_id: int, current_colaborador: Colaborador
     ) -> CicloAvaliacaoListResponse:
-        liderados = self.colaborador_service.get_liderados(gestor_id)
+        if not current_colaborador.is_admin:
+            raise ForbiddenException(
+                "Apenas administradores podem acessar este endpoint"
+            )
+
+        liderados = self.colaborador_service.get_liderados(current_colaborador.id)
 
         if not liderados:
-            logger.debug(f"Nenhum liderado encontrado para o gestor {gestor_id}")
+            logger.debug(
+                f"Nenhum liderado encontrado para o gestor {current_colaborador.id}"
+            )
             return {"ciclos": [], "total": 0}
 
         liderados_ids = [sub.id for sub in liderados]
@@ -159,6 +166,11 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
         ciclo_update: CicloAvaliacaoUpdate,
         current_colaborador: Colaborador,
     ) -> CicloAvaliacaoResponse:
+        if not current_colaborador.is_admin:
+            raise ForbiddenException(
+                "Apenas administradores podem atualizar pares de liderados"
+            )
+
         db_ciclo = self.repository.get(ciclo_avaliacao_id)
 
         if not db_ciclo:

@@ -9,10 +9,12 @@ from typing import List, Optional
 
 from app.core.exceptions import (
     BusinessRuleException,
+    ForbiddenException,
     NotFoundException,
     ValidationException,
 )
 from app.models.ciclo import Ciclo, EtapaCiclo, StatusCiclo
+from app.models.colaborador import Colaborador
 from app.repositories.ciclo import CicloRepository
 from app.schemas.ciclo import CicloCreate, CicloUpdate
 from app.services.base import BaseService
@@ -59,8 +61,13 @@ class CicloService(BaseService[Ciclo]):
             raise NotFoundException("Ciclo", ciclo_id)
         return ciclo
 
-    def create_ciclo(self, ciclo_data: CicloCreate) -> Ciclo:
+    def create_ciclo(
+        self, ciclo_data: CicloCreate, current_colaborador: Colaborador
+    ) -> Ciclo:
         """Cria um novo ciclo. Validação de campos já feita no schema."""
+        if not current_colaborador.is_admin:
+            raise ForbiddenException("Apenas administradores podem criar ciclos")
+
         try:
             db_ciclo = Ciclo(
                 nome=ciclo_data.nome,
@@ -74,8 +81,13 @@ class CicloService(BaseService[Ciclo]):
         except SQLAlchemyError:
             self._handle_database_error("criar ciclo")
 
-    def update_ciclo(self, ciclo_id: int, ciclo_data: CicloUpdate) -> Ciclo:
+    def update_ciclo(
+        self, ciclo_id: int, ciclo_data: CicloUpdate, current_colaborador: Colaborador
+    ) -> Ciclo:
         """Atualiza um ciclo. Validação de campos já feita no schema."""
+        if not current_colaborador.is_admin:
+            raise ForbiddenException("Apenas administradores podem atualizar ciclos")
+
         db_ciclo = self.repository.get(ciclo_id)
         if not db_ciclo:
             raise NotFoundException("Ciclo", ciclo_id)
@@ -98,7 +110,12 @@ class CicloService(BaseService[Ciclo]):
             raise NotFoundException("Ciclo aberto")
         return ciclo
 
-    def avancar_etapa(self, ciclo_id: int) -> Ciclo:
+    def avancar_etapa(self, ciclo_id: int, current_colaborador: Colaborador) -> Ciclo:
+        if not current_colaborador.is_admin:
+            raise ForbiddenException(
+                "Apenas administradores podem avançar etapas do ciclo"
+            )
+
         db_ciclo = self.repository.get(ciclo_id)
         if not db_ciclo:
             raise NotFoundException("Ciclo", ciclo_id)
@@ -125,7 +142,10 @@ class CicloService(BaseService[Ciclo]):
                 field="etapa_atual",
             )
 
-    def delete_ciclo(self, ciclo_id: int) -> bool:
+    def delete_ciclo(self, ciclo_id: int, current_colaborador: Colaborador) -> bool:
+        if not current_colaborador.is_admin:
+            raise ForbiddenException("Apenas administradores podem deletar ciclos")
+
         db_ciclo = self.repository.get(ciclo_id)
         if not db_ciclo:
             raise NotFoundException("Ciclo", ciclo_id)

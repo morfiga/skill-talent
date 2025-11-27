@@ -1,6 +1,8 @@
 from typing import Optional
 
+from app.core.security import get_current_colaborador
 from app.database import get_db
+from app.models.colaborador import Colaborador
 from app.schemas.colaborador import (
     ColaboradorCreate,
     ColaboradorListResponse,
@@ -41,15 +43,17 @@ def get_colaborador(
 @router.post("/", response_model=ColaboradorResponse, status_code=201)
 def create_colaborador(
     colaborador: ColaboradorCreate,
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     service: ColaboradorService = Depends(get_colaborador_service),
 ):
-    return service.create_colaborador(colaborador)
+    return service.create_colaborador(colaborador, current_colaborador)
 
 
 @router.put("/{colaborador_id}", response_model=ColaboradorResponse)
 def update_colaborador(
     colaborador_id: int,
     colaborador: ColaboradorUpdate,
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
     service: ColaboradorService = Depends(get_colaborador_service),
 ):
-    return service.update_colaborador(colaborador_id, colaborador)
+    return service.update_colaborador(colaborador_id, colaborador, current_colaborador)

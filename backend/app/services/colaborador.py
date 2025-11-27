@@ -1,7 +1,11 @@
 import logging
 from typing import List, Optional
 
-from app.core.exceptions import DuplicateResourceException, NotFoundException
+from app.core.exceptions import (
+    DuplicateResourceException,
+    ForbiddenException,
+    NotFoundException,
+)
 from app.models.colaborador import Colaborador
 from app.repositories.colaborador import ColaboradorRepository
 from app.schemas.colaborador import ColaboradorCreate, ColaboradorUpdate
@@ -37,7 +41,12 @@ class ColaboradorService(BaseService[Colaborador]):
     def get_liderados(self, gestor_id: int) -> List[Colaborador]:
         return self.repository.get_liderados(gestor_id)
 
-    def create_colaborador(self, colaborador_data: ColaboradorCreate) -> Colaborador:
+    def create_colaborador(
+        self, colaborador_data: ColaboradorCreate, current_colaborador: Colaborador
+    ) -> Colaborador:
+        if not current_colaborador.is_admin:
+            raise ForbiddenException("Apenas administradores podem criar colaboradores")
+
         existing = self.repository.get_by_email(colaborador_data.email)
         if existing:
             raise DuplicateResourceException(
@@ -52,11 +61,19 @@ class ColaboradorService(BaseService[Colaborador]):
             self._handle_database_error("criar colaborador")
 
     def update_colaborador(
-        self, colaborador_id: int, colaborador_data: ColaboradorUpdate
+        self,
+        colaborador_id: int,
+        colaborador_data: ColaboradorUpdate,
+        current_colaborador: Colaborador,
     ) -> Colaborador:
         db_colaborador = self.repository.get(colaborador_id)
         if not db_colaborador:
             raise NotFoundException("Colaborador", colaborador_id)
+
+        if not current_colaborador.is_admin:
+            raise ForbiddenException(
+                "Você não tem permissão para atualizar este colaborador"
+            )
 
         update_data = colaborador_data.model_dump(exclude_unset=True)
         if "email" in update_data and update_data["email"] != db_colaborador.email:

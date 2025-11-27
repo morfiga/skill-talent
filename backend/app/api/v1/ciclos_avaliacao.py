@@ -80,7 +80,7 @@ def get_ciclos_avaliacao_liderados(
     current_colaborador: Colaborador = Depends(get_current_colaborador),
     service: CicloAvaliacaoService = Depends(get_ciclo_avaliacao_service),
 ):
-    return service.get_ciclos_avaliacao_liderados(ciclo_id, current_colaborador.id)
+    return service.get_ciclos_avaliacao_liderados(ciclo_id, current_colaborador)
 
 
 @router.put(

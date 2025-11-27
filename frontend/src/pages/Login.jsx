@@ -1,6 +1,7 @@
 import { GoogleLogin } from '@react-oauth/google'
 import { useState } from 'react'
 import { authAPI } from '../services/api'
+import { saveSession } from '../utils/storage'
 import './Login.css'
 
 function Login({ onLogin }) {
@@ -14,14 +15,14 @@ function Login({ onLogin }) {
       // Enviar o ID token do Google para o backend
       const response = await authAPI.googleLogin(credentialResponse.credential)
 
-      // Salvar token JWT no localStorage
-      localStorage.setItem('access_token', response.access_token)
-      localStorage.setItem('user_id', response.user_id.toString())
-      localStorage.setItem('user_email', response.email)
-      localStorage.setItem('user_name', response.name)
-      if (response.avatar) {
-        localStorage.setItem('user_avatar', response.avatar)
-      }
+      // Salvar dados de sessão no localStorage
+      saveSession({
+        access_token: response.access_token,
+        user_id: response.user_id,
+        email: response.email,
+        name: response.name,
+        avatar: response.avatar,
+      })
 
       // Chamar callback de login
       onLogin(response)

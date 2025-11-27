@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard'
 import EntregaOutstanding from './pages/EntregaOutstanding'
 import Login from './pages/Login'
 import RegistroValor from './pages/RegistroValor'
+import PrivateRoute from './components/PrivateRoute'
+import AdminRoute from './components/AdminRoute'
 
 function App() {
   const { isAuthenticated, login, logout, colaborador, user } = useAuth()
@@ -34,76 +36,55 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            isAuthenticated ? (
+            <PrivateRoute>
               <Dashboard onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
+            </PrivateRoute>
           }
         />
         <Route
           path="/ciclo-avaliacao"
           element={
-            isAuthenticated ? (
+            <PrivateRoute>
               <Navigate to="/ciclo-avaliacao/1" replace />
-            ) : (
-              <Navigate to="/login" replace />
-            )
+            </PrivateRoute>
           }
         />
         <Route
           path="/ciclo-avaliacao/:etapa"
           element={
-            isAuthenticated ? (
+            <PrivateRoute>
               <CicloAvaliacao onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route
-          path="/ciclo-avaliacao/3/par"
-          element={
-            isAuthenticated ? (
-              <CicloAvaliacao onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
+            </PrivateRoute>
           }
         />
         <Route
           path="/entrega-outstanding"
           element={
-            isAuthenticated ? (
+            <PrivateRoute>
               <EntregaOutstanding onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
+            </PrivateRoute>
           }
         />
         <Route
           path="/registro-valor"
           element={
-            isAuthenticated ? (
+            <PrivateRoute>
               <RegistroValor onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
+            </PrivateRoute>
           }
         />
         <Route
           path="/admin"
           element={
-            isAuthenticated && (user?.is_admin || colaborador?.is_admin) ? (
+            <AdminRoute>
               <Admin onLogout={handleLogout} />
-            ) : isAuthenticated ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <Navigate to="/login" replace />
-            )
+            </AdminRoute>
           }
         />
-        <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
+        <Route
+          path="/"
+          element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />}
+        />
       </Routes>
     </Router>
   )
