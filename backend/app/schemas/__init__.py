@@ -1,5 +1,6 @@
 from app.schemas import (
     avaliacao,
+    avaliacao_gestor,
     ciclo_avaliacao,
     colaborador,
     eixo_avaliacao,
@@ -12,6 +13,7 @@ __all__ = [
     "eixo_avaliacao",
     "ciclo_avaliacao",
     "avaliacao",
+    "avaliacao_gestor",
     "entrega_outstanding",
     "registro_valor",
 ]

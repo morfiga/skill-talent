@@ -1,4 +1,5 @@
 from app.repositories.avaliacao import AvaliacaoRepository
+from app.repositories.avaliacao_gestor import AvaliacaoGestorRepository
 from app.repositories.base import BaseRepository
 from app.repositories.ciclo import CicloRepository
 from app.repositories.ciclo_avaliacao import CicloAvaliacaoRepository
@@ -10,6 +11,7 @@ from app.repositories.valor import ValorRepository
 
 __all__ = [
     "AvaliacaoRepository",
+    "AvaliacaoGestorRepository",
     "BaseRepository",
     "CicloRepository",
     "CicloAvaliacaoRepository",

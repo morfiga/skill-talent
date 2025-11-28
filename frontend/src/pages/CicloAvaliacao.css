@@ -1003,6 +1003,117 @@
   }
 }
 
+/* Estilos para Avaliação de Gestor (Colaborador avalia Gestor) */
+.categoria-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 30px;
+  border: 2px solid #e0e0e0;
+  margin-bottom: 30px;
+}
+
+.categoria-nome {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 25px 0;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.pergunta-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
+}
+
+.pergunta-texto {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 15px 0;
+  line-height: 1.5;
+}
+
+.pergunta-label {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 10px 0;
+  display: block;
+  line-height: 1.5;
+}
+
+.pergunta-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #333;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+  background: white;
+}
+
+.pergunta-textarea:focus {
+  outline: none;
+  border-color: #50e550;
+  box-shadow: 0 0 0 3px rgba(80, 229, 80, 0.1);
+}
+
+.escala-container {
+  margin-top: 15px;
+}
+
+.escala-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.escala-button {
+  width: 50px;
+  height: 50px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.escala-button:hover {
+  border-color: #50e550;
+  background: #f0fdf0;
+  transform: translateY(-2px);
+}
+
+.escala-button.selecionado {
+  background: #50e550;
+  border-color: #50e550;
+  color: white;
+  box-shadow: 0 4px 12px rgba(80, 229, 80, 0.3);
+}
+
+.escala-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #666;
+  padding: 0 10px;
+}
+
 @media (max-width: 768px) {
   .ciclo-layout {
     flex-direction: column;
@@ -1046,6 +1157,24 @@
     width: 80%;
     height: 4px;
     border-radius: 4px 4px 0 0;
+  }
+
+  .categoria-card {
+    padding: 20px;
+  }
+
+  .escala-buttons {
+    gap: 8px;
+  }
+
+  .escala-button {
+    width: 45px;
+    height: 45px;
+    font-size: 1rem;
+  }
+
+  .escala-labels {
+    font-size: 0.75rem;
   }
 }
 

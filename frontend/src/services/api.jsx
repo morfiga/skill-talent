@@ -197,3 +197,21 @@ export const registrosValorAPI = {
   }),
 }
 
+// API de Avaliações de Gestor (colaborador avalia gestor)
+export const avaliacoesGestorAPI = {
+  getPerguntas: () => request('/avaliacoes-gestor/perguntas'),
+  getAll: (params = {}) => {
+    const queryParams = new URLSearchParams(params).toString()
+    return request(`/avaliacoes-gestor?${queryParams}`)
+  },
+  getById: (id) => request(`/avaliacoes-gestor/${id}`),
+  create: (data) => request('/avaliacoes-gestor', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id, data) => request(`/avaliacoes-gestor/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+}
+

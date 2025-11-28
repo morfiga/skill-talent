@@ -38,3 +38,13 @@ class Colaborador(Base):
         "EntregaOutstanding", back_populates="colaborador"
     )
     registros_valor = relationship("RegistroValor", back_populates="colaborador")
+    avaliacoes_gestor_realizadas = relationship(
+        "AvaliacaoGestor",
+        foreign_keys="AvaliacaoGestor.colaborador_id",
+        back_populates="colaborador",
+    )
+    avaliacoes_gestor_recebidas = relationship(
+        "AvaliacaoGestor",
+        foreign_keys="AvaliacaoGestor.gestor_id",
+        back_populates="gestor",
+    )

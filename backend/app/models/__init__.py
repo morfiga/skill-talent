@@ -1,5 +1,6 @@
 from app.models import (
     avaliacao,
+    avaliacao_gestor,
     ciclo,
     ciclo_avaliacao,
     colaborador,
@@ -14,6 +15,7 @@ __all__ = [
     "ciclo",
     "ciclo_avaliacao",
     "avaliacao",
+    "avaliacao_gestor",
     "entrega_outstanding",
     "registro_valor",
 ]

@@ -968,6 +968,7 @@ function Admin({ onLogout }) {
                         <option value="escolha_pares">Escolha de Pares</option>
                         <option value="aprovacao_pares">Aprovação de Pares</option>
                         <option value="avaliacoes">Avaliações</option>
+                        <option value="calibracao">Calibração</option>
                         <option value="feedback">Feedback</option>
                       </select>
                     </div>

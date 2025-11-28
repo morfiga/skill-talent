@@ -111,11 +111,13 @@ class AvaliacaoRepository(BaseRepository[Avaliacao]):
         """Cria uma avaliação com seus eixos"""
         # Criar avaliação
         db_avaliacao = self.create(
-            ciclo_id=ciclo_id,
-            avaliador_id=avaliador_id,
-            avaliado_id=avaliado_id,
-            tipo=tipo,
-            avaliacao_geral=avaliacao_geral,
+            Avaliacao(
+                ciclo_id=ciclo_id,
+                avaliador_id=avaliador_id,
+                avaliado_id=avaliado_id,
+                tipo=tipo,
+                avaliacao_geral=avaliacao_geral,
+            )
         )
 
         # Criar avaliações por eixo

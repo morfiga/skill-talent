@@ -6,6 +6,7 @@ import '../CicloAvaliacao.css'
 import '../Page.css'
 import EtapaAutoavaliacao from './EtapaAutoavaliacao'
 import EtapaAvaliacaoGestor from './EtapaAvaliacaoGestor'
+import EtapaAvaliacaoGestorColaborador from './EtapaAvaliacaoGestorColaborador'
 import EtapaAvaliarPares from './EtapaAvaliarPares'
 import EtapaAvaliarParIndividual from './EtapaAvaliarParIndividual'
 import EtapaEscolhaPares from './EtapaEscolhaPares'
@@ -357,7 +358,7 @@ function CicloAvaliacao({ onLogout }) {
                   />
                 )}
                 {etapaAtual === 4 && (
-                  <EtapaAvaliacaoGestor
+                  <EtapaAvaliacaoGestorColaborador
                     colaboradorId={colaboradorId}
                     colaborador={colaborador}
                     cicloAberto={cicloAberto}

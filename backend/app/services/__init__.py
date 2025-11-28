@@ -6,6 +6,7 @@ e repositories.
 """
 
 from app.services.avaliacao import AvaliacaoService
+from app.services.avaliacao_gestor import AvaliacaoGestorService
 from app.services.ciclo import CicloService
 from app.services.ciclo_avaliacao import CicloAvaliacaoService
 from app.services.colaborador import ColaboradorService
@@ -16,6 +17,7 @@ from app.services.valor import ValorService
 
 __all__ = [
     "AvaliacaoService",
+    "AvaliacaoGestorService",
     "CicloService",
     "CicloAvaliacaoService",
     "ColaboradorService",

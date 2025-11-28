@@ -50,3 +50,4 @@ class Ciclo(Base):
     # Relacionamentos
     ciclos_avaliacao = relationship("CicloAvaliacao", back_populates="ciclo")
     avaliacoes = relationship("Avaliacao", back_populates="ciclo")
+    avaliacoes_gestor = relationship("AvaliacaoGestor", back_populates="ciclo")

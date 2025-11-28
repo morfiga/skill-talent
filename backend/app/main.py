@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from app.api.v1 import (
     auth,
     avaliacoes,
+    avaliacoes_gestor,
     ciclos,
     ciclos_avaliacao,
     colaboradores,
@@ -74,6 +75,7 @@ app.include_router(niveis_carreira.router, prefix="/api/v1")
 app.include_router(ciclos.router, prefix="/api/v1")
 app.include_router(ciclos_avaliacao.router, prefix="/api/v1")
 app.include_router(avaliacoes.router, prefix="/api/v1")
+app.include_router(avaliacoes_gestor.router, prefix="/api/v1")
 app.include_router(entregas_outstanding.router, prefix="/api/v1")
 app.include_router(valores.router, prefix="/api/v1")
 app.include_router(registros_valor.router, prefix="/api/v1")
