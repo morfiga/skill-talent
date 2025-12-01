@@ -33,47 +33,65 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
         self, avaliacao: AvaliacaoGestorCreate, current_colaborador: Colaborador
     ) -> AvaliacaoGestorResponse:
         try:
-            # Validar que o colaborador tem um gestor
+            # Determinar o gestor_id: se não tem gestor, faz autoavaliação (avaliando a si mesmo)
             if not current_colaborador.gestor_id:
-                raise BusinessRuleException(
-                    "Você não possui um gestor atribuído para realizar esta avaliação"
+                # Autoavaliação: gestor avaliando a si mesmo
+                gestor_id = current_colaborador.id
+                logger.info(
+                    f"Autoavaliação de gestor. Colaborador {current_colaborador.id} avaliando a si mesmo"
                 )
-
-            gestor_id = current_colaborador.gestor_id
+            else:
+                # Avaliação normal: colaborador avaliando seu gestor
+                gestor_id = current_colaborador.gestor_id
 
             # Validar que o gestor existe
             gestor = self.repository.validate_colaborador(gestor_id)
             if not gestor:
                 raise NotFoundException("Gestor", gestor_id)
 
-            # Validar que o ciclo existe
+            # Validar que o ciclo existe (opcional para autoavaliação)
             ciclo_avaliacao = self.repository.validate_ciclo_avaliacao(
                 avaliacao.ciclo_id, current_colaborador.id
             )
 
-            if not ciclo_avaliacao:
-                raise NotFoundException("Ciclo de avaliação", avaliacao.ciclo_id)
+            # Para autoavaliação, ciclo_avaliacao pode não existir
+            ciclo_avaliacao_id = ciclo_avaliacao.id if ciclo_avaliacao else None
 
             # Verificar se o ciclo está na etapa de calibração
             # Durante esta etapa, colaboradores não podem criar avaliações
-            if ciclo_avaliacao.ciclo.etapa_atual == EtapaCiclo.CALIBRACAO:
+            # Buscar o ciclo diretamente se não houver ciclo_avaliacao
+            from app.repositories.ciclo import CicloRepository
+
+            ciclo_repo = CicloRepository(self.db)
+            ciclo = ciclo_repo.get(avaliacao.ciclo_id)
+
+            if not ciclo:
+                raise NotFoundException("Ciclo", avaliacao.ciclo_id)
+
+            if ciclo.etapa_atual == EtapaCiclo.CALIBRACAO:
                 raise BusinessRuleException(
                     "Não é possível criar avaliações durante a etapa de calibração"
                 )
 
-            # Verificar se já existe avaliação deste colaborador para este ciclo
+            # Verificar se já existe avaliação deste colaborador para este gestor neste ciclo
             existing = self.repository.check_duplicate(
                 ciclo_id=avaliacao.ciclo_id,
                 colaborador_id=current_colaborador.id,
+                gestor_id=gestor_id,
             )
 
             if existing:
                 logger.warning(
                     f"Tentativa de criar avaliação de gestor duplicada. Ciclo: {avaliacao.ciclo_id}, "
-                    f"Colaborador: {current_colaborador.id}"
+                    f"Colaborador: {current_colaborador.id}, Gestor: {gestor_id}"
+                )
+                tipo_avaliacao = (
+                    "autoavaliação"
+                    if current_colaborador.id == gestor_id
+                    else "avaliação de gestor"
                 )
                 raise BusinessRuleException(
-                    "Já existe uma avaliação de gestor para este ciclo"
+                    f"Já existe uma {tipo_avaliacao} para este ciclo"
                 )
 
             # Criar avaliação com respostas
@@ -84,7 +102,7 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
 
             db_avaliacao = self.repository.create_with_respostas(
                 ciclo_id=avaliacao.ciclo_id,
-                ciclo_avaliacao_id=ciclo_avaliacao.id,
+                ciclo_avaliacao_id=ciclo_avaliacao_id,
                 colaborador_id=current_colaborador.id,
                 gestor_id=gestor_id,
                 respostas_fechadas=[
@@ -93,7 +111,9 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
                 respostas_abertas=[r.model_dump() for r in avaliacao.respostas_abertas],
             )
 
-            logger.info(f"Avaliação de gestor criada com sucesso. ID: {db_avaliacao.id}")
+            logger.info(
+                f"Avaliação de gestor criada com sucesso. ID: {db_avaliacao.id}"
+            )
             return db_avaliacao
         except SQLAlchemyError:
             self._handle_database_error("criar avaliação de gestor")
@@ -211,7 +231,10 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
             ciclo_avaliacao = self.repository.validate_ciclo_avaliacao(
                 db_avaliacao.ciclo_id, current_colaborador.id
             )
-            if ciclo_avaliacao and ciclo_avaliacao.ciclo.etapa_atual == EtapaCiclo.CALIBRACAO:
+            if (
+                ciclo_avaliacao
+                and ciclo_avaliacao.ciclo.etapa_atual == EtapaCiclo.CALIBRACAO
+            ):
                 raise BusinessRuleException(
                     "Não é possível alterar avaliações durante a etapa de calibração"
                 )
@@ -227,7 +250,9 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
                     r.model_dump() for r in avaliacao.respostas_fechadas
                 ]
             if avaliacao.respostas_abertas:
-                respostas_abertas = [r.model_dump() for r in avaliacao.respostas_abertas]
+                respostas_abertas = [
+                    r.model_dump() for r in avaliacao.respostas_abertas
+                ]
 
             db_avaliacao = self.repository.update_with_respostas(
                 avaliacao_id=avaliacao_id,
@@ -237,7 +262,9 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
 
             self.repository.refresh(db_avaliacao)
 
-            logger.info(f"Avaliação de gestor atualizada com sucesso. ID: {avaliacao_id}")
+            logger.info(
+                f"Avaliação de gestor atualizada com sucesso. ID: {avaliacao_id}"
+            )
             return db_avaliacao
         except SQLAlchemyError:
             self._handle_database_error("atualizar avaliação de gestor")
@@ -309,4 +336,3 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
             avaliacoes=avaliacoes_completas,
             total=len(avaliacoes_completas),
         )
-

@@ -1,208 +1,190 @@
-import { useState, useEffect } from 'react'
-import { eixosAvaliacaoAPI, avaliacoesAPI } from '../../services/api'
+import { useEffect, useState } from 'react'
+import { avaliacoesGestorAPI } from '../../services/api'
 import '../CicloAvaliacao.css'
 
-function EtapaAvaliacaoGestor({ colaboradorId, colaborador, cicloAberto, onFinalizado, onVoltar }) {
-  const [eixosAvaliacao, setEixosAvaliacao] = useState([])
-  const [avaliacaoGestor, setAvaliacaoGestor] = useState({
-    eixos: {},
-    avaliacaoGeral: ''
-  })
+function EtapaAvaliacaoGestor({ colaboradorId, colaborador, cicloAberto, onVoltar }) {
+  const [perguntas, setPerguntas] = useState(null)
+  const [respostasFechadas, setRespostasFechadas] = useState({})
+  const [respostasAbertas, setRespostasAbertas] = useState({})
   const [loading, setLoading] = useState(true)
   const [salvando, setSalvando] = useState(false)
+  const [avaliacaoExistente, setAvaliacaoExistente] = useState(null)
 
   useEffect(() => {
-    loadEixosAvaliacao()
+    loadPerguntas()
   }, [])
 
   useEffect(() => {
-    if (cicloAberto && colaboradorId && colaborador?.gestor_id) {
+    if (cicloAberto && colaboradorId) {
       loadAvaliacaoExistente()
     }
-  }, [cicloAberto, colaboradorId, colaborador?.gestor_id])
+  }, [cicloAberto, colaboradorId])
 
-  const loadEixosAvaliacao = async () => {
+  const loadPerguntas = async () => {
     try {
-      const response = await eixosAvaliacaoAPI.getAll()
-      const eixos = response.eixos.map(eixo => ({
-        id: eixo.id.toString(),
-        codigo: eixo.codigo,
-        nome: eixo.nome,
-        niveis: eixo.niveis.map(nivel => ({
-          nivel: nivel.nivel,
-          descricao: nivel.descricao
-        }))
-      }))
-      setEixosAvaliacao(eixos)
+      const response = await avaliacoesGestorAPI.getPerguntas()
+      setPerguntas(response)
+
+      // Inicializar respostas fechadas
+      const fechadasInicial = {}
+      Object.keys(response.perguntas_fechadas).forEach(codigo => {
+        fechadasInicial[codigo] = null
+      })
+      setRespostasFechadas(fechadasInicial)
+
+      // Inicializar respostas abertas
+      const abertasInicial = {}
+      Object.keys(response.perguntas_abertas).forEach(codigo => {
+        abertasInicial[codigo] = ''
+      })
+      setRespostasAbertas(abertasInicial)
     } catch (error) {
-      console.error('Erro ao carregar eixos:', error)
+      console.error('Erro ao carregar perguntas:', error)
+      alert('Erro ao carregar perguntas. Tente novamente.')
     } finally {
       setLoading(false)
     }
   }
 
   const loadAvaliacaoExistente = async () => {
-    if (!cicloAberto || !colaborador?.gestor_id) return
+    if (!cicloAberto) return
 
     try {
-      const response = await avaliacoesAPI.getAll({ 
+      const response = await avaliacoesGestorAPI.getAll({
         ciclo_id: cicloAberto.id,
-        avaliador_id: colaboradorId,
-        avaliado_id: colaborador.gestor_id,
-        tipo: 'gestor'
+        colaborador_id: colaboradorId
       })
       const avaliacoes = response.avaliacoes || []
-      
+
       if (avaliacoes.length > 0) {
         const avaliacao = avaliacoes[0]
-        const eixosObj = {}
-        avaliacao.eixos_detalhados?.forEach(eixo => {
-          eixosObj[eixo.eixo_id.toString()] = {
-            nivel: eixo.nivel,
-            justificativa: eixo.justificativa
+        setAvaliacaoExistente(avaliacao)
+
+        // Carregar respostas fechadas
+        const fechadas = {}
+        avaliacao.respostas?.forEach(resposta => {
+          if (resposta.resposta_escala !== null) {
+            fechadas[resposta.pergunta_codigo] = resposta.resposta_escala
           }
         })
-        setAvaliacaoGestor({
-          eixos: eixosObj,
-          avaliacaoGeral: avaliacao.avaliacao_geral || ''
+        setRespostasFechadas(prev => ({ ...prev, ...fechadas }))
+
+        // Carregar respostas abertas
+        const abertas = {}
+        avaliacao.respostas?.forEach(resposta => {
+          if (resposta.resposta_texto !== null) {
+            abertas[resposta.pergunta_codigo] = resposta.resposta_texto
+          }
         })
+        setRespostasAbertas(prev => ({ ...prev, ...abertas }))
       }
     } catch (error) {
-      console.error('Erro ao carregar avaliação do gestor existente:', error)
+      console.error('Erro ao carregar avaliação existente:', error)
     }
   }
 
-  const handleSelecionarNivel = (eixoId, nivel) => {
-    setAvaliacaoGestor(prev => ({
+  const handleRespostaFechadaChange = (perguntaCodigo, escala) => {
+    setRespostasFechadas(prev => ({
       ...prev,
-      eixos: {
-        ...prev.eixos,
-        [eixoId]: {
-          ...prev.eixos[eixoId],
-          nivel: nivel
-        }
-      }
+      [perguntaCodigo]: escala
     }))
   }
 
-  const handleJustificativaChange = (eixoId, justificativa) => {
-    setAvaliacaoGestor(prev => ({
+  const handleRespostaAbertaChange = (perguntaCodigo, texto) => {
+    setRespostasAbertas(prev => ({
       ...prev,
-      eixos: {
-        ...prev.eixos,
-        [eixoId]: {
-          ...prev.eixos[eixoId],
-          justificativa: justificativa
-        }
-      }
-    }))
-  }
-
-  const handleAvaliacaoGeralChange = (valor) => {
-    setAvaliacaoGestor(prev => ({
-      ...prev,
-      avaliacaoGeral: valor
+      [perguntaCodigo]: texto
     }))
   }
 
   const isAvaliacaoCompleta = () => {
-    const todosEixosCompletos = eixosAvaliacao.every(eixo => {
-      const avaliacaoEixo = avaliacaoGestor.eixos[eixo.id]
-      return avaliacaoEixo && avaliacaoEixo.nivel && avaliacaoEixo.justificativa && avaliacaoEixo.justificativa.trim() !== ''
-    })
+    if (!perguntas) return false
 
-    const avaliacaoGeralPreenchida = avaliacaoGestor.avaliacaoGeral.trim() !== ''
+    // Verificar se todas as perguntas fechadas foram respondidas
+    const todasFechadasRespondidas = Object.keys(perguntas.perguntas_fechadas).every(
+      codigo => respostasFechadas[codigo] !== null && respostasFechadas[codigo] !== undefined
+    )
 
-    return todosEixosCompletos && avaliacaoGeralPreenchida
+    // Verificar se todas as perguntas abertas foram respondidas
+    const todasAbertasRespondidas = Object.keys(perguntas.perguntas_abertas).every(
+      codigo => respostasAbertas[codigo] && respostasAbertas[codigo].trim() !== ''
+    )
+
+    return todasFechadasRespondidas && todasAbertasRespondidas
   }
 
   const handleSalvar = async () => {
-    if (isAvaliacaoCompleta() && cicloAberto && colaborador?.gestor_id) {
-      try {
-        setSalvando(true)
-        const eixos = {}
-        eixosAvaliacao.forEach(eixo => {
-          const avaliacaoEixo = avaliacaoGestor.eixos[eixo.id]
-          if (avaliacaoEixo) {
-            eixos[eixo.id] = {
-              nivel: avaliacaoEixo.nivel,
-              justificativa: avaliacaoEixo.justificativa
-            }
-          }
-        })
+    if (!isAvaliacaoCompleta() || !cicloAberto) {
+      alert('Por favor, complete todas as perguntas antes de salvar.')
+      return
+    }
 
-        // Verificar se já existe avaliação
-        try {
-          const response = await avaliacoesAPI.getAll({ 
-            ciclo_id: cicloAberto.id,
-            avaliador_id: colaboradorId,
-            avaliado_id: colaborador.gestor_id,
-            tipo: 'gestor'
-          })
-          const avaliacoes = response.avaliacoes || []
-          
-          if (avaliacoes.length > 0) {
-            // Atualizar avaliação existente
-            await avaliacoesAPI.update(avaliacoes[0].id, {
-              avaliacao_geral: avaliacaoGestor.avaliacaoGeral,
-              eixos: eixos
-            })
-            alert('Avaliação do gestor atualizada com sucesso!')
-          } else {
-            // Criar nova avaliação
-            await avaliacoesAPI.create({
-              ciclo_id: cicloAberto.id,
-              avaliador_id: colaboradorId,
-              avaliado_id: colaborador.gestor_id,
-              tipo: 'gestor',
-              avaliacao_geral: avaliacaoGestor.avaliacaoGeral,
-              eixos: eixos
-            })
-            alert('Avaliação do gestor salva com sucesso!')
-          }
-        } catch (createError) {
-          // Se erro 400 (avaliação duplicada), tentar atualizar
-          if (createError.message?.includes('Já existe') || createError.message?.includes('400')) {
-            const response = await avaliacoesAPI.getAll({ 
-              ciclo_id: cicloAberto.id,
-              avaliador_id: colaboradorId,
-              avaliado_id: colaborador.gestor_id,
-              tipo: 'gestor'
-            })
-            const avaliacoes = response.avaliacoes || []
-            if (avaliacoes.length > 0) {
-              await avaliacoesAPI.update(avaliacoes[0].id, {
-                avaliacao_geral: avaliacaoGestor.avaliacaoGeral,
-                eixos: eixos
-              })
-              alert('Avaliação do gestor atualizada com sucesso!')
-            } else {
-              throw createError
-            }
-          } else {
-            throw createError
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao salvar avaliação do gestor:', error)
-        alert('Erro ao salvar avaliação do gestor. Tente novamente.')
-      } finally {
-        setSalvando(false)
+    try {
+      setSalvando(true)
+
+      // Preparar dados para envio
+      const respostasFechadasArray = Object.keys(perguntas.perguntas_fechadas).map(codigo => ({
+        pergunta_codigo: codigo,
+        resposta_escala: respostasFechadas[codigo]
+      }))
+
+      const respostasAbertasArray = Object.keys(perguntas.perguntas_abertas).map(codigo => ({
+        pergunta_codigo: codigo,
+        resposta_texto: respostasAbertas[codigo]
+      }))
+
+      const data = {
+        ciclo_id: cicloAberto.id,
+        respostas_fechadas: respostasFechadasArray,
+        respostas_abertas: respostasAbertasArray
       }
-    } else if (!isAvaliacaoCompleta()) {
-      alert('Por favor, complete todos os campos obrigatórios antes de salvar.')
+
+      if (avaliacaoExistente) {
+        // Atualizar avaliação existente
+        await avaliacoesGestorAPI.update(avaliacaoExistente.id, data)
+        alert('Avaliação atualizada com sucesso!')
+      } else {
+        // Criar nova avaliação
+        await avaliacoesGestorAPI.create(data)
+        alert('Avaliação salva com sucesso!')
+        // Recarregar para obter o ID da avaliação criada
+        await loadAvaliacaoExistente()
+      }
+    } catch (error) {
+      console.error('Erro ao salvar avaliação:', error)
+      alert('Erro ao salvar avaliação. Tente novamente.')
+    } finally {
+      setSalvando(false)
     }
   }
 
+  const getPerguntasPorCategoria = (categoriaCodigo) => {
+    if (!perguntas) return { fechadas: [], abertas: [] }
+
+    const fechadas = Object.entries(perguntas.perguntas_fechadas)
+      .filter(([codigo, info]) => info.categoria === categoriaCodigo)
+      .map(([codigo, info]) => ({ codigo, ...info }))
+
+    const abertas = Object.entries(perguntas.perguntas_abertas)
+      .filter(([codigo, info]) => info.categoria === categoriaCodigo)
+      .map(([codigo, info]) => ({ codigo, ...info }))
+
+    return { fechadas, abertas }
+  }
+
   if (loading) {
-    return <div>Carregando eixos de avaliação...</div>
+    return <div>Carregando perguntas...</div>
+  }
+
+  if (!perguntas) {
+    return <div>Erro ao carregar perguntas. Tente novamente.</div>
   }
 
   if (!colaborador?.gestor_id) {
     return (
       <>
         <div className="ciclo-header">
-          <h2 className="ciclo-step-title">Etapa 4: Avaliação do Gestor</h2>
+          <h2 className="ciclo-step-title">Avaliação do Gestor</h2>
           <p className="ciclo-step-description">
             Você não possui um gestor cadastrado.
           </p>
@@ -218,69 +200,71 @@ function EtapaAvaliacaoGestor({ colaboradorId, colaborador, cicloAberto, onFinal
     )
   }
 
+  const categorias = Object.entries(perguntas.categorias)
+
   return (
     <>
       <div className="ciclo-header">
-        <h2 className="ciclo-step-title">Etapa 4: Avaliação do Gestor</h2>
+        <h2 className="ciclo-step-title">Avaliação do Gestor</h2>
         <p className="ciclo-step-description">
-          Avalie o desempenho do seu gestor em cada eixo e forneça feedback construtivo
+          Avalie seu gestor respondendo as perguntas abaixo. Seja honesto e construtivo em suas respostas.
         </p>
       </div>
 
       <div className="autoavaliacao-section">
-        {eixosAvaliacao.map((eixo) => {
-          const avaliacaoEixo = avaliacaoGestor.eixos[eixo.id] || {}
-          const nivelSelecionado = avaliacaoEixo.nivel
+        {categorias.map(([categoriaCodigo, categoriaNome]) => {
+          const { fechadas, abertas } = getPerguntasPorCategoria(categoriaCodigo)
+
+          // Pular categoria se não houver perguntas
+          if (fechadas.length === 0 && abertas.length === 0) return null
 
           return (
-            <div key={eixo.id} className="eixo-card">
-              <h3 className="eixo-nome">{eixo.nome}</h3>
+            <div key={categoriaCodigo} className="categoria-card">
+              <h3 className="categoria-nome">{categoriaNome}</h3>
 
-              <div className="niveis-container">
-                <p className="niveis-label">Selecione o nível do seu gestor:</p>
-                <div className="niveis-grid">
-                  {eixo.niveis.map((nivel) => (
-                    <button
-                      key={nivel.nivel}
-                      className={`nivel-button ${nivelSelecionado === nivel.nivel ? 'selecionado' : ''}`}
-                      onClick={() => handleSelecionarNivel(eixo.id, nivel.nivel)}
-                    >
-                      <span className="nivel-numero">{nivel.nivel}</span>
-                      <span className="nivel-descricao">{nivel.descricao}</span>
-                    </button>
-                  ))}
+              {/* Perguntas Fechadas */}
+              {fechadas.map((pergunta) => (
+                <div key={pergunta.codigo} className="pergunta-card">
+                  <p className="pergunta-texto">{pergunta.texto}</p>
+                  <div className="escala-container">
+                    <div className="escala-buttons">
+                      {[1, 2, 3, 4, 5].map((escala) => (
+                        <button
+                          key={escala}
+                          className={`escala-button ${respostasFechadas[pergunta.codigo] === escala ? 'selecionado' : ''
+                            }`}
+                          onClick={() => handleRespostaFechadaChange(pergunta.codigo, escala)}
+                        >
+                          {escala}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="escala-labels">
+                      <span>Discordo totalmente</span>
+                      <span>Concordo totalmente</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
 
-              <div className="justificativa-container">
-                <label className="justificativa-label">
-                  Feedback <span className="required">*</span>
-                </label>
-                <textarea
-                  className="justificativa-textarea"
-                  placeholder="Compartilhe seu feedback sobre seu gestor neste eixo..."
-                  value={avaliacaoEixo.justificativa || ''}
-                  onChange={(e) => handleJustificativaChange(eixo.id, e.target.value)}
-                  rows={4}
-                />
-              </div>
+              {/* Perguntas Abertas */}
+              {abertas.map((pergunta) => (
+                <div key={pergunta.codigo} className="pergunta-card">
+                  <label className="pergunta-label">
+                    {pergunta.texto} <span className="required">*</span>
+                  </label>
+                  <textarea
+                    className="pergunta-textarea"
+                    placeholder="Digite sua resposta..."
+                    value={respostasAbertas[pergunta.codigo] || ''}
+                    onChange={(e) => handleRespostaAbertaChange(pergunta.codigo, e.target.value)}
+                    rows={4}
+                  />
+                </div>
+              ))}
             </div>
           )
         })}
-
-        <div className="avaliacao-geral-container">
-          <h3 className="avaliacao-geral-title">Feedback Geral sobre o Gestor</h3>
-          <label className="avaliacao-geral-label">
-            Compartilhe seu feedback geral sobre seu gestor <span className="required">*</span>
-          </label>
-          <textarea
-            className="avaliacao-geral-textarea"
-            placeholder="Descreva suas percepções gerais sobre seu gestor, pontos fortes, oportunidades de desenvolvimento e recomendações..."
-            value={avaliacaoGestor.avaliacaoGeral}
-            onChange={(e) => handleAvaliacaoGeralChange(e.target.value)}
-            rows={6}
-          />
-        </div>
       </div>
 
       <div className="ciclo-actions">

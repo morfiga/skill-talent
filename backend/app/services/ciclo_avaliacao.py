@@ -50,6 +50,12 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
         if not ciclo_obj:
             raise NotFoundException("Ciclo", ciclo_avaliacao.ciclo_id)
 
+        # Validar que o ciclo está na etapa de escolha de pares
+        if ciclo_obj.etapa_atual != EtapaCiclo.ESCOLHA_PARES:
+            raise BusinessRuleException(
+                "Não é possível criar/alterar a escolha de pares. A alteração só é permitida durante a etapa de escolha de pares."
+            )
+
         # Validar que os pares existem no banco
         # (validação de quantidade já feita no schema)
         self._validate_pares_exist(ciclo_avaliacao.pares_ids)
@@ -124,10 +130,9 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
                 "Você só pode atualizar seus próprios ciclos de avaliação"
             )
 
-        if db_ciclo.ciclo.etapa_atual == EtapaCiclo.APROVACAO_PARES:
+        if db_ciclo.ciclo.etapa_atual != EtapaCiclo.ESCOLHA_PARES:
             raise BusinessRuleException(
-                "Não é possível alterar os pares durante a etapa de aprovação de pares. "
-                "Aguarde a aprovação do gestor."
+                "Não é possível alterar os pares. A alteração só é permitida durante a etapa de escolha de pares."
             )
 
         # Validar que os pares existem no banco

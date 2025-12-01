@@ -128,18 +128,18 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
   return (
     <>
       <div className="ciclo-header">
-        <h2 className="ciclo-step-title">Etapa 1: Escolha de Pares</h2>
+        <h2 className="ciclo-step-title">Escolha de Pares</h2>
         <p className="ciclo-step-description">
-          {isAprovacaoPares 
+          {isAprovacaoPares
             ? 'Os pares estão aguardando aprovação do gestor. Não é possível alterá-los neste momento.'
             : 'Selecione 4 colaboradores para avaliar seu desempenho'}
         </p>
         {isAprovacaoPares && (
-          <div style={{ 
-            padding: '12px', 
-            backgroundColor: '#fff3cd', 
-            border: '1px solid #ffc107', 
-            borderRadius: '4px', 
+          <div style={{
+            padding: '12px',
+            backgroundColor: '#fff3cd',
+            border: '1px solid #ffc107',
+            borderRadius: '4px',
             marginTop: '10px',
             color: '#856404'
           }}>

@@ -57,11 +57,7 @@ def update_ciclo(
 @router.get("/ativo/aberto", response_model=CicloResponse)
 def get_ciclo_aberto(service: CicloService = Depends(get_ciclo_service)):
     """Obtém o ciclo aberto ativo"""
-    logger.debug("GET /ciclos/ativo/aberto - Buscando ciclo aberto")
     ciclo = service.get_ciclo_aberto()
-    logger.debug(
-        f"Ciclo aberto encontrado. ID: {ciclo.id}, Nome: {ciclo.nome}, Status: {ciclo.status}"
-    )
     return ciclo
 
 

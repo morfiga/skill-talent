@@ -107,7 +107,7 @@ function EtapaAvaliarPares({ colaboradorId, cicloAberto, cicloAtivo, onIniciarAv
   return (
     <>
       <div className="ciclo-header">
-        <h2 className="ciclo-step-title">Etapa 3: Avaliar Pares</h2>
+        <h2 className="ciclo-step-title">Avaliar Pares</h2>
         <p className="ciclo-step-description">
           Avalie os colaboradores que escolheram você como par
         </p>

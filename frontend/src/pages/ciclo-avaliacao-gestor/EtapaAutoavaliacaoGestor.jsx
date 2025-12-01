@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { avaliacoesGestorAPI } from '../../services/api'
 import '../CicloAvaliacao.css'
 
-function EtapaAvaliacaoGestorColaborador({ colaboradorId, colaborador, cicloAberto, onVoltar }) {
+function EtapaAutoavaliacaoGestor({ colaboradorId, cicloAberto, onVoltar }) {
   const [perguntas, setPerguntas] = useState(null)
   const [respostasFechadas, setRespostasFechadas] = useState({})
   const [respostasAbertas, setRespostasAbertas] = useState({})
@@ -24,14 +24,14 @@ function EtapaAvaliacaoGestorColaborador({ colaboradorId, colaborador, cicloAber
     try {
       const response = await avaliacoesGestorAPI.getPerguntas()
       setPerguntas(response)
-      
+
       // Inicializar respostas fechadas
       const fechadasInicial = {}
       Object.keys(response.perguntas_fechadas).forEach(codigo => {
         fechadasInicial[codigo] = null
       })
       setRespostasFechadas(fechadasInicial)
-      
+
       // Inicializar respostas abertas
       const abertasInicial = {}
       Object.keys(response.perguntas_abertas).forEach(codigo => {
@@ -52,14 +52,15 @@ function EtapaAvaliacaoGestorColaborador({ colaboradorId, colaborador, cicloAber
     try {
       const response = await avaliacoesGestorAPI.getAll({
         ciclo_id: cicloAberto.id,
-        colaborador_id: colaboradorId
+        colaborador_id: colaboradorId,
+        gestor_id: colaboradorId // Para autoavaliação, gestor_id = colaborador_id
       })
       const avaliacoes = response.avaliacoes || []
-      
+
       if (avaliacoes.length > 0) {
         const avaliacao = avaliacoes[0]
         setAvaliacaoExistente(avaliacao)
-        
+
         // Carregar respostas fechadas
         const fechadas = {}
         avaliacao.respostas?.forEach(resposta => {
@@ -68,7 +69,7 @@ function EtapaAvaliacaoGestorColaborador({ colaboradorId, colaborador, cicloAber
           }
         })
         setRespostasFechadas(prev => ({ ...prev, ...fechadas }))
-        
+
         // Carregar respostas abertas
         const abertas = {}
         avaliacao.respostas?.forEach(resposta => {
@@ -142,17 +143,17 @@ function EtapaAvaliacaoGestorColaborador({ colaboradorId, colaborador, cicloAber
       if (avaliacaoExistente) {
         // Atualizar avaliação existente
         await avaliacoesGestorAPI.update(avaliacaoExistente.id, data)
-        alert('Avaliação atualizada com sucesso!')
+        alert('Autoavaliação atualizada com sucesso!')
       } else {
-        // Criar nova avaliação
+        // Criar nova avaliação (o backend detectará automaticamente que é autoavaliação)
         await avaliacoesGestorAPI.create(data)
-        alert('Avaliação salva com sucesso!')
+        alert('Autoavaliação salva com sucesso!')
         // Recarregar para obter o ID da avaliação criada
         await loadAvaliacaoExistente()
       }
     } catch (error) {
-      console.error('Erro ao salvar avaliação:', error)
-      alert('Erro ao salvar avaliação. Tente novamente.')
+      console.error('Erro ao salvar autoavaliação:', error)
+      alert('Erro ao salvar autoavaliação. Tente novamente.')
     } finally {
       setSalvando(false)
     }
@@ -180,41 +181,21 @@ function EtapaAvaliacaoGestorColaborador({ colaboradorId, colaborador, cicloAber
     return <div>Erro ao carregar perguntas. Tente novamente.</div>
   }
 
-  if (!colaborador?.gestor_id) {
-    return (
-      <>
-        <div className="ciclo-header">
-          <h2 className="ciclo-step-title">Etapa 4: Avaliação do Gestor</h2>
-          <p className="ciclo-step-description">
-            Você não possui um gestor cadastrado.
-          </p>
-        </div>
-        <div className="ciclo-actions">
-          {onVoltar && (
-            <button className="voltar-button" onClick={onVoltar}>
-              ← Voltar
-            </button>
-          )}
-        </div>
-      </>
-    )
-  }
-
   const categorias = Object.entries(perguntas.categorias)
 
   return (
     <>
       <div className="ciclo-header">
-        <h2 className="ciclo-step-title">Etapa 4: Avaliação do Gestor</h2>
+        <h2 className="ciclo-step-title">Autoavaliação</h2>
         <p className="ciclo-step-description">
-          Avalie seu gestor respondendo as perguntas abaixo. Seja honesto e construtivo em suas respostas.
+          Avalie seu desempenho como gestor respondendo as perguntas abaixo. Seja honesto e reflexivo em suas respostas.
         </p>
       </div>
 
       <div className="autoavaliacao-section">
         {categorias.map(([categoriaCodigo, categoriaNome]) => {
           const { fechadas, abertas } = getPerguntasPorCategoria(categoriaCodigo)
-          
+
           // Pular categoria se não houver perguntas
           if (fechadas.length === 0 && abertas.length === 0) return null
 
@@ -231,9 +212,8 @@ function EtapaAvaliacaoGestorColaborador({ colaboradorId, colaborador, cicloAber
                       {[1, 2, 3, 4, 5].map((escala) => (
                         <button
                           key={escala}
-                          className={`escala-button ${
-                            respostasFechadas[pergunta.codigo] === escala ? 'selecionado' : ''
-                          }`}
+                          className={`escala-button ${respostasFechadas[pergunta.codigo] === escala ? 'selecionado' : ''
+                            }`}
                           onClick={() => handleRespostaFechadaChange(pergunta.codigo, escala)}
                         >
                           {escala}
@@ -286,5 +266,4 @@ function EtapaAvaliacaoGestorColaborador({ colaboradorId, colaborador, cicloAber
   )
 }
 
-export default EtapaAvaliacaoGestorColaborador
-
+export default EtapaAutoavaliacaoGestor

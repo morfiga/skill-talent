@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { eixosAvaliacaoAPI, avaliacoesAPI } from '../../services/api'
+import { useEffect, useState } from 'react'
+import { avaliacoesAPI, eixosAvaliacaoAPI } from '../../services/api'
 import '../CicloAvaliacao.css'
 
 function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar }) {
@@ -45,13 +45,13 @@ function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar
     if (!cicloAberto) return
 
     try {
-      const response = await avaliacoesAPI.getAll({ 
+      const response = await avaliacoesAPI.getAll({
         ciclo_id: cicloAberto.id,
         avaliado_id: colaboradorId,
         tipo: 'autoavaliacao'
       })
       const avaliacoes = response.avaliacoes || []
-      
+
       if (avaliacoes.length > 0) {
         const avaliacao = avaliacoes[0]
         const eixosObj = {}
@@ -132,13 +132,13 @@ function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar
 
         // Verificar se já existe avaliação
         try {
-          const response = await avaliacoesAPI.getAll({ 
+          const response = await avaliacoesAPI.getAll({
             ciclo_id: cicloAberto.id,
             avaliado_id: colaboradorId,
             tipo: 'autoavaliacao'
           })
           const avaliacoes = response.avaliacoes || []
-          
+
           if (avaliacoes.length > 0) {
             // Atualizar avaliação existente
             await avaliacoesAPI.update(avaliacoes[0].id, {
@@ -160,7 +160,7 @@ function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar
         } catch (createError) {
           // Se erro 400 (avaliação duplicada), tentar atualizar
           if (createError.message?.includes('Já existe') || createError.message?.includes('400')) {
-            const response = await avaliacoesAPI.getAll({ 
+            const response = await avaliacoesAPI.getAll({
               ciclo_id: cicloAberto.id,
               avaliado_id: colaboradorId,
               tipo: 'autoavaliacao'
@@ -197,7 +197,7 @@ function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar
   return (
     <>
       <div className="ciclo-header">
-        <h2 className="ciclo-step-title">Etapa 2: Autoavaliação</h2>
+        <h2 className="ciclo-step-title">Autoavaliação</h2>
         <p className="ciclo-step-description">
           Avalie seu desempenho em cada eixo e justifique suas escolhas
         </p>

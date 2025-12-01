@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { avaliacoesAPI, eixosAvaliacaoAPI, niveisCarreiraAPI } from '../../services/api'
 import '../CicloAvaliacao.css'
 
@@ -28,7 +28,7 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
 
     try {
       setLoading(true)
-      
+
       // Carregar eixos
       const eixosResponse = await eixosAvaliacaoAPI.getAll()
       const eixos = eixosResponse.eixos.map(eixo => ({
@@ -85,9 +85,11 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
               justificativa: eixo.justificativa
             }
           })
-          paresObj[avaliacao.avaliado_id] = {
+          // Usar avaliador_id como chave para identificar quem avaliou
+          paresObj[avaliacao.avaliador_id] = {
             eixos: eixosObj,
-            avaliacaoGeral: avaliacao.avaliacao_geral || ''
+            avaliacaoGeral: avaliacao.avaliacao_geral || '',
+            avaliador_nome: avaliacao.avaliador?.nome || 'Par'
           }
         })
         setAvaliacoesPares(paresObj)
@@ -129,6 +131,30 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
     return medias
   }, [avaliacoesPares, eixosAvaliacao])
 
+  // Agrupar justificativas por eixo das avaliações de pares
+  const justificativasPorEixo = useMemo(() => {
+    if (!eixosAvaliacao || Object.keys(avaliacoesPares).length === 0) return {}
+
+    const agrupadas = {}
+
+    eixosAvaliacao.forEach(eixo => {
+      agrupadas[eixo.id] = []
+      Object.entries(avaliacoesPares).forEach(([avaliadorId, avaliacao]) => {
+        const eixoData = avaliacao.eixos[eixo.id]
+        if (eixoData && eixoData.justificativa && eixoData.justificativa.trim() !== '') {
+          agrupadas[eixo.id].push({
+            avaliador_id: avaliadorId,
+            avaliador_nome: avaliacao.avaliador_nome || 'Par',
+            nivel: eixoData.nivel,
+            justificativa: eixoData.justificativa
+          })
+        }
+      })
+    })
+
+    return agrupadas
+  }, [eixosAvaliacao, avaliacoesPares])
+
   // Comparar nível atual com esperado
   const compararNivel = (nivelAtual, nivelEsperado) => {
     if (nivelAtual === nivelEsperado) return 'atende'
@@ -143,7 +169,7 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
   return (
     <>
       <div className="ciclo-header">
-        <h2 className="ciclo-step-title">Etapa 5: Feedback</h2>
+        <h2 className="ciclo-step-title">Feedback</h2>
         <p className="ciclo-step-description">
           Visualize sua avaliação comparativa e análise de desempenho
         </p>
@@ -271,6 +297,44 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
             </table>
           </div>
         </div>
+
+        {/* Listagem de Justificativas por Eixo */}
+        {eixosAvaliacao.length > 0 && (
+          <div className="perguntas-abertas-container">
+            <h3 className="perguntas-abertas-title">Justificativas Recebidas dos Pares</h3>
+            {eixosAvaliacao.map((eixo) => {
+              const justificativas = justificativasPorEixo[eixo.id] || []
+
+              if (justificativas.length === 0) {
+                return (
+                  <div key={eixo.id} className="pergunta-aberta-card">
+                    <h4 className="pergunta-aberta-texto">{eixo.nome}</h4>
+                    <p className="sem-respostas">Nenhuma justificativa recebida ainda.</p>
+                  </div>
+                )
+              }
+
+              return (
+                <div key={eixo.id} className="pergunta-aberta-card">
+                  <h4 className="pergunta-aberta-texto">{eixo.nome}</h4>
+                  <div className="respostas-lista">
+                    {justificativas.map((item, index) => (
+                      <div key={index} className="resposta-item">
+                        <div className="resposta-header">
+                          <span className="resposta-autor">{item.avaliador_nome}</span>
+                          <span className="resposta-nivel">Nível: {item.nivel}</span>
+                        </div>
+                        <div className="resposta-conteudo">
+                          {item.justificativa}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         <div className="ciclo-actions">
           {onVoltar && (

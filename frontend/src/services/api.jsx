@@ -59,6 +59,7 @@ export const colaboradoresAPI = {
     return request(`/colaboradores?${queryParams}`)
   },
   getById: (id) => request(`/colaboradores/${id}`),
+  getLiderados: (id) => request(`/colaboradores/${id}/liderados`),
   create: (data) => request('/colaboradores', {
     method: 'POST',
     body: JSON.stringify(data),

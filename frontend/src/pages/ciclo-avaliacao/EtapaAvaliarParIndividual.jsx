@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { eixosAvaliacaoAPI, avaliacoesAPI } from '../../services/api'
+import { useEffect, useState } from 'react'
+import { avaliacoesAPI, eixosAvaliacaoAPI } from '../../services/api'
 import '../CicloAvaliacao.css'
 
 function EtapaAvaliarParIndividual({ colaboradorId, cicloAberto, parSendoAvaliado, onFinalizado, onVoltar }) {
@@ -47,14 +47,14 @@ function EtapaAvaliarParIndividual({ colaboradorId, cicloAberto, parSendoAvaliad
     if (!cicloAberto || !parSendoAvaliado) return
 
     try {
-      const response = await avaliacoesAPI.getAll({ 
+      const response = await avaliacoesAPI.getAll({
         ciclo_id: cicloAberto.id,
         avaliador_id: colaboradorId,
         avaliado_id: parSendoAvaliado.id,
         tipo: 'par'
       })
       const avaliacoes = response.avaliacoes || []
-      
+
       if (avaliacoes.length > 0) {
         const avaliacaoExistente = avaliacoes[0]
         const eixosObj = {}
@@ -135,14 +135,14 @@ function EtapaAvaliarParIndividual({ colaboradorId, cicloAberto, parSendoAvaliad
 
         // Verificar se já existe avaliação
         try {
-          const response = await avaliacoesAPI.getAll({ 
+          const response = await avaliacoesAPI.getAll({
             ciclo_id: cicloAberto.id,
             avaliador_id: colaboradorId,
             avaliado_id: parSendoAvaliado.id,
             tipo: 'par'
           })
           const avaliacoes = response.avaliacoes || []
-          
+
           if (avaliacoes.length > 0) {
             // Atualizar avaliação existente
             await avaliacoesAPI.update(avaliacoes[0].id, {
@@ -165,7 +165,7 @@ function EtapaAvaliarParIndividual({ colaboradorId, cicloAberto, parSendoAvaliad
         } catch (createError) {
           // Se erro 400 (avaliação duplicada), tentar atualizar
           if (createError.message?.includes('Já existe') || createError.message?.includes('400')) {
-            const response = await avaliacoesAPI.getAll({ 
+            const response = await avaliacoesAPI.getAll({
               ciclo_id: cicloAberto.id,
               avaliador_id: colaboradorId,
               avaliado_id: parSendoAvaliado.id,
@@ -207,7 +207,7 @@ function EtapaAvaliarParIndividual({ colaboradorId, cicloAberto, parSendoAvaliad
   return (
     <>
       <div className="ciclo-header">
-        <h2 className="ciclo-step-title">Etapa 3: Avaliar {parSendoAvaliado.nome}</h2>
+        <h2 className="ciclo-step-title">Avaliar {parSendoAvaliado.nome}</h2>
         <p className="ciclo-step-description">
           Avalie o desempenho de {parSendoAvaliado.nome} em cada eixo e forneça feedback construtivo
         </p>

@@ -1,13 +1,14 @@
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
+import AdminRoute from './components/AdminRoute'
+import PrivateRoute from './components/PrivateRoute'
 import { useAuth } from './hooks/useAuth'
 import Admin from './pages/Admin'
+import CicloAvaliacaoGestor from './pages/ciclo-avaliacao-gestor/CicloAvaliacaoGestor'
 import CicloAvaliacao from './pages/ciclo-avaliacao/CicloAvaliacao'
 import Dashboard from './pages/Dashboard'
 import EntregaOutstanding from './pages/EntregaOutstanding'
 import Login from './pages/Login'
 import RegistroValor from './pages/RegistroValor'
-import PrivateRoute from './components/PrivateRoute'
-import AdminRoute from './components/AdminRoute'
 
 function App() {
   const { isAuthenticated, login, logout, colaborador, user } = useAuth()
@@ -54,6 +55,30 @@ function App() {
           element={
             <PrivateRoute>
               <CicloAvaliacao onLogout={handleLogout} />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ciclo-avaliacao-gestor"
+          element={
+            <PrivateRoute>
+              <Navigate to="/ciclo-avaliacao-gestor/1" replace />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ciclo-avaliacao-gestor/2/liderado"
+          element={
+            <PrivateRoute>
+              <CicloAvaliacaoGestor onLogout={handleLogout} />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ciclo-avaliacao-gestor/:etapa"
+          element={
+            <PrivateRoute>
+              <CicloAvaliacaoGestor onLogout={handleLogout} />
             </PrivateRoute>
           }
         />

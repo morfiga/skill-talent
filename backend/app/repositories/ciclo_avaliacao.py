@@ -47,6 +47,11 @@ class CicloAvaliacaoRepository(BaseRepository[CicloAvaliacao]):
         # Buscar ciclo de avaliação do colaborador para o ciclo aberto
         return (
             self.db.query(self.model)
+            .options(
+                joinedload(CicloAvaliacao.ciclo),
+                joinedload(CicloAvaliacao.colaborador),
+            )
+            .filter(CicloAvaliacao.ciclo_id == ciclo_aberto.id)
             .filter(
                 and_(
                     self.model.colaborador_id == colaborador_id,

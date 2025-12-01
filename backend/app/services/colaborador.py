@@ -1,6 +1,9 @@
 import logging
 from typing import List, Optional
 
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
 from app.core.exceptions import (
     DuplicateResourceException,
     ForbiddenException,
@@ -10,8 +13,6 @@ from app.models.colaborador import Colaborador
 from app.repositories.colaborador import ColaboradorRepository
 from app.schemas.colaborador import ColaboradorCreate, ColaboradorUpdate
 from app.services.base import BaseService
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class ColaboradorService(BaseService[Colaborador]):
         total = len(colaboradores)
         return colaboradores, total
 
-    def get_colaborador_by_id(self, colaborador_id: int) -> Colaborador:
+    def get_by_id(self, colaborador_id: int) -> Colaborador:
         colaborador = self.repository.get(colaborador_id)
         if not colaborador:
             raise NotFoundException("Colaborador", colaborador_id)

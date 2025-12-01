@@ -62,18 +62,21 @@ class AvaliacaoGestorRepository(BaseRepository[AvaliacaoGestor]):
         self,
         ciclo_id: int,
         colaborador_id: int,
+        gestor_id: Optional[int] = None,
     ) -> Optional[AvaliacaoGestor]:
-        """Verifica se já existe uma avaliação de gestor para o ciclo e colaborador"""
-        return (
-            self.db.query(self.model)
-            .filter(
-                and_(
-                    self.model.ciclo_id == ciclo_id,
-                    self.model.colaborador_id == colaborador_id,
-                )
+        """Verifica se já existe uma avaliação de gestor para o ciclo, colaborador e gestor"""
+        query = self.db.query(self.model).filter(
+            and_(
+                self.model.ciclo_id == ciclo_id,
+                self.model.colaborador_id == colaborador_id,
             )
-            .first()
         )
+
+        # Se gestor_id foi fornecido, também filtrar por ele
+        if gestor_id is not None:
+            query = query.filter(self.model.gestor_id == gestor_id)
+
+        return query.first()
 
     def create_with_respostas(
         self,
@@ -239,14 +242,10 @@ class AvaliacaoGestorRepository(BaseRepository[AvaliacaoGestor]):
 
     def _get_pergunta_info(self, pergunta_codigo: str) -> Optional[dict]:
         """Obtém informações de uma pergunta pelo código"""
-        from app.schemas.avaliacao_gestor import (
-            PERGUNTAS_ABERTAS,
-            PERGUNTAS_FECHADAS,
-        )
+        from app.schemas.avaliacao_gestor import PERGUNTAS_ABERTAS, PERGUNTAS_FECHADAS
 
         if pergunta_codigo in PERGUNTAS_FECHADAS:
             return PERGUNTAS_FECHADAS[pergunta_codigo]
         elif pergunta_codigo in PERGUNTAS_ABERTAS:
             return PERGUNTAS_ABERTAS[pergunta_codigo]
         return None
-

@@ -1,6 +1,9 @@
 import logging
 from typing import Optional
 
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
 from app.core.exceptions import (
     BusinessRuleException,
     ForbiddenException,
@@ -19,8 +22,6 @@ from app.schemas.avaliacao import (
 )
 from app.services.base import BaseService
 from app.services.colaborador import ColaboradorService
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -313,7 +314,7 @@ class AvaliacaoService(BaseService[Avaliacao]):
         media_pares_por_eixo = self.repository.get_media_pares_por_eixo(ciclo_ciclo_id)
 
         # Obter níveis esperados baseado no nível de carreira do colaborador
-        colaborador = self.colaborador_service.get(ciclo.colaborador_id)
+        colaborador = self.colaborador_service.get_by_id(ciclo.colaborador_id)
 
         niveis_esperados = []
         if colaborador and colaborador.nivel_carreira:
