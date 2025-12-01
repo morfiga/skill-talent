@@ -51,6 +51,14 @@ function App() {
           }
         />
         <Route
+          path="/ciclo-avaliacao/:etapa/par"
+          element={
+            <PrivateRoute>
+              <CicloAvaliacao onLogout={handleLogout} />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/ciclo-avaliacao/:etapa"
           element={
             <PrivateRoute>
