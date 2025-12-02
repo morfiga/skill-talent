@@ -58,20 +58,21 @@ class AvaliacaoService(BaseService[Avaliacao]):
                 # Para par ou gestor, o avaliador sempre é o usuário logado
                 avaliador_id = current_colaborador.id
 
-            # Validar que o ciclo existe (agora que temos o avaliador_id)
-            ciclo_avaliacao = self.repository.validate_ciclo_avaliacao(
-                avaliacao.ciclo_id, avaliador_id
-            )
-
-            if not ciclo_avaliacao:
-                raise NotFoundException("Ciclo de avaliação", avaliacao.ciclo_id)
-
-            # Verificar se o ciclo está na etapa de calibração
-            # Durante esta etapa, colaboradores não podem criar avaliações
-            if ciclo_avaliacao.ciclo.etapa_atual == EtapaCiclo.CALIBRACAO:
-                raise BusinessRuleException(
-                    "Não é possível criar avaliações durante a etapa de calibração"
+            if avaliacao.tipo != "gestor":
+                # Validar que o ciclo existe (agora que temos o avaliador_id)
+                ciclo_avaliacao = self.repository.validate_ciclo_avaliacao(
+                    avaliacao.ciclo_id, avaliador_id
                 )
+
+                if not ciclo_avaliacao:
+                    raise NotFoundException("Ciclo de avaliação", avaliacao.ciclo_id)
+
+                # Verificar se o ciclo está na etapa de calibração
+                # Durante esta etapa, colaboradores não podem criar avaliações
+                if ciclo_avaliacao.ciclo.etapa_atual == EtapaCiclo.CALIBRACAO:
+                    raise BusinessRuleException(
+                        "Não é possível criar avaliações durante a etapa de calibração"
+                    )
 
             # Verificar se já existe avaliação deste tipo
             existing = self.repository.check_duplicate(
@@ -281,37 +282,45 @@ class AvaliacaoService(BaseService[Avaliacao]):
             f"Ciclo de avaliação encontrado. ID: {ciclo_id}, Colaborador ID: {ciclo.colaborador_id}, Ciclo ID: {ciclo.ciclo_id}"
         )
 
-        # Usar o ciclo_id do Ciclo (não do CicloAvaliacao) para buscar avaliações
-        ciclo_ciclo_id = ciclo.ciclo_id
-
         # Buscar autoavaliação
         autoavaliacao = self.repository.get_by_ciclo_and_tipo(
-            ciclo_id=ciclo_ciclo_id,
+            avaliado_id=current_colaborador.id,
+            avaliador_id=current_colaborador.id,
+            ciclo_id=ciclo_id,
             tipo=TipoAvaliacao.AUTOAVALIACAO,
         )
+        if autoavaliacao:
+            autoavaliacao = autoavaliacao[0]
         logger.debug(
             f"Autoavaliação {'encontrada' if autoavaliacao else 'não encontrada'}"
         )
 
         # Buscar avaliação do gestor
         avaliacao_gestor = self.repository.get_by_ciclo_and_tipo(
-            ciclo_id=ciclo_ciclo_id,
+            avaliado_id=current_colaborador.id,
+            ciclo_id=ciclo_id,
             tipo=TipoAvaliacao.GESTOR,
         )
+        if avaliacao_gestor:
+            avaliacao_gestor = avaliacao_gestor[0]
         logger.debug(
             f"Avaliação do gestor {'encontrada' if avaliacao_gestor else 'não encontrada'}"
         )
 
         # Buscar avaliações de pares
-        avaliacoes_pares = self.repository.get_all_by_ciclo_and_tipo(
-            ciclo_id=ciclo_ciclo_id,
+        avaliacoes_pares = self.repository.get_by_ciclo_and_tipo(
+            avaliado_id=current_colaborador.id,
+            ciclo_id=ciclo_id,
             tipo=TipoAvaliacao.PAR,
         )
         logger.debug(f"Encontradas {len(avaliacoes_pares)} avaliações de pares")
 
         # Calcular média dos pares por eixo
         logger.debug("Calculando média dos pares por eixo")
-        media_pares_por_eixo = self.repository.get_media_pares_por_eixo(ciclo_ciclo_id)
+        media_pares_por_eixo = self.repository.get_media_pares_por_eixo(
+            avaliado_id=current_colaborador.id,
+            ciclo_id=ciclo_id,
+        )
 
         # Obter níveis esperados baseado no nível de carreira do colaborador
         colaborador = self.colaborador_service.get_by_id(ciclo.colaborador_id)

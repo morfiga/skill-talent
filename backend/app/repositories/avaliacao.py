@@ -1,12 +1,13 @@
 from typing import Dict, List, Optional
 
+from sqlalchemy import and_
+from sqlalchemy.orm import Session, joinedload
+
 from app.models.avaliacao import Avaliacao, AvaliacaoEixo, TipoAvaliacao
 from app.models.ciclo_avaliacao import CicloAvaliacao
 from app.models.colaborador import Colaborador
 from app.models.eixo_avaliacao import EixoAvaliacao
 from app.repositories.base import BaseRepository
-from sqlalchemy import and_
-from sqlalchemy.orm import Session, joinedload
 
 
 class AvaliacaoRepository(BaseRepository[Avaliacao]):
@@ -49,34 +50,22 @@ class AvaliacaoRepository(BaseRepository[Avaliacao]):
         return query
 
     def get_by_ciclo_and_tipo(
-        self, ciclo_id: int, tipo: TipoAvaliacao
-    ) -> Optional[Avaliacao]:
-        """Busca uma avaliação por ciclo e tipo"""
-        return (
-            self.db.query(self.model)
-            .filter(
-                and_(
-                    self.model.ciclo_id == ciclo_id,
-                    self.model.tipo == tipo,
-                )
-            )
-            .first()
-        )
-
-    def get_all_by_ciclo_and_tipo(
-        self, ciclo_id: int, tipo: TipoAvaliacao
+        self,
+        ciclo_id: int,
+        tipo: TipoAvaliacao,
+        avaliado_id: Optional[int] = None,
+        avaliador_id: Optional[int] = None,
     ) -> List[Avaliacao]:
-        """Busca todas as avaliações por ciclo e tipo"""
-        return (
+        query = (
             self.db.query(self.model)
-            .filter(
-                and_(
-                    self.model.ciclo_id == ciclo_id,
-                    self.model.tipo == tipo,
-                )
-            )
-            .all()
+            .filter(self.model.ciclo_id == ciclo_id)
+            .filter(self.model.tipo == tipo)
         )
+        if avaliado_id:
+            query = query.filter(self.model.avaliado_id == avaliado_id)
+        if avaliador_id:
+            query = query.filter(self.model.avaliador_id == avaliador_id)
+        return query.all()
 
     def check_duplicate(
         self,
@@ -172,10 +161,16 @@ class AvaliacaoRepository(BaseRepository[Avaliacao]):
 
         return db_avaliacao
 
-    def get_media_pares_por_eixo(self, ciclo_id: int) -> Dict[str, float]:
+    def get_media_pares_por_eixo(
+        self, avaliado_id: int, ciclo_id: int
+    ) -> Dict[str, float]:
         """Calcula a média dos pares por eixo para um ciclo"""
         # Buscar avaliações de pares
-        avaliacoes_pares = self.get_all_by_ciclo_and_tipo(ciclo_id, TipoAvaliacao.PAR)
+        avaliacoes_pares = self.get_by_ciclo_and_tipo(
+            ciclo_id=ciclo_id,
+            avaliado_id=avaliado_id,
+            tipo=TipoAvaliacao.PAR,
+        )
 
         # Calcular média dos pares por eixo
         media_pares_por_eixo: Dict[str, float] = {}
