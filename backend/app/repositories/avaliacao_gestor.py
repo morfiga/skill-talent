@@ -81,7 +81,6 @@ class AvaliacaoGestorRepository(BaseRepository[AvaliacaoGestor]):
     def create_with_respostas(
         self,
         ciclo_id: int,
-        ciclo_avaliacao_id: Optional[int],
         colaborador_id: int,
         gestor_id: int,
         respostas_fechadas: List[dict],
@@ -91,7 +90,6 @@ class AvaliacaoGestorRepository(BaseRepository[AvaliacaoGestor]):
         # Criar avaliação
         db_avaliacao = AvaliacaoGestor(
             ciclo_id=ciclo_id,
-            ciclo_avaliacao_id=ciclo_avaliacao_id,
             colaborador_id=colaborador_id,
             gestor_id=gestor_id,
         )
