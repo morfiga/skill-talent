@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '../../contexts/ToastContext'
 import { useAuth } from '../../hooks/useAuth'
-import { ciclosAPI, ciclosAvaliacaoAPI } from '../../services/api'
+import { ciclosAPI } from '../../services/api'
 import '../CicloAvaliacao.css'
 import '../Page.css'
 import EtapaAutoavaliacaoGestor from './EtapaAutoavaliacaoGestor'
@@ -19,7 +19,6 @@ function CicloAvaliacaoGestor({ onLogout }) {
     const isAdmin = colaborador?.is_admin || false
     const [loading, setLoading] = useState(true)
     const [cicloAberto, setCicloAberto] = useState(null)
-    const [cicloAtivo, setCicloAtivo] = useState(null)
     const [etapaAtual, setEtapaAtual] = useState(1)
     const [lideradoSendoAvaliado, setLideradoSendoAvaliado] = useState(null)
 
@@ -82,12 +81,6 @@ function CicloAvaliacaoGestor({ onLogout }) {
         }
     }, [colaboradorId])
 
-    useEffect(() => {
-        if (cicloAberto && colaboradorId) {
-            loadCicloAtivo()
-        }
-    }, [cicloAberto, colaboradorId])
-
     const loadInitialData = async () => {
         try {
             setLoading(true)
@@ -102,20 +95,6 @@ function CicloAvaliacaoGestor({ onLogout }) {
     const loadCicloAberto = async () => {
         const ciclo = await ciclosAPI.getAtivoAberto()
         setCicloAberto(ciclo)
-    }
-
-    const loadCicloAtivo = async () => {
-        if (!cicloAberto) {
-            warning('Ciclo aberto não disponível')
-            return
-        }
-
-        try {
-            const ciclo = await ciclosAvaliacaoAPI.getAtivo()
-            setCicloAtivo(ciclo)
-        } catch (error) {
-            handleApiError(error, 'carregar ciclo ativo', '/ciclos/ativo', null)
-        }
     }
 
     const handleNavegarEtapa = (etapaNum) => {

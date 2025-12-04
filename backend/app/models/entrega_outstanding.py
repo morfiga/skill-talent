@@ -1,8 +1,7 @@
+from app.database import Base
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-from app.database import Base
 
 
 class EntregaOutstanding(Base):

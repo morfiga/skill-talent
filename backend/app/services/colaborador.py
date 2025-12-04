@@ -1,9 +1,6 @@
 import logging
 from typing import List, Optional
 
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
-
 from app.core.exceptions import (
     DuplicateResourceException,
     ForbiddenException,
@@ -13,6 +10,8 @@ from app.models.colaborador import Colaborador
 from app.repositories.colaborador import ColaboradorRepository
 from app.schemas.colaborador import ColaboradorCreate, ColaboradorUpdate
 from app.services.base import BaseService
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

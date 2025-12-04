@@ -1,10 +1,9 @@
 from typing import List
 
-from sqlalchemy.orm import Session
-
 from app.models.eixo_avaliacao import EixoAvaliacao
 from app.repositories.eixo_avaliacao import EixoAvaliacaoRepository
 from app.services.base import BaseService
+from sqlalchemy.orm import Session
 
 
 class EixoAvaliacaoService(BaseService[EixoAvaliacao]):

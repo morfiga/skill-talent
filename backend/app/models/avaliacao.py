@@ -1,12 +1,11 @@
 import enum
 
+from app.database import Base
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-from app.database import Base
 
 
 def get_enum_values(enum_class):
@@ -24,9 +23,6 @@ class Avaliacao(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     ciclo_id = Column(Integer, ForeignKey("ciclos.id"), nullable=False)
-    ciclo_avaliacao_id = Column(
-        Integer, ForeignKey("ciclos_avaliacao.id"), nullable=True
-    )
     avaliador_id = Column(Integer, ForeignKey("colaboradores.id"), nullable=False)
     avaliado_id = Column(Integer, ForeignKey("colaboradores.id"), nullable=False)
     tipo = Column(
@@ -41,7 +37,6 @@ class Avaliacao(Base):
 
     # Relacionamentos
     ciclo = relationship("Ciclo", back_populates="avaliacoes")
-    ciclo_avaliacao = relationship("CicloAvaliacao")
     avaliador = relationship(
         "Colaborador",
         foreign_keys=[avaliador_id],

@@ -1,8 +1,7 @@
+from app.database import Base
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-from app.database import Base
 
 
 class AvaliacaoGestor(Base):
@@ -13,9 +12,6 @@ class AvaliacaoGestor(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     ciclo_id = Column(Integer, ForeignKey("ciclos.id"), nullable=False)
-    ciclo_avaliacao_id = Column(
-        Integer, ForeignKey("ciclos_avaliacao.id"), nullable=True
-    )
     colaborador_id = Column(
         Integer, ForeignKey("colaboradores.id"), nullable=False
     )  # Avaliador
@@ -29,7 +25,6 @@ class AvaliacaoGestor(Base):
 
     # Relacionamentos
     ciclo = relationship("Ciclo", back_populates="avaliacoes_gestor")
-    ciclo_avaliacao = relationship("CicloAvaliacao")
     colaborador = relationship(
         "Colaborador",
         foreign_keys=[colaborador_id],

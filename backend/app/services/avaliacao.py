@@ -1,9 +1,6 @@
 import logging
 from typing import Optional
 
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
-
 from app.core.exceptions import (
     BusinessRuleException,
     ForbiddenException,
@@ -12,7 +9,7 @@ from app.core.exceptions import (
 from app.models.avaliacao import Avaliacao, TipoAvaliacao
 from app.models.ciclo import EtapaCiclo
 from app.models.colaborador import Colaborador
-from app.repositories import AvaliacaoRepository
+from app.repositories import AvaliacaoRepository, CicloRepository
 from app.schemas.avaliacao import (
     AvaliacaoCreate,
     AvaliacaoListResponse,
@@ -22,6 +19,8 @@ from app.schemas.avaliacao import (
 )
 from app.services.base import BaseService
 from app.services.colaborador import ColaboradorService
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +30,7 @@ class AvaliacaoService(BaseService[Avaliacao]):
         super().__init__(db)
         self.repository = AvaliacaoRepository(db)
         self.colaborador_service = ColaboradorService(db)
+        self.ciclo_repository = CicloRepository(db)
 
     def create(
         self, avaliacao: AvaliacaoCreate, current_colaborador: Colaborador
@@ -60,18 +60,13 @@ class AvaliacaoService(BaseService[Avaliacao]):
 
             if avaliacao.tipo != "gestor":
                 # Validar que o ciclo existe (agora que temos o avaliador_id)
-                ciclo_avaliacao = self.repository.validate_ciclo_avaliacao(
-                    avaliacao.ciclo_id, avaliador_id
-                )
+                ciclo = self.ciclo_repository.get(avaliacao.ciclo_id)
+                if not ciclo:
+                    raise NotFoundException("Ciclo", avaliacao.ciclo_id)
 
-                if not ciclo_avaliacao:
-                    raise NotFoundException("Ciclo de avaliação", avaliacao.ciclo_id)
-
-                # Verificar se o ciclo está na etapa de calibração
-                # Durante esta etapa, colaboradores não podem criar avaliações
-                if ciclo_avaliacao.ciclo.etapa_atual == EtapaCiclo.CALIBRACAO:
+                if ciclo.etapa_atual != EtapaCiclo.AVALIACOES:
                     raise BusinessRuleException(
-                        "Não é possível criar avaliações durante a etapa de calibração"
+                        "Só é possível criar avaliações durante a etapa de avaliações"
                     )
 
             # Verificar se já existe avaliação deste tipo
@@ -228,13 +223,10 @@ class AvaliacaoService(BaseService[Avaliacao]):
                     "Você só pode atualizar avaliações onde você é o avaliador"
                 )
 
-            # Verificar se o ciclo está na etapa de calibração
-            # Durante esta etapa, colaboradores não podem alterar avaliações
-
             ciclo = db_avaliacao.ciclo
-            if ciclo and ciclo.etapa_atual == EtapaCiclo.CALIBRACAO:
+            if ciclo and ciclo.etapa_atual != EtapaCiclo.AVALIACOES:
                 raise BusinessRuleException(
-                    "Não é possível alterar avaliações durante a etapa de calibração"
+                    "Só é possível alterar avaliações durante a etapa de avaliações"
                 )
 
             logger.info(f"Atualizando avaliação. ID: {avaliacao_id}")
@@ -259,18 +251,19 @@ class AvaliacaoService(BaseService[Avaliacao]):
     def get_feedback(
         self, ciclo_id: int, current_colaborador: Colaborador
     ) -> FeedbackResponse:
-        ciclo = self.repository.validate_ciclo_avaliacao(
-            ciclo_id, current_colaborador.id
+        ciclo_avaliacao = self.repository.validate_ciclo_avaliacao(
+            ciclo_id=ciclo_id,
+            colaborador_id=current_colaborador.id
         )
 
-        if not ciclo:
+        if not ciclo_avaliacao:
             logger.warning(
                 f"Tentativa de buscar feedback para ciclo inexistente. Ciclo ID: {ciclo_id}"
             )
             raise NotFoundException("Ciclo de avaliação", ciclo_id)
 
         # Validar que o ciclo pertence ao colaborador logado
-        if ciclo.colaborador_id != current_colaborador.id:
+        if ciclo_avaliacao.colaborador_id != current_colaborador.id:
             logger.warning(
                 f"Tentativa de buscar feedback de ciclo de outro colaborador. Ciclo ID: {ciclo_id}, Colaborador do ciclo: {ciclo.colaborador_id}, Colaborador logado: {current_colaborador.id}"
             )
@@ -279,7 +272,7 @@ class AvaliacaoService(BaseService[Avaliacao]):
             )
 
         logger.debug(
-            f"Ciclo de avaliação encontrado. ID: {ciclo_id}, Colaborador ID: {ciclo.colaborador_id}, Ciclo ID: {ciclo.ciclo_id}"
+            f"Ciclo de avaliação encontrado. ID: {ciclo_id}, Colaborador ID: {ciclo_avaliacao.colaborador_id}, Ciclo ID: {ciclo_avaliacao.ciclo_id}"
         )
 
         # Buscar autoavaliação

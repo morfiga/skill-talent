@@ -1,10 +1,9 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator
-
 from app.core.validators import CAMPO_TEXTO_LONGO_MAX
 from app.schemas.colaborador import ColaboradorResponse
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 # =============================================================================
 # Constantes das Perguntas
@@ -274,7 +273,6 @@ class AvaliacaoGestorResponse(BaseModel):
     """Schema de resposta da avaliação de gestor"""
     id: int
     ciclo_id: int
-    ciclo_avaliacao_id: Optional[int] = None
     colaborador_id: int
     gestor_id: int
     respostas: List[AvaliacaoGestorRespostaResponse] = []
@@ -295,7 +293,6 @@ class AvaliacaoGestorResponse(BaseModel):
             data_dict = {
                 "id": data.id,
                 "ciclo_id": data.ciclo_id,
-                "ciclo_avaliacao_id": getattr(data, "ciclo_avaliacao_id", None),
                 "colaborador_id": data.colaborador_id,
                 "gestor_id": data.gestor_id,
                 "respostas": respostas_list,

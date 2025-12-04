@@ -10,6 +10,7 @@ from app.models.avaliacao_gestor import AvaliacaoGestor
 from app.models.ciclo import EtapaCiclo
 from app.models.colaborador import Colaborador
 from app.repositories import AvaliacaoGestorRepository
+from app.repositories.ciclo import CicloRepository
 from app.schemas.avaliacao_gestor import (
     AvaliacaoGestorCreate,
     AvaliacaoGestorListResponse,
@@ -28,6 +29,8 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
     def __init__(self, db: Session):
         super().__init__(db)
         self.repository = AvaliacaoGestorRepository(db)
+        self.ciclo_repository = CicloRepository(db)
+
 
     def create(
         self, avaliacao: AvaliacaoGestorCreate, current_colaborador: Colaborador
@@ -49,28 +52,14 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
             if not gestor:
                 raise NotFoundException("Gestor", gestor_id)
 
-            # Validar que o ciclo existe (opcional para autoavaliação)
-            ciclo_avaliacao = self.repository.validate_ciclo_avaliacao(
-                avaliacao.ciclo_id, current_colaborador.id
-            )
-
-            # Para autoavaliação, ciclo_avaliacao pode não existir
-            ciclo_avaliacao_id = ciclo_avaliacao.id if ciclo_avaliacao else None
-
-            # Verificar se o ciclo está na etapa de calibração
-            # Durante esta etapa, colaboradores não podem criar avaliações
-            # Buscar o ciclo diretamente se não houver ciclo_avaliacao
-            from app.repositories.ciclo import CicloRepository
-
-            ciclo_repo = CicloRepository(self.db)
-            ciclo = ciclo_repo.get(avaliacao.ciclo_id)
+            ciclo = self.ciclo_repository.get(avaliacao.ciclo_id)
 
             if not ciclo:
                 raise NotFoundException("Ciclo", avaliacao.ciclo_id)
 
-            if ciclo.etapa_atual == EtapaCiclo.CALIBRACAO:
+            if ciclo.etapa_atual != EtapaCiclo.AVALIACOES:
                 raise BusinessRuleException(
-                    "Não é possível criar avaliações durante a etapa de calibração"
+                    "Só é possível criar avaliações durante a etapa de avaliações"
                 )
 
             # Verificar se já existe avaliação deste colaborador para este gestor neste ciclo
@@ -102,7 +91,6 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
 
             db_avaliacao = self.repository.create_with_respostas(
                 ciclo_id=avaliacao.ciclo_id,
-                ciclo_avaliacao_id=ciclo_avaliacao_id,
                 colaborador_id=current_colaborador.id,
                 gestor_id=gestor_id,
                 respostas_fechadas=[
@@ -226,17 +214,13 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
                     "Você só pode atualizar avaliações de gestor onde você é o avaliador"
                 )
 
-            # Verificar se o ciclo está na etapa de calibração
-            # Durante esta etapa, colaboradores não podem alterar avaliações
-            ciclo_avaliacao = self.repository.validate_ciclo_avaliacao(
-                db_avaliacao.ciclo_id, current_colaborador.id
-            )
-            if (
-                ciclo_avaliacao
-                and ciclo_avaliacao.ciclo.etapa_atual == EtapaCiclo.CALIBRACAO
-            ):
+            ciclo = self.ciclo_repository.get(db_avaliacao.ciclo_id)
+            if not ciclo:
+                raise NotFoundException("Ciclo", db_avaliacao.ciclo_id)
+
+            if ciclo.etapa_atual != EtapaCiclo.AVALIACOES:
                 raise BusinessRuleException(
-                    "Não é possível alterar avaliações durante a etapa de calibração"
+                    "Só é possível alterar avaliações durante a etapa de avaliações"
                 )
 
             logger.info(f"Atualizando avaliação de gestor. ID: {avaliacao_id}")
