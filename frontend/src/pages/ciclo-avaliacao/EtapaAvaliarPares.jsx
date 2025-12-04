@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Avatar from '../../components/Avatar'
 import { avaliacoesAPI, ciclosAvaliacaoAPI, eixosAvaliacaoAPI } from '../../services/api'
+import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 
 function EtapaAvaliarPares({ colaboradorId, cicloAberto, cicloAtivo, onIniciarAvaliacao, onVoltar }) {
@@ -14,7 +15,7 @@ function EtapaAvaliarPares({ colaboradorId, cicloAberto, cicloAtivo, onIniciarAv
       const response = await eixosAvaliacaoAPI.getAll()
       setEixosAvaliacao(response.eixos || [])
     } catch (error) {
-      console.error('Erro ao carregar eixos:', error)
+      handleApiError(error, 'carregar eixos', '/eixos-avaliacao')
     }
   }, [])
 
@@ -45,7 +46,7 @@ function EtapaAvaliarPares({ colaboradorId, cicloAberto, cicloAtivo, onIniciarAv
       })
       setAvaliacoesPares(paresObj)
     } catch (error) {
-      console.error('Erro ao carregar avaliações de pares:', error)
+      handleApiError(error, 'carregar avaliações de pares', '/avaliacoes')
     }
   }, [cicloAberto, colaboradorId])
 
@@ -69,7 +70,7 @@ function EtapaAvaliarPares({ colaboradorId, cicloAberto, cicloAtivo, onIniciarAv
       // Carregar avaliações existentes
       await loadAvaliacoesPares()
     } catch (error) {
-      console.error('Erro ao carregar pares para avaliar:', error)
+      handleApiError(error, 'carregar pares para avaliar', '/pares-para-avaliar')
     } finally {
       setLoading(false)
     }

@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useToast } from '../../contexts/ToastContext'
 import { avaliacoesAPI, eixosAvaliacaoAPI } from '../../services/api'
+import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 
 function EtapaAvaliarLideradoIndividual({ colaboradorId, cicloAberto, lideradoSendoAvaliado, onFinalizado, onVoltar }) {
+  const { success, error: showError, warning } = useToast()
   const [eixosAvaliacao, setEixosAvaliacao] = useState([])
   const [avaliacao, setAvaliacao] = useState({
     eixos: {},
@@ -37,7 +40,7 @@ function EtapaAvaliarLideradoIndividual({ colaboradorId, cicloAberto, lideradoSe
       }))
       setEixosAvaliacao(eixos)
     } catch (error) {
-      console.error('Erro ao carregar eixos:', error)
+      handleApiError(error, 'carregar eixos', '/eixos-avaliacao', showError)
     } finally {
       setLoading(false)
     }
@@ -70,7 +73,7 @@ function EtapaAvaliarLideradoIndividual({ colaboradorId, cicloAberto, lideradoSe
         })
       }
     } catch (error) {
-      console.error('Erro ao carregar avaliação existente:', error)
+      handleApiError(error, 'carregar avaliação existente', '/avaliacoes', showError)
     }
   }
 
@@ -149,7 +152,7 @@ function EtapaAvaliarLideradoIndividual({ colaboradorId, cicloAberto, lideradoSe
               avaliacao_geral: avaliacao.avaliacaoGeral,
               eixos: eixos
             })
-            alert(`Avaliação de ${lideradoSendoAvaliado.nome} atualizada com sucesso!`)
+            success(`Avaliação de ${lideradoSendoAvaliado.nome} atualizada com sucesso!`)
           } else {
             // Criar nova avaliação
             await avaliacoesAPI.create({
@@ -160,7 +163,7 @@ function EtapaAvaliarLideradoIndividual({ colaboradorId, cicloAberto, lideradoSe
               avaliacao_geral: avaliacao.avaliacaoGeral,
               eixos: eixos
             })
-            alert(`Avaliação de ${lideradoSendoAvaliado.nome} salva com sucesso!`)
+            success(`Avaliação de ${lideradoSendoAvaliado.nome} salva com sucesso!`)
           }
         } catch (createError) {
           // Se erro 400 (avaliação duplicada), tentar atualizar
@@ -177,7 +180,7 @@ function EtapaAvaliarLideradoIndividual({ colaboradorId, cicloAberto, lideradoSe
                 avaliacao_geral: avaliacao.avaliacaoGeral,
                 eixos: eixos
               })
-              alert(`Avaliação de ${lideradoSendoAvaliado.nome} atualizada com sucesso!`)
+              success(`Avaliação de ${lideradoSendoAvaliado.nome} atualizada com sucesso!`)
             } else {
               throw createError
             }
@@ -186,13 +189,12 @@ function EtapaAvaliarLideradoIndividual({ colaboradorId, cicloAberto, lideradoSe
           }
         }
       } catch (error) {
-        console.error('Erro ao salvar avaliação do liderado:', error)
-        alert('Erro ao salvar avaliação. Tente novamente.')
+        handleApiError(error, 'salvar avaliação do liderado', '/avaliacoes', showError)
       } finally {
         setSalvando(false)
       }
     } else if (!isAvaliacaoCompleta()) {
-      alert('Por favor, complete todos os campos obrigatórios antes de salvar.')
+      warning('Por favor, complete todos os campos obrigatórios antes de salvar.')
     }
   }
 

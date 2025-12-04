@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { avaliacoesGestorAPI } from '../../services/api'
+import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 
 function EtapaFeedbackGestor({ colaborador, cicloAberto, onVoltar }) {
@@ -68,7 +69,7 @@ function EtapaFeedbackGestor({ colaborador, cicloAberto, onVoltar }) {
             )
             setAvaliacoesRecebidas(avaliacoesRecebidasData)
         } catch (error) {
-            console.error('Erro ao carregar feedback:', error)
+            handleApiError(error, 'carregar feedback', '/avaliacoes-gestor')
         } finally {
             setLoading(false)
         }

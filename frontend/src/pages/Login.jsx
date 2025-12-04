@@ -1,10 +1,13 @@
 import { GoogleLogin } from '@react-oauth/google'
 import { useState } from 'react'
+import { useToast } from '../contexts/ToastContext'
 import { authAPI } from '../services/api'
+import { handleApiError } from '../utils/errorHandler'
 import { saveSession } from '../utils/storage'
 import './Login.css'
 
 function Login({ onLogin }) {
+  const { error: showError } = useToast()
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
@@ -27,8 +30,8 @@ function Login({ onLogin }) {
       // Chamar callback de login
       onLogin(response)
     } catch (err) {
-      console.error('Erro no login:', err)
-      setError('Erro ao fazer login. Tente novamente.')
+      const { message } = handleApiError(err, 'fazer login', '/auth/google', showError)
+      setError(message)
     } finally {
       setLoading(false)
     }

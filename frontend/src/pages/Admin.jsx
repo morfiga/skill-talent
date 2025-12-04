@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Avatar from '../components/Avatar'
+import { useToast } from '../contexts/ToastContext'
 import { useAuth } from '../hooks/useAuth'
 import { avaliacoesAPI, ciclosAPI, ciclosAvaliacaoAPI, colaboradoresAPI, eixosAvaliacaoAPI } from '../services/api'
+import { handleApiError } from '../utils/errorHandler'
 import './Admin.css'
 import './Page.css'
 
 function Admin({ onLogout }) {
   const navigate = useNavigate()
   const { colaborador, user } = useAuth()
+  const { success, error: showError, warning } = useToast()
   // Usar user.is_admin primeiro (vem mais rápido do authAPI.verify), depois colaborador.is_admin
   const isAdmin = user?.is_admin || colaborador?.is_admin || false
   const [abaAtiva, setAbaAtiva] = useState('colaboradores') // 'colaboradores', 'ciclos', 'aprovacao_pares' ou 'calibracao'
@@ -95,8 +98,8 @@ function Admin({ onLogout }) {
       const response = await colaboradoresAPI.getAll()
       setColaboradores(response.colaboradores || [])
     } catch (err) {
-      console.error('Erro ao carregar colaboradores:', err)
-      setError('Erro ao carregar colaboradores. Tente novamente.')
+      const { message } = handleApiError(err, 'carregar colaboradores', '/colaboradores', showError)
+      setError(message)
     } finally {
       setLoadingColaboradores(false)
     }
@@ -109,8 +112,8 @@ function Admin({ onLogout }) {
       const response = await ciclosAPI.getAll()
       setCiclos(response.ciclos || [])
     } catch (err) {
-      console.error('Erro ao carregar ciclos:', err)
-      setError('Erro ao carregar ciclos. Tente novamente.')
+      const { message } = handleApiError(err, 'carregar ciclos', '/ciclos', showError)
+      setError(message)
     } finally {
       setLoadingCiclos(false)
     }
@@ -139,8 +142,8 @@ function Admin({ onLogout }) {
         setCiclosAvaliacaoLiderados([])
       }
     } catch (err) {
-      console.error('Erro ao carregar ciclo de aprovação:', err)
-      setError('Erro ao carregar ciclo de aprovação. Tente novamente.')
+      const { message } = handleApiError(err, 'carregar ciclo de aprovação', '/ciclos', showError)
+      setError(message)
     } finally {
       setLoadingAprovacao(false)
     }
@@ -151,8 +154,8 @@ function Admin({ onLogout }) {
       const response = await ciclosAvaliacaoAPI.getLiderados(cicloId)
       setCiclosAvaliacaoLiderados(response.ciclos || [])
     } catch (err) {
-      console.error('Erro ao carregar ciclos de avaliação dos liderados:', err)
-      setError('Erro ao carregar ciclos de avaliação dos liderados.')
+      const { message } = handleApiError(err, 'carregar ciclos de avaliação dos liderados', '/ciclos-avaliacao/gestor/liderados', showError)
+      setError(message)
     }
   }
 
@@ -300,7 +303,7 @@ function Admin({ onLogout }) {
 
   const handleSalvarColaborador = async () => {
     if (!formularioColaborador.nome.trim() || !formularioColaborador.email.trim()) {
-      alert('Nome e email são obrigatórios')
+      warning('Nome e email são obrigatórios')
       return
     }
 
@@ -315,7 +318,7 @@ function Admin({ onLogout }) {
           avatar: formularioColaborador.avatar.trim() || null,
           is_admin: formularioColaborador.is_admin || false
         })
-        alert('Colaborador atualizado com sucesso!')
+        success('Colaborador atualizado com sucesso!')
       } else {
         await colaboradoresAPI.create({
           nome: formularioColaborador.nome.trim(),
@@ -324,15 +327,13 @@ function Admin({ onLogout }) {
           departamento: formularioColaborador.departamento.trim() || null,
           avatar: formularioColaborador.avatar.trim() || null
         })
-        alert('Colaborador criado com sucesso!')
+        success('Colaborador criado com sucesso!')
       }
       handleCancelarColaborador()
       await loadColaboradores()
     } catch (err) {
-      console.error('Erro ao salvar colaborador:', err)
-      const errorMessage = err.message || 'Erro ao salvar colaborador. Tente novamente.'
-      alert(errorMessage)
-      setError(errorMessage)
+      const { message } = handleApiError(err, 'salvar colaborador', '/colaboradores', showError)
+      setError(message)
     }
   }
 
@@ -354,13 +355,11 @@ function Admin({ onLogout }) {
       try {
         setError(null)
         await colaboradoresAPI.delete(id)
-        alert('Colaborador excluído com sucesso!')
+        success('Colaborador excluído com sucesso!')
         await loadColaboradores()
       } catch (err) {
-        console.error('Erro ao excluir colaborador:', err)
-        const errorMessage = err.message || 'Erro ao excluir colaborador. Tente novamente.'
-        alert(errorMessage)
-        setError(errorMessage)
+        const { message } = handleApiError(err, 'excluir colaborador', '/colaboradores', showError)
+        setError(message)
       }
     }
   }
@@ -389,7 +388,7 @@ function Admin({ onLogout }) {
 
   const handleSalvarCiclo = async () => {
     if (!formularioCiclo.nome.trim()) {
-      alert('Nome é obrigatório')
+      warning('Nome é obrigatório')
       return
     }
 
@@ -413,18 +412,16 @@ function Admin({ onLogout }) {
 
       if (cicloEditando) {
         await ciclosAPI.update(cicloEditando.id, dataCiclo)
-        alert('Ciclo atualizado com sucesso!')
+        success('Ciclo atualizado com sucesso!')
       } else {
         await ciclosAPI.create(dataCiclo)
-        alert('Ciclo criado com sucesso!')
+        success('Ciclo criado com sucesso!')
       }
       handleCancelarCiclo()
       await loadCiclos()
     } catch (err) {
-      console.error('Erro ao salvar ciclo:', err)
-      const errorMessage = err.message || 'Erro ao salvar ciclo. Tente novamente.'
-      alert(errorMessage)
-      setError(errorMessage)
+      const { message } = handleApiError(err, 'salvar ciclo', '/ciclos', showError)
+      setError(message)
     }
   }
 
@@ -447,13 +444,11 @@ function Admin({ onLogout }) {
       try {
         setError(null)
         await ciclosAPI.delete(id)
-        alert('Ciclo excluído com sucesso!')
+        success('Ciclo excluído com sucesso!')
         await loadCiclos()
       } catch (err) {
-        console.error('Erro ao excluir ciclo:', err)
-        const errorMessage = err.message || 'Erro ao excluir ciclo. Tente novamente.'
-        alert(errorMessage)
-        setError(errorMessage)
+        const { message } = handleApiError(err, 'excluir ciclo', '/ciclos', showError)
+        setError(message)
       }
     }
   }
@@ -533,13 +528,11 @@ function Admin({ onLogout }) {
       try {
         setError(null)
         await ciclosAPI.avancarEtapa(cicloId)
-        alert('Etapa avançada com sucesso!')
+        success('Etapa avançada com sucesso!')
         await loadCiclos()
       } catch (err) {
-        console.error('Erro ao avançar etapa:', err)
-        const errorMessage = err.message || 'Erro ao avançar etapa. Tente novamente.'
-        alert(errorMessage)
-        setError(errorMessage)
+        const { message } = handleApiError(err, 'avançar etapa do ciclo', '/ciclos/avancar-etapa', showError)
+        setError(message)
       }
     }
   }
@@ -573,7 +566,7 @@ function Admin({ onLogout }) {
 
   const handleSalvarPares = async () => {
     if (paresSelecionados.length !== 4) {
-      alert('É necessário selecionar exatamente 4 pares')
+      warning('É necessário selecionar exatamente 4 pares')
       return
     }
 
@@ -582,16 +575,14 @@ function Admin({ onLogout }) {
       await ciclosAvaliacaoAPI.updateParesLiderado(lideradoEditando.id, {
         pares_ids: paresSelecionados
       })
-      alert('Pares atualizados com sucesso!')
+      success('Pares atualizados com sucesso!')
       handleCancelarPares()
       if (cicloAprovacao) {
         await loadCiclosAvaliacaoLiderados(cicloAprovacao.id)
       }
     } catch (err) {
-      console.error('Erro ao salvar pares:', err)
-      const errorMessage = err.message || 'Erro ao salvar pares. Tente novamente.'
-      alert(errorMessage)
-      setError(errorMessage)
+      const { message } = handleApiError(err, 'salvar pares', '/ciclos-avaliacao/gestor/pares', showError)
+      setError(message)
     }
   }
 

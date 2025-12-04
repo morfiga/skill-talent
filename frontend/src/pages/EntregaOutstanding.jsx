@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useToast } from '../contexts/ToastContext'
 import { useAuth } from '../hooks/useAuth'
 import { entregasOutstandingAPI } from '../services/api'
+import { handleApiError } from '../utils/errorHandler'
 import './EntregaOutstanding.css'
 import './Page.css'
 
 function EntregaOutstanding({ onLogout }) {
   const navigate = useNavigate()
   const { colaboradorId, colaborador } = useAuth()
+  const { success, error: showError } = useToast()
   const isAdmin = colaborador?.is_admin || false
   const [entregas, setEntregas] = useState([])
   const [loading, setLoading] = useState(true)
@@ -30,8 +33,7 @@ function EntregaOutstanding({ onLogout }) {
       const response = await entregasOutstandingAPI.getAll({ colaborador_id: colaboradorId })
       setEntregas(response.entregas || [])
     } catch (error) {
-      console.error('Erro ao carregar entregas:', error)
-      alert('Erro ao carregar entregas. Tente novamente.')
+      handleApiError(error, 'carregar entregas', '/entregas-outstanding', showError)
     } finally {
       setLoading(false)
     }
@@ -60,10 +62,9 @@ function EntregaOutstanding({ onLogout }) {
         })
         setMostrarFormulario(false)
         await loadEntregas()
-        alert('Entrega registrada com sucesso!')
+        success('Entrega registrada com sucesso!')
       } catch (error) {
-        console.error('Erro ao salvar entrega:', error)
-        alert('Erro ao salvar entrega. Tente novamente.')
+        handleApiError(error, 'salvar entrega', '/entregas-outstanding', showError)
       }
     }
   }

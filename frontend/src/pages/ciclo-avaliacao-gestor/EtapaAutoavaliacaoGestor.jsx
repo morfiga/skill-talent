@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useToast } from '../../contexts/ToastContext'
 import { avaliacoesGestorAPI } from '../../services/api'
+import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 
 function EtapaAutoavaliacaoGestor({ colaboradorId, cicloAberto, onVoltar }) {
+  const { success, error: showError, warning } = useToast()
   const [perguntas, setPerguntas] = useState(null)
   const [respostasFechadas, setRespostasFechadas] = useState({})
   const [respostasAbertas, setRespostasAbertas] = useState({})
@@ -39,8 +42,7 @@ function EtapaAutoavaliacaoGestor({ colaboradorId, cicloAberto, onVoltar }) {
       })
       setRespostasAbertas(abertasInicial)
     } catch (error) {
-      console.error('Erro ao carregar perguntas:', error)
-      alert('Erro ao carregar perguntas. Tente novamente.')
+      handleApiError(error, 'carregar perguntas', '/avaliacoes-gestor/perguntas', showError)
     } finally {
       setLoading(false)
     }
@@ -80,7 +82,7 @@ function EtapaAutoavaliacaoGestor({ colaboradorId, cicloAberto, onVoltar }) {
         setRespostasAbertas(prev => ({ ...prev, ...abertas }))
       }
     } catch (error) {
-      console.error('Erro ao carregar avaliação existente:', error)
+      handleApiError(error, 'carregar avaliação existente', '/avaliacoes-gestor', showError)
     }
   }
 
@@ -116,7 +118,7 @@ function EtapaAutoavaliacaoGestor({ colaboradorId, cicloAberto, onVoltar }) {
 
   const handleSalvar = async () => {
     if (!isAvaliacaoCompleta() || !cicloAberto) {
-      alert('Por favor, complete todas as perguntas antes de salvar.')
+      warning('Por favor, complete todas as perguntas antes de salvar.')
       return
     }
 
@@ -143,17 +145,16 @@ function EtapaAutoavaliacaoGestor({ colaboradorId, cicloAberto, onVoltar }) {
       if (avaliacaoExistente) {
         // Atualizar avaliação existente
         await avaliacoesGestorAPI.update(avaliacaoExistente.id, data)
-        alert('Autoavaliação atualizada com sucesso!')
+        success('Autoavaliação atualizada com sucesso!')
       } else {
         // Criar nova avaliação (o backend detectará automaticamente que é autoavaliação)
         await avaliacoesGestorAPI.create(data)
-        alert('Autoavaliação salva com sucesso!')
+        success('Autoavaliação salva com sucesso!')
         // Recarregar para obter o ID da avaliação criada
         await loadAvaliacaoExistente()
       }
     } catch (error) {
-      console.error('Erro ao salvar autoavaliação:', error)
-      alert('Erro ao salvar autoavaliação. Tente novamente.')
+      handleApiError(error, 'salvar autoavaliação', '/avaliacoes-gestor', showError)
     } finally {
       setSalvando(false)
     }

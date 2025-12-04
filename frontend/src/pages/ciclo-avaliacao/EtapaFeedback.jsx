@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { avaliacoesAPI, eixosAvaliacaoAPI, niveisCarreiraAPI } from '../../services/api'
+import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 
 function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
@@ -103,7 +104,7 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
         setNiveisEsperados(niveisResponse.niveis_esperados || [0, 0, 0, 0])
       }
     } catch (error) {
-      console.error('Erro ao carregar feedback:', error)
+      handleApiError(error, 'carregar feedback', '/avaliacoes/feedback')
     } finally {
       setLoading(false)
     }

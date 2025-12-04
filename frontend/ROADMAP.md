@@ -48,13 +48,13 @@ O frontend está organizando responsabilidades básicas em `services/api.js`, `h
     - Separar por arquivo: `api/auth.js`, `api/colaboradores.js`, `api/ciclos.js`, etc., mantendo um `apiClient.js` com o `request` genérico.
     - Facilitar tree-shaking, testes unitários e leitura do código.
 
-- **Padronizar tratamento de erros de API nos componentes**
-  - **Hoje**: alguns componentes tratam erros com `console.error` e `setError` local, outros provavelmente nem tratam.
-  - **Melhorias**:
-    - Definir um padrão (hook `useApi`, helper `handleApiError`) para:
-      - Logar erros de forma consistente.
-      - Exibir mensagem amigável ao usuário.
-      - Diferenciar erros de validação, rede e permissão, mesmo que de forma simples.
+- ✅ **Padronizar tratamento de erros de API nos componentes** - **CONCLUÍDO**
+  - **Implementado**: Criado `utils/errorHandler.js` com helper `handleApiError` e hook `useApi` em `hooks/useApi.js`.
+  - **Benefícios alcançados**:
+    - Helper `handleApiError` classifica erros (validação, rede, permissão, servidor, etc.) e gera mensagens amigáveis.
+    - Log consistente de erros com contexto e tipo de erro.
+    - Hook `useApi` disponível para padronizar chamadas de API com tratamento automático de erros.
+    - Componentes principais atualizados (`Login`, `Admin`, `EtapaAutoavaliacao`, `EntregaOutstanding`, `RegistroValor`).
 
 - **Melhorar estrutura de páginas grandes (ex.: ciclo de avaliação)**
   - **Onde**: `pages/ciclo-avaliacao/*.jsx` (especialmente `EtapaEscolhaPares.jsx`).
@@ -100,11 +100,10 @@ O frontend está organizando responsabilidades básicas em `services/api.js`, `h
 - **isLoadingAuth**: Estado de loading durante verificação de autenticação
 - **Refatoração de rotas**: `App.jsx` simplificado usando componentes de rota
 - **Padronização de sessão**: Funções centralizadas para gerenciamento de localStorage (`clearSession`, `saveSession`, `STORAGE_KEYS`)
+- **Padronização de tratamento de erros**: Helper `handleApiError` e hook `useApi` para tratamento consistente de erros de API
 
 ### ⏳ Em andamento / Pendente
-- Padronização de chaves de `localStorage` e função `clearSession()`
 - Organização de módulos de API por domínio
-- Padronização de tratamento de erros
 - Melhorias em páginas grandes (componentização)
 
 ---
@@ -118,9 +117,8 @@ O frontend está organizando responsabilidades básicas em `services/api.js`, `h
   - ✅ Padronizar chaves de `localStorage` e unificar `clearSession`.
 
 - **Sprint 2 (próxima)**
-  - Padronizar chaves de `localStorage` e unificar `clearSession`.
   - Quebrar `services/api.js` em módulos por domínio, mantendo um `apiClient`.
-  - Começar a padronização de tratamento de erros de API.
+  - Continuar atualizando componentes restantes para usar o padrão de tratamento de erros.
 
 - **Sprint 3 em diante**
   - Refatorar páginas grandes em componentes menores e hooks de domínio.

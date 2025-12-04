@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useToast } from '../../contexts/ToastContext'
 import { avaliacoesAPI, eixosAvaliacaoAPI } from '../../services/api'
+import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 
 function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar }) {
+  const { success, error: showError, warning } = useToast()
   const [eixosAvaliacao, setEixosAvaliacao] = useState([])
   const [autoavaliacao, setAutoavaliacao] = useState({
     eixos: {},
@@ -35,7 +38,7 @@ function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar
       }))
       setEixosAvaliacao(eixos)
     } catch (error) {
-      console.error('Erro ao carregar eixos:', error)
+      handleApiError(error, 'carregar eixos de avaliação', '/eixos-avaliacao', showError)
     } finally {
       setLoading(false)
     }
@@ -67,7 +70,7 @@ function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar
         })
       }
     } catch (error) {
-      console.error('Erro ao carregar autoavaliação existente:', error)
+      handleApiError(error, 'carregar autoavaliação existente', '/avaliacoes', showError)
     }
   }
 
@@ -145,7 +148,7 @@ function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar
               avaliacao_geral: autoavaliacao.avaliacaoGeral,
               eixos: eixos
             })
-            alert('Autoavaliação atualizada com sucesso!')
+            success('Autoavaliação atualizada com sucesso!')
           } else {
             // Criar nova avaliação
             await avaliacoesAPI.create({
@@ -155,7 +158,7 @@ function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar
               avaliacao_geral: autoavaliacao.avaliacaoGeral,
               eixos: eixos
             })
-            alert('Autoavaliação salva com sucesso!')
+            success('Autoavaliação salva com sucesso!')
           }
         } catch (createError) {
           // Se erro 400 (avaliação duplicada), tentar atualizar
@@ -171,7 +174,7 @@ function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar
                 avaliacao_geral: autoavaliacao.avaliacaoGeral,
                 eixos: eixos
               })
-              alert('Autoavaliação atualizada com sucesso!')
+              success('Autoavaliação atualizada com sucesso!')
             } else {
               throw createError
             }
@@ -180,13 +183,12 @@ function EtapaAutoavaliacao({ colaboradorId, cicloAberto, onFinalizado, onVoltar
           }
         }
       } catch (error) {
-        console.error('Erro ao salvar autoavaliação:', error)
-        alert('Erro ao salvar autoavaliação. Tente novamente.')
+        handleApiError(error, 'salvar autoavaliação', '/avaliacoes', showError)
       } finally {
         setSalvando(false)
       }
     } else if (!isAutoavaliacaoCompleta()) {
-      alert('Por favor, complete todos os campos obrigatórios antes de salvar.')
+      warning('Por favor, complete todos os campos obrigatórios antes de salvar.')
     }
   }
 

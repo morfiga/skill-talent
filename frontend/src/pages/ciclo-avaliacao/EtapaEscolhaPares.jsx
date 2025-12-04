@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import Avatar from '../../components/Avatar'
+import { useToast } from '../../contexts/ToastContext'
 import { ciclosAvaliacaoAPI, colaboradoresAPI } from '../../services/api'
+import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 
 function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalvos, onVoltar }) {
+  const { success, error: showError, warning, info } = useToast()
   const [colaboradores, setColaboradores] = useState([])
   const [paresSelecionados, setParesSelecionados] = useState([])
   const [loading, setLoading] = useState(true)
@@ -42,7 +45,7 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
       const response = await colaboradoresAPI.getAll()
       setColaboradores(response.colaboradores || [])
     } catch (error) {
-      console.error('Erro ao carregar colaboradores:', error)
+      handleApiError(error, 'carregar colaboradores', '/colaboradores', showError)
     } finally {
       setLoading(false)
     }
@@ -54,7 +57,7 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
   const toggleSelecao = (colaborador) => {
     // Bloquear alteração durante aprovação de pares
     if (isAprovacaoPares) {
-      alert('Não é possível alterar os pares durante a etapa de aprovação de pares. Aguarde a aprovação do gestor.')
+      info('Não é possível alterar os pares durante a etapa de aprovação de pares. Aguarde a aprovação do gestor.')
       return
     }
 
@@ -75,7 +78,7 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
   const handleSalvar = async () => {
     // Bloquear salvamento durante aprovação de pares
     if (isAprovacaoPares) {
-      alert('Não é possível alterar os pares durante a etapa de aprovação de pares. Aguarde a aprovação do gestor.')
+      info('Não é possível alterar os pares durante a etapa de aprovação de pares. Aguarde a aprovação do gestor.')
       return
     }
 
@@ -90,7 +93,7 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
           ciclo = await ciclosAvaliacaoAPI.update(cicloAtivo.id, {
             pares_ids: paresIds
           })
-          alert('Pares selecionados atualizados com sucesso!')
+          success('Pares selecionados atualizados com sucesso!')
           // Atualizar o ciclo ativo após salvar
           if (onParesSalvos) {
             onParesSalvos(ciclo)
@@ -101,23 +104,21 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
             ciclo_id: cicloAberto.id,
             pares_ids: paresIds
           })
-          alert('Pares selecionados salvos com sucesso!')
+          success('Pares selecionados salvos com sucesso!')
           // Atualizar o ciclo ativo após salvar
           if (onParesSalvos) {
             onParesSalvos(ciclo)
           }
         }
       } catch (error) {
-        console.error('Erro ao salvar pares:', error)
-        const errorMessage = error.response?.data?.detail || error.message || 'Erro ao salvar pares selecionados. Tente novamente.'
-        alert(errorMessage)
+        handleApiError(error, 'salvar pares', '/ciclos-avaliacao', showError)
       } finally {
         setSalvando(false)
       }
     } else if (!cicloAberto) {
-      alert('Nenhum ciclo aberto encontrado. Entre em contato com o administrador.')
+      warning('Nenhum ciclo aberto encontrado. Entre em contato com o administrador.')
     } else if (paresSelecionados.length !== 4) {
-      alert('É necessário selecionar exatamente 4 pares para salvar.')
+      warning('É necessário selecionar exatamente 4 pares para salvar.')
     }
   }
 

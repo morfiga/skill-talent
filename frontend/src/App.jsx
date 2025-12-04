@@ -1,6 +1,8 @@
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import AdminRoute from './components/AdminRoute'
 import PrivateRoute from './components/PrivateRoute'
+import { ToastContainer } from './components/Toast'
+import { ToastProvider } from './contexts/ToastContext'
 import { useAuth } from './hooks/useAuth'
 import Admin from './pages/Admin'
 import CicloAvaliacaoGestor from './pages/ciclo-avaliacao-gestor/CicloAvaliacaoGestor'
@@ -22,8 +24,10 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
+    <ToastProvider>
+      <Router>
+        <ToastContainer />
+        <Routes>
         <Route
           path="/login"
           element={
@@ -118,8 +122,9 @@ function App() {
           path="/"
           element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />}
         />
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </ToastProvider>
   )
 }
 

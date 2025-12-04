@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Avatar from '../../components/Avatar'
 import { avaliacoesAPI, colaboradoresAPI, eixosAvaliacaoAPI } from '../../services/api'
+import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 
 function EtapaAvaliarLiderados({ colaboradorId, cicloAberto, onIniciarAvaliacao, onVoltar }) {
@@ -14,7 +15,7 @@ function EtapaAvaliarLiderados({ colaboradorId, cicloAberto, onIniciarAvaliacao,
       const response = await eixosAvaliacaoAPI.getAll()
       setEixosAvaliacao(response.eixos || [])
     } catch (error) {
-      console.error('Erro ao carregar eixos:', error)
+      handleApiError(error, 'carregar eixos', '/eixos-avaliacao')
     }
   }, [])
 
@@ -45,7 +46,7 @@ function EtapaAvaliarLiderados({ colaboradorId, cicloAberto, onIniciarAvaliacao,
       })
       setAvaliacoesLiderados(lideradosObj)
     } catch (error) {
-      console.error('Erro ao carregar avaliações de liderados:', error)
+      handleApiError(error, 'carregar avaliações de liderados', '/avaliacoes')
     }
   }, [cicloAberto, colaboradorId])
 
@@ -60,8 +61,7 @@ function EtapaAvaliarLiderados({ colaboradorId, cicloAberto, onIniciarAvaliacao,
       // Carregar avaliações existentes
       await loadAvaliacoesLiderados()
     } catch (error) {
-      console.error('Erro ao carregar liderados:', error)
-      alert('Erro ao carregar liderados. Tente novamente.')
+      handleApiError(error, 'carregar liderados', '/colaboradores')
     } finally {
       setLoading(false)
     }

@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useToast } from '../contexts/ToastContext'
 import { useAuth } from '../hooks/useAuth'
 import { registrosValorAPI, valoresAPI } from '../services/api'
+import { handleApiError } from '../utils/errorHandler'
 import './Page.css'
 import './RegistroValor.css'
 
 function RegistroValor({ onLogout }) {
   const navigate = useNavigate()
   const { colaboradorId, colaborador } = useAuth()
+  const { success, error: showError } = useToast()
   const isAdmin = colaborador?.is_admin || false
   const [valoresDisponiveis, setValoresDisponiveis] = useState([])
   const [registros, setRegistros] = useState([])
@@ -31,7 +34,7 @@ function RegistroValor({ onLogout }) {
       const response = await valoresAPI.getAll()
       setValoresDisponiveis(response.valores || [])
     } catch (error) {
-      console.error('Erro ao carregar valores:', error)
+      handleApiError(error, 'carregar valores', '/valores', showError)
     }
   }
 
@@ -41,8 +44,7 @@ function RegistroValor({ onLogout }) {
       const response = await registrosValorAPI.getAll({ colaborador_id: colaboradorId })
       setRegistros(response.registros || [])
     } catch (error) {
-      console.error('Erro ao carregar registros:', error)
-      alert('Erro ao carregar registros. Tente novamente.')
+      handleApiError(error, 'carregar registros', '/registros-valor', showError)
     } finally {
       setLoading(false)
     }
@@ -94,10 +96,9 @@ function RegistroValor({ onLogout }) {
         })
         setMostrarFormulario(false)
         await loadRegistros()
-        alert('Registro salvo com sucesso!')
+        success('Registro salvo com sucesso!')
       } catch (error) {
-        console.error('Erro ao salvar registro:', error)
-        alert('Erro ao salvar registro. Tente novamente.')
+        handleApiError(error, 'salvar registro', '/registros-valor', showError)
       }
     }
   }
