@@ -8,6 +8,7 @@ function EtapaAvaliacaoGestor({ colaboradorId, colaborador, cicloAberto, onVolta
   const { success, error: showError, warning } = useToast()
   const [perguntas, setPerguntas] = useState(null)
   const [respostasFechadas, setRespostasFechadas] = useState({})
+  const [justificativas, setJustificativas] = useState({})
   const [respostasAbertas, setRespostasAbertas] = useState({})
   const [loading, setLoading] = useState(true)
   const [salvando, setSalvando] = useState(false)
@@ -30,10 +31,13 @@ function EtapaAvaliacaoGestor({ colaboradorId, colaborador, cicloAberto, onVolta
 
       // Inicializar respostas fechadas
       const fechadasInicial = {}
+      const justificativasInicial = {}
       Object.keys(response.perguntas_fechadas).forEach(codigo => {
         fechadasInicial[codigo] = null
+        justificativasInicial[codigo] = ''
       })
       setRespostasFechadas(fechadasInicial)
+      setJustificativas(justificativasInicial)
 
       // Inicializar respostas abertas
       const abertasInicial = {}
@@ -62,14 +66,17 @@ function EtapaAvaliacaoGestor({ colaboradorId, colaborador, cicloAberto, onVolta
         const avaliacao = avaliacoes[0]
         setAvaliacaoExistente(avaliacao)
 
-        // Carregar respostas fechadas
+        // Carregar respostas fechadas e justificativas
         const fechadas = {}
+        const justificativasCarregadas = {}
         avaliacao.respostas?.forEach(resposta => {
           if (resposta.resposta_escala !== null) {
             fechadas[resposta.pergunta_codigo] = resposta.resposta_escala
+            justificativasCarregadas[resposta.pergunta_codigo] = resposta.justificativa || ''
           }
         })
         setRespostasFechadas(prev => ({ ...prev, ...fechadas }))
+        setJustificativas(prev => ({ ...prev, ...justificativasCarregadas }))
 
         // Carregar respostas abertas
         const abertas = {}
@@ -92,6 +99,18 @@ function EtapaAvaliacaoGestor({ colaboradorId, colaborador, cicloAberto, onVolta
     }))
   }
 
+  const handleJustificativaChange = (perguntaCodigo, texto) => {
+    setJustificativas(prev => ({
+      ...prev,
+      [perguntaCodigo]: texto
+    }))
+  }
+
+  const isJustificativaObrigatoria = (perguntaCodigo) => {
+    const escala = respostasFechadas[perguntaCodigo]
+    return escala === 1 || escala === 5
+  }
+
   const handleRespostaAbertaChange = (perguntaCodigo, texto) => {
     setRespostasAbertas(prev => ({
       ...prev,
@@ -107,12 +126,23 @@ function EtapaAvaliacaoGestor({ colaboradorId, colaborador, cicloAberto, onVolta
       codigo => respostasFechadas[codigo] !== null && respostasFechadas[codigo] !== undefined
     )
 
+    // Verificar se justificativas obrigatórias foram preenchidas (escala 1 ou 5)
+    const todasJustificativasPreenchidas = Object.keys(perguntas.perguntas_fechadas).every(
+      codigo => {
+        const escala = respostasFechadas[codigo]
+        if (escala === 1 || escala === 5) {
+          return justificativas[codigo] && justificativas[codigo].trim() !== ''
+        }
+        return true
+      }
+    )
+
     // Verificar se todas as perguntas abertas foram respondidas
     const todasAbertasRespondidas = Object.keys(perguntas.perguntas_abertas).every(
       codigo => respostasAbertas[codigo] && respostasAbertas[codigo].trim() !== ''
     )
 
-    return todasFechadasRespondidas && todasAbertasRespondidas
+    return todasFechadasRespondidas && todasJustificativasPreenchidas && todasAbertasRespondidas
   }
 
   const handleSalvar = async () => {
@@ -127,7 +157,8 @@ function EtapaAvaliacaoGestor({ colaboradorId, colaborador, cicloAberto, onVolta
       // Preparar dados para envio
       const respostasFechadasArray = Object.keys(perguntas.perguntas_fechadas).map(codigo => ({
         pergunta_codigo: codigo,
-        resposta_escala: respostasFechadas[codigo]
+        resposta_escala: respostasFechadas[codigo],
+        justificativa: justificativas[codigo] || null
       }))
 
       const respostasAbertasArray = Object.keys(perguntas.perguntas_abertas).map(codigo => ({
@@ -244,6 +275,26 @@ function EtapaAvaliacaoGestor({ colaboradorId, colaborador, cicloAberto, onVolta
                       <span>Discordo totalmente</span>
                       <span>Concordo totalmente</span>
                     </div>
+                  </div>
+                  {/* Campo de Justificativa */}
+                  <div className="justificativa-container">
+                    <label className="justificativa-label">
+                      Justificativa {isJustificativaObrigatoria(pergunta.codigo) ? (
+                        <span className="required">*</span>
+                      ) : (
+                        <span className="optional">(opcional)</span>
+                      )}
+                    </label>
+                    <textarea
+                      className={`justificativa-textarea ${isJustificativaObrigatoria(pergunta.codigo) && !justificativas[pergunta.codigo]?.trim() ? 'required-field' : ''}`}
+                      placeholder={isJustificativaObrigatoria(pergunta.codigo)
+                        ? "Justifique sua resposta..."
+                        : "Justifique sua resposta (opcional)..."
+                      }
+                      value={justificativas[pergunta.codigo] || ''}
+                      onChange={(e) => handleJustificativaChange(pergunta.codigo, e.target.value)}
+                      rows={2}
+                    />
                   </div>
                 </div>
               ))}

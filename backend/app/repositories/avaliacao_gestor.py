@@ -106,6 +106,7 @@ class AvaliacaoGestorRepository(BaseRepository[AvaliacaoGestor]):
                     categoria=pergunta_info["categoria"],
                     resposta_escala=resposta["resposta_escala"],
                     resposta_texto=None,
+                    justificativa=resposta.get("justificativa"),
                 )
                 self.db.add(avaliacao_resposta)
 
@@ -153,6 +154,7 @@ class AvaliacaoGestorRepository(BaseRepository[AvaliacaoGestor]):
                         categoria=pergunta_info["categoria"],
                         resposta_escala=resposta["resposta_escala"],
                         resposta_texto=None,
+                        justificativa=resposta.get("justificativa"),
                     )
                     self.db.add(avaliacao_resposta)
 

@@ -62,6 +62,9 @@ class AvaliacaoGestorResposta(Base):
     resposta_texto = Column(
         Text, nullable=True
     )  # Para perguntas abertas
+    justificativa = Column(
+        Text, nullable=True
+    )  # Justificativa obrigatória para respostas 1 ou 5
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

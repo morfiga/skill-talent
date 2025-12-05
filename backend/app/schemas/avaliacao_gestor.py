@@ -99,6 +99,21 @@ class RespostaPerguntaFechada(BaseModel):
     resposta_escala: int = Field(
         ..., ge=1, le=5, description="Resposta em escala de 1 a 5"
     )
+    justificativa: Optional[str] = Field(
+        None,
+        max_length=CAMPO_TEXTO_LONGO_MAX,
+        description="Justificativa obrigatória para respostas 1 ou 5",
+    )
+
+    @model_validator(mode="after")
+    def validate_justificativa_required(self) -> "RespostaPerguntaFechada":
+        """Valida que justificativa é obrigatória para respostas 1 ou 5"""
+        if self.resposta_escala in [1, 5]:
+            if not self.justificativa or not self.justificativa.strip():
+                raise ValueError(
+                    f"Justificativa é obrigatória para respostas com valor {self.resposta_escala}"
+                )
+        return self
 
 
 class RespostaPerguntaAberta(BaseModel):
@@ -116,6 +131,7 @@ class AvaliacaoGestorRespostaResponse(BaseModel):
     categoria: str
     resposta_escala: Optional[int] = None
     resposta_texto: Optional[str] = None
+    justificativa: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 
