@@ -29,7 +29,7 @@ export function useApi() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
 
-    const execute = useCallback(async (apiCall, context = 'realizar operação', endpoint = null) => {
+    const execute = useCallback(async (apiCall, context = 'realizar operação', endpoint = null, showToast = null) => {
         setLoading(true)
         setError(null)
 
@@ -37,7 +37,7 @@ export function useApi() {
             const result = await apiCall()
             return result
         } catch (err) {
-            const { message } = handleApiError(err, context, endpoint)
+            const { message } = handleApiError(err, context, endpoint, showToast)
             setError(message)
             return null
         } finally {

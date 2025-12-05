@@ -11,9 +11,19 @@ export function getErrorType(error) {
         return 'network'
     }
 
-    // Verificar status code se disponível no erro
-    const statusMatch = error.message?.match(/status:\s*(\d+)/)
-    const status = statusMatch ? parseInt(statusMatch[1]) : null
+    // Verificar status code no payload do erro primeiro
+    const errorPayload = error.responseData || error.data || error.response?.data
+    let status = null
+
+    if (errorPayload?.error?.status_code) {
+        status = errorPayload.error.status_code
+    } else if (error.status) {
+        status = error.status
+    } else {
+        // Tentar extrair do message como fallback
+        const statusMatch = error.message?.match(/status:\s*(\d+)/)
+        status = statusMatch ? parseInt(statusMatch[1]) : null
+    }
 
     if (status) {
         if (status === 400) return 'validation'
@@ -43,29 +53,6 @@ export function getErrorType(error) {
 }
 
 /**
- * Gera uma mensagem amigável para o usuário baseada no tipo de erro
- * @param {Error} error - O erro lançado pela API
- * @param {string} context - Contexto da operação (ex: "carregar colaboradores", "salvar avaliação")
- * @returns {string} - Mensagem amigável para exibir ao usuário
- */
-export function getUserFriendlyMessage(error, context = 'realizar operação') {
-    const errorType = getErrorType(error)
-
-    const messages = {
-        network: `Erro de conexão. Verifique sua internet e tente novamente.`,
-        validation: error.message?.includes('detail')
-            ? error.message.split('detail:')[1]?.trim() || `Dados inválidos. Verifique as informações e tente novamente.`
-            : `Dados inválidos. Verifique as informações e tente novamente.`,
-        permission: `Você não tem permissão para ${context}.`,
-        not_found: `Recurso não encontrado.`,
-        server: `Erro no servidor. Tente novamente mais tarde.`,
-        unknown: `Erro ao ${context}. Tente novamente.`
-    }
-
-    return messages[errorType] || messages.unknown
-}
-
-/**
  * Trata erros de API de forma padronizada
  * - Faz log consistente do erro
  * - Retorna mensagem amigável para o usuário
@@ -80,7 +67,6 @@ export function getUserFriendlyMessage(error, context = 'realizar operação') {
  */
 export function handleApiError(error, context = 'realizar operação', endpoint = null, showToast = null) {
     const errorType = getErrorType(error)
-    const userMessage = getUserFriendlyMessage(error, context)
 
     // Log consistente do erro
     const logContext = endpoint ? `[${endpoint}]` : ''
@@ -92,11 +78,11 @@ export function handleApiError(error, context = 'realizar operação', endpoint 
 
     // Se uma função de toast foi fornecida, mostrar automaticamente
     if (showToast && typeof showToast === 'function') {
-        showToast(userMessage)
+        showToast(error.message)
     }
 
     return {
-        message: userMessage,
+        message: error.message,
         type: errorType
     }
 }

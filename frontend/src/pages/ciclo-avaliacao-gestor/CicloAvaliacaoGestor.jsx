@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '../../contexts/ToastContext'
+import { useApi } from '../../hooks/useApi'
 import { useAuth } from '../../hooks/useAuth'
 import { ciclosAPI } from '../../services/api'
 import '../CicloAvaliacao.css'
@@ -15,12 +16,12 @@ function CicloAvaliacaoGestor({ onLogout }) {
     const { etapa } = useParams()
     const location = useLocation()
     const { colaboradorId, colaborador } = useAuth()
-    const { warning, info } = useToast()
+    const { info } = useToast()
     const isAdmin = colaborador?.is_admin || false
-    const [loading, setLoading] = useState(true)
     const [cicloAberto, setCicloAberto] = useState(null)
     const [etapaAtual, setEtapaAtual] = useState(1)
     const [lideradoSendoAvaliado, setLideradoSendoAvaliado] = useState(null)
+    const { execute, loading, error } = useApi()
 
     // Função para verificar se etapa está liberada
     const etapaEstaLiberada = useCallback((etapaNum) => {
@@ -82,19 +83,14 @@ function CicloAvaliacaoGestor({ onLogout }) {
     }, [colaboradorId])
 
     const loadInitialData = async () => {
-        try {
-            setLoading(true)
-            await loadCicloAberto()
-        } catch (error) {
-            handleApiError(error, 'carregar ciclo aberto', '/ciclos/ativo/aberto', null)
-        } finally {
-            setLoading(false)
+        const ciclo = await execute(
+            () => ciclosAPI.getAtivoAberto(),
+            'carregar ciclo aberto',
+            '/ciclos/ativo/aberto'
+        )
+        if (ciclo) {
+            setCicloAberto(ciclo)
         }
-    }
-
-    const loadCicloAberto = async () => {
-        const ciclo = await ciclosAPI.getAtivoAberto()
-        setCicloAberto(ciclo)
     }
 
     const handleNavegarEtapa = (etapaNum) => {

@@ -27,8 +27,12 @@ async function request(endpoint, options = {}) {
         window.location.href = '/login'
       }
 
-      const error = await response.json().catch(() => ({ detail: response.statusText }))
-      throw new Error(error.detail || `HTTP error! status: ${response.status}`)
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }))
+      const error = new Error(errorData.detail || errorData.error?.message || `HTTP error! status: ${response.status}`)
+      // Preservar o payload completo do erro para uso no handleApiError
+      error.responseData = errorData
+      error.status = response.status
+      throw error
     }
 
     // Se a resposta estiver vazia (204), retornar null
@@ -38,7 +42,6 @@ async function request(endpoint, options = {}) {
 
     return await response.json()
   } catch (error) {
-    console.error(`API Error [${endpoint}]:`, error)
     throw error
   }
 }

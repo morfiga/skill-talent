@@ -140,14 +140,10 @@ function CicloAvaliacao({ onLogout }) {
 
   const loadCicloAtivo = async () => {
     try {
-      if (!cicloAberto) {
-        return
-      }
-
       const ciclo = await ciclosAvaliacaoAPI.getAtivo()
       setCicloAtivo(ciclo)
     } catch (error) {
-      console.log('[DEBUG] loadCicloAtivo - Nenhum ciclo de avaliação ativo encontrado para este colaborador', error)
+      handleApiError(error, 'carregar ciclo ativo', '/ciclos-avaliacao/ativo', null)
     }
   }
 
