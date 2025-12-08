@@ -31,6 +31,27 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
         self.repository = AvaliacaoGestorRepository(db)
         self.ciclo_repository = CicloRepository(db)
 
+    def _validar_justificativas_respostas_fechadas(
+        self, respostas_fechadas: list, is_autoavaliacao: bool
+    ) -> None:
+        """
+        Valida que justificativa é obrigatória para respostas 1 ou 5
+        apenas quando NÃO é autoavaliação (ou seja, quando colaborador avalia seu gestor)
+        """
+        if is_autoavaliacao:
+            # Na autoavaliação, justificativa não é obrigatória
+            return
+
+        # Na avaliação do gestor, justificativa é obrigatória para notas 1 ou 5
+        for resposta in respostas_fechadas:
+            resposta_escala = resposta.resposta_escala
+            justificativa = resposta.justificativa
+            if resposta_escala in [1, 5]:
+                if not justificativa or not justificativa.strip():
+                    raise BusinessRuleException(
+                        f"Justificativa é obrigatória para respostas com valor {resposta_escala} "
+                        f"na avaliação do gestor"
+                    )
 
     def create(
         self, avaliacao: AvaliacaoGestorCreate, current_colaborador: Colaborador
@@ -82,6 +103,12 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
                 raise BusinessRuleException(
                     f"Já existe uma {tipo_avaliacao} para este ciclo"
                 )
+
+            # Validar justificativas (obrigatórias apenas na avaliação do gestor, não na autoavaliação)
+            is_autoavaliacao = current_colaborador.id == gestor_id
+            self._validar_justificativas_respostas_fechadas(
+                avaliacao.respostas_fechadas, is_autoavaliacao
+            )
 
             # Criar avaliação com respostas
             logger.info(
@@ -224,6 +251,13 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
                 )
 
             logger.info(f"Atualizando avaliação de gestor. ID: {avaliacao_id}")
+
+            # Validar justificativas (obrigatórias apenas na avaliação do gestor, não na autoavaliação)
+            is_autoavaliacao = db_avaliacao.colaborador_id == db_avaliacao.gestor_id
+            if avaliacao.respostas_fechadas:
+                self._validar_justificativas_respostas_fechadas(
+                    avaliacao.respostas_fechadas, is_autoavaliacao
+                )
 
             # Atualizar avaliação com respostas
             respostas_fechadas = None

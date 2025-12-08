@@ -4,7 +4,13 @@ from typing import Optional
 from app.core.security import get_current_colaborador
 from app.database import get_db
 from app.models.colaborador import Colaborador
-from app.schemas.ciclo import CicloCreate, CicloListResponse, CicloResponse, CicloUpdate
+from app.schemas.ciclo import (
+    AcompanhamentoCicloResponse,
+    CicloCreate,
+    CicloListResponse,
+    CicloResponse,
+    CicloUpdate,
+)
 from app.services import CicloService
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -80,3 +86,13 @@ def delete_ciclo(
     """Exclui um ciclo"""
     service.delete_ciclo(ciclo_id, current_colaborador)
     return None
+
+
+@router.get("/{ciclo_id}/acompanhamento", response_model=AcompanhamentoCicloResponse)
+def get_acompanhamento(
+    ciclo_id: int,
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
+    service: CicloService = Depends(get_ciclo_service),
+):
+    """Retorna o acompanhamento do ciclo com status de cada colaborador"""
+    return service.get_acompanhamento(ciclo_id, current_colaborador)

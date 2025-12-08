@@ -135,3 +135,40 @@ class CicloListResponse(BaseModel):
     total: int
 
 
+# =============================================================================
+# Schemas de Acompanhamento
+# =============================================================================
+
+
+class ColaboradorAcompanhamentoResponse(BaseModel):
+    """Schema para acompanhamento de um colaborador no ciclo"""
+
+    colaborador_id: int
+    nome: str
+    email: str
+    cargo: Optional[str] = None
+    departamento: Optional[str] = None
+    avatar: Optional[str] = None
+
+    # Status das etapas
+    escolheu_pares: bool
+    qtd_pares_escolhidos: int
+
+    avaliacoes_pares_total: int  # Quantas avaliações de pares ele deve fazer
+    avaliacoes_pares_realizadas: int  # Quantas já fez
+
+    fez_autoavaliacao: bool
+    fez_avaliacao_gestor: bool
+    tem_gestor: bool  # Se o colaborador tem gestor cadastrado
+
+
+class AcompanhamentoCicloResponse(BaseModel):
+    """Schema para resposta do acompanhamento do ciclo"""
+
+    ciclo_id: int
+    ciclo_nome: str
+    etapa_atual: str
+    colaboradores: List[ColaboradorAcompanhamentoResponse]
+    total: int
+
+

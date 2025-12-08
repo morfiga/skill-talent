@@ -97,6 +97,7 @@ export const ciclosAPI = {
   },
   getById: (id) => request(`/ciclos/${id}`),
   getAtivoAberto: () => request('/ciclos/ativo/aberto'),
+  getAcompanhamento: (cicloId) => request(`/ciclos/${cicloId}/acompanhamento`),
   create: (data) => request('/ciclos', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -217,5 +218,10 @@ export const avaliacoesGestorAPI = {
     method: 'PUT',
     body: JSON.stringify(data),
   }),
+  // Admin: buscar avaliações que os liderados fizeram de um gestor
+  getAvaliacoesGestorAdmin: (gestorId, cicloId = null) => {
+    const params = cicloId ? `?ciclo_id=${cicloId}` : ''
+    return request(`/avaliacoes-gestor/admin/gestor/${gestorId}${params}`)
+  },
 }
 

@@ -1,9 +1,8 @@
 from typing import List, Optional
 
-from sqlalchemy.orm import Session
-
 from app.models.colaborador import Colaborador
 from app.repositories.base import BaseRepository
+from sqlalchemy.orm import Session
 
 
 class ColaboradorRepository(BaseRepository[Colaborador]):

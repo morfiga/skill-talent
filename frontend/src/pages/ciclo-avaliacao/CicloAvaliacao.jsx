@@ -18,7 +18,7 @@ function CicloAvaliacao({ onLogout }) {
   const { etapa } = useParams()
   const location = useLocation()
   const { colaboradorId, colaborador } = useAuth()
-  const { info } = useToast()
+  const { info, error } = useToast()
   const isAdmin = colaborador?.is_admin || false
   const [loading, setLoading] = useState(true)
   const [cicloAberto, setCicloAberto] = useState(null)
@@ -79,6 +79,7 @@ function CicloAvaliacao({ onLogout }) {
       if (etapaEstaLiberada(primeiraEtapa)) {
         navigate(`/ciclo-avaliacao/${primeiraEtapa}`)
       } else {
+        error('Esta etapa ainda não foi liberada pelo administrador.')
         navigate('/dashboard')
       }
     }
@@ -149,7 +150,6 @@ function CicloAvaliacao({ onLogout }) {
 
   const handleParesSalvos = (ciclo) => {
     setCicloAtivo(ciclo)
-    // Não navegar automaticamente - usuário pode navegar manualmente
   }
 
   const handleIniciarAvaliacaoPar = (colaborador) => {

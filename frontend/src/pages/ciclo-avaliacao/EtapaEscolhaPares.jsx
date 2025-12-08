@@ -106,9 +106,7 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
           })
           success('Pares selecionados salvos com sucesso!')
           // Atualizar o ciclo ativo após salvar
-          if (onParesSalvos) {
-            onParesSalvos(ciclo)
-          }
+          window.location.reload()
         }
       } catch (error) {
         handleApiError(error, 'salvar pares', '/ciclos-avaliacao', showError)

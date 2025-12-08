@@ -1,6 +1,7 @@
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import AdminRoute from './components/AdminRoute'
 import PrivateRoute from './components/PrivateRoute'
+import ScrollToTop from './components/ScrollToTop'
 import { ToastContainer } from './components/Toast'
 import { ToastProvider } from './contexts/ToastContext'
 import { useAuth } from './hooks/useAuth'
@@ -26,6 +27,7 @@ function App() {
   return (
     <ToastProvider>
       <Router>
+        <ScrollToTop />
         <ToastContainer />
         <Routes>
         <Route
