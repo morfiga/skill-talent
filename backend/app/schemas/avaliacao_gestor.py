@@ -15,54 +15,68 @@ CATEGORIAS_PERGUNTAS = {
     "desenvolvimento_suporte": "Desenvolvimento e Suporte",
     "cultura_comportamento": "Cultura e Comportamento",
     "execucao_organizacao": "Execução e Organização",
+    "coragem_maturidade_lideranca": "Coragem e Maturidade de Liderança",
     "perguntas_abertas": "Perguntas Abertas",
 }
 
 PERGUNTAS_FECHADAS = {
     # Liderança e Direcionamento
-    "lideranca_expectativas_claras": {
+    "ld01": {
         "categoria": "lideranca_direcionamento",
-        "texto": "Sinto que o meu gestor define expectativas claras sobre prioridades, metas e padrões de qualidade em relação às minhas entregas.",
+        "texto": "Meu gestor define prioridades claras e revisa com o time quando necessário.",
     },
-    "lideranca_consistencia_decisoes": {
+    "ld02": {
         "categoria": "lideranca_direcionamento",
-        "texto": "Sinto que meu gestor demonstra consistência nas decisões e transparência ao compartilhar os motivos por trás delas.",
+        "texto": "Meu gestor toma decisões com rapidez e explica o racional de forma objetiva.",
+    },
+    "ld03": {
+        "categoria": "lideranca_direcionamento",
+        "texto": "Meu gestor estabelece padrões de qualidade e acompanha a consistência das entregas.",
     },
     # Comunicação
-    "comunicacao_escuta": {
+    "c01": {
         "categoria": "comunicacao",
-        "texto": "Sinto que minhas opiniões são consideradas na hora de tomar uma decisão estratégica do time.",
+        "texto": "Meu gestor se comunica com clareza, evita ruídos e traz o contexto necessário no momento certo.",
     },
-    "comunicacao_clareza": {
+    "c02": {
         "categoria": "comunicacao",
-        "texto": "Sinto que meu gestor se comunica com clareza e no momento certo.",
+        "texto": "Minhas opiniões são consideradas e meu gestor explica quando não as adota.",
     },
     # Desenvolvimento e Suporte
-    "desenvolvimento_apoio": {
+    "ds01": {
         "categoria": "desenvolvimento_suporte",
-        "texto": "Sinto que meu gestor apoia meu desenvolvimento profissional e me dá oportunidades de crescer.",
+        "texto": "Meu gestor oferece feedbacks frequentes, diretos e úteis.",
     },
-    "desenvolvimento_feedback": {
+    "ds02": {
         "categoria": "desenvolvimento_suporte",
-        "texto": "Sinto que meu gestor fornece feedbacks consistentes, relevantes e que me ajudam a melhorar meu desempenho.",
+        "texto": "Meu gestor reconhece boas entregas e ajuda a ajustar rota quando necessário.",
     },
     # Cultura e Comportamento
-    "cultura_valores": {
+    "cc01": {
         "categoria": "cultura_comportamento",
-        "texto": "Sinto que meu gestor age de acordo com os valores da empresa no dia a dia.",
+        "texto": "Meu gestor vive os valores da Ada no dia a dia.",
     },
-    "cultura_responsabilidade": {
+    "cc02": {
         "categoria": "cultura_comportamento",
-        "texto": "Sinto que meu gestor assume responsabilidades pelos resultados da equipe.",
+        "texto": "Meu gestor assume responsabilidades, corrige rapidamente erros e lida com problemas de forma transparente.",
     },
     # Execução e Organização
-    "execucao_rituais_consistencia": {
+    "eo01": {
         "categoria": "execucao_organizacao",
-        "texto": "Sinto que as reuniões e os rituais de alinhamento ocorrem de forma consistente.",
+        "texto": "Os rituais do time são consistentes e produtivos.",
     },
-    "execucao_distribuicao_justa": {
+    "eo02": {
         "categoria": "execucao_organizacao",
-        "texto": "Sinto que meu gestor distribui tarefas e responsabilidades de forma justa.",
+        "texto": "As responsabilidades do time são distribuídas de forma justa e equilibrada, conforme competências e capacidade de entrega.",
+    },
+    # Coragem e Maturidade de Liderança
+    "pa01": {
+        "categoria": "coragem_maturidade_lideranca",
+        "texto": "Meu gestor endereça conflitos e conversas difíceis com respeito e objetividade.",
+    },
+    "pa02": {
+        "categoria": "coragem_maturidade_lideranca",
+        "texto": "Meu gestor protege o foco do time e diz “não” quando necessário.",
     },
 }
 
