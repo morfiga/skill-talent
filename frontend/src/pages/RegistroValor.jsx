@@ -156,7 +156,7 @@ function RegistroValor({ onLogout }) {
           <div className="registro-header">
             <h2 className="registro-title">Registros de Valor</h2>
             <p className="registro-subtitle">
-              Queremos reconhecer atitudes que mostram a cultura da Ada acontecendo no dia a dia, momentos em que alguém fez algo que representa nossos valores de verdade. Esses registros ajudam a fortalecer o que temos de melhor e inspirar o time todo.
+              Queremos reconhecer atitudes que mostram a cultura da Ada acontecendo no dia a dia, momentos em que você fez algo que representa nossos valores de verdade. Esses registros ajudam a fortalecer o que temos de melhor e inspirar o time todo.
             </p>
             {!mostrarFormulario && (
               <button
