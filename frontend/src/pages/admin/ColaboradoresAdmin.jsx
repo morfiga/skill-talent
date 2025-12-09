@@ -46,6 +46,7 @@ function ColaboradoresAdmin() {
           email: formulario.email.trim(),
           cargo: formulario.cargo.trim() || null,
           departamento: formulario.departamento.trim() || null,
+          nivel_carreira: formulario.nivel_carreira.trim() || null,
           avatar: formulario.avatar.trim() || null,
           is_admin: formulario.is_admin || false
         })
@@ -56,6 +57,7 @@ function ColaboradoresAdmin() {
           email: formulario.email.trim(),
           cargo: formulario.cargo.trim() || null,
           departamento: formulario.departamento.trim() || null,
+          nivel_carreira: formulario.nivel_carreira.trim() || null,
           avatar: formulario.avatar.trim() || null
         })
         success('Colaborador criado com sucesso!')
@@ -97,7 +99,8 @@ function ColaboradoresAdmin() {
     col.nome?.toLowerCase().includes(filtro.toLowerCase()) ||
     col.email?.toLowerCase().includes(filtro.toLowerCase()) ||
     col.cargo?.toLowerCase().includes(filtro.toLowerCase()) ||
-    col.departamento?.toLowerCase().includes(filtro.toLowerCase())
+    col.departamento?.toLowerCase().includes(filtro.toLowerCase()) ||
+    col.nivel_carreira?.toLowerCase().includes(filtro.toLowerCase())
   )
 
   const departamentos = [...new Set(colaboradores.map(col => col.departamento).filter(Boolean))].sort()
@@ -134,7 +137,7 @@ function ColaboradoresAdmin() {
         <input
           type="text"
           className="filtro-input"
-          placeholder="Buscar por nome, email, cargo ou departamento..."
+          placeholder="Buscar por nome, email, cargo, departamento ou nível..."
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
         />

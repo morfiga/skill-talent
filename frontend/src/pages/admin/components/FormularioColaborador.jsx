@@ -6,6 +6,7 @@ function FormularioColaborador({ colaborador, onSalvar, onCancelar, departamento
     email: colaborador?.email || '',
     cargo: colaborador?.cargo || '',
     departamento: colaborador?.departamento || '',
+    nivel_carreira: colaborador?.nivel_carreira || '',
     avatar: colaborador?.avatar || '',
     is_admin: colaborador?.is_admin || false
   })
@@ -85,6 +86,27 @@ function FormularioColaborador({ colaborador, onSalvar, onCancelar, departamento
             <option key={dept} value={dept} />
           ))}
         </datalist>
+      </div>
+
+      <div className="formulario-campo">
+        <label className="campo-label">Nível de Carreira</label>
+        <select
+          className="campo-input"
+          value={formulario.nivel_carreira}
+          onChange={(e) => handleInputChange('nivel_carreira', e.target.value)}
+        >
+          <option value="">Selecione um nível</option>
+          <option value="Junior">Junior</option>
+          <option value="Pleno">Pleno</option>
+          <option value="Senior">Senior</option>
+          <option value="Especialista">Especialista</option>
+          <option value="Coordenador">Coordenador</option>
+          <option value="Gerente">Gerente</option>
+          <option value="Diretor">Diretor</option>
+        </select>
+        <p className="campo-descricao" style={{ marginTop: '4px', fontSize: '0.85rem', color: '#666' }}>
+          Nível hierárquico ou senioridade do colaborador na empresa.
+        </p>
       </div>
 
       <div className="formulario-campo">

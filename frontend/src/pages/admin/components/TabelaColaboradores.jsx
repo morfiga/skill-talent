@@ -12,9 +12,9 @@ function TabelaColaboradores({ colaboradores, onEditar, onExcluir }) {
           <tr>
             <th>Avatar</th>
             <th>Nome</th>
-            <th>Email</th>
             <th>Cargo</th>
             <th>Departamento</th>
+            <th>Nível</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -33,14 +33,18 @@ function TabelaColaboradores({ colaboradores, onEditar, onExcluir }) {
                 <div className="colaborador-nome">{colaborador.nome}</div>
               </td>
               <td>
-                <div className="colaborador-email">{colaborador.email}</div>
-              </td>
-              <td>
                 <div className="colaborador-cargo">{colaborador.cargo || '-'}</div>
               </td>
               <td>
                 {colaborador.departamento ? (
                   <span className="colaborador-departamento">{colaborador.departamento}</span>
+                ) : (
+                  <span style={{ color: '#999' }}>-</span>
+                )}
+              </td>
+              <td>
+                {colaborador.nivel_carreira ? (
+                  <span className="colaborador-nivel">{colaborador.nivel_carreira}</span>
                 ) : (
                   <span style={{ color: '#999' }}>-</span>
                 )}
