@@ -8,6 +8,7 @@ class AvaliacaoGestor(Base):
     """
     Modelo para avaliação que um colaborador faz do seu gestor.
     """
+
     __tablename__ = "avaliacoes_gestor"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -36,7 +37,9 @@ class AvaliacaoGestor(Base):
         back_populates="avaliacoes_gestor_recebidas",
     )
     respostas = relationship(
-        "AvaliacaoGestorResposta", back_populates="avaliacao", cascade="all, delete-orphan"
+        "AvaliacaoGestorResposta",
+        back_populates="avaliacao",
+        cascade="all, delete-orphan",
     )
 
 
@@ -44,12 +47,11 @@ class AvaliacaoGestorResposta(Base):
     """
     Modelo para armazenar as respostas das perguntas da avaliação do gestor.
     """
+
     __tablename__ = "avaliacoes_gestor_respostas"
 
     id = Column(Integer, primary_key=True, index=True)
-    avaliacao_id = Column(
-        Integer, ForeignKey("avaliacoes_gestor.id"), nullable=False
-    )
+    avaliacao_id = Column(Integer, ForeignKey("avaliacoes_gestor.id"), nullable=False)
     pergunta_codigo = Column(
         String(100), nullable=False
     )  # Ex: "lideranca_expectativas_claras", "comunicacao_clareza", etc.
@@ -59,9 +61,7 @@ class AvaliacaoGestorResposta(Base):
     resposta_escala = Column(
         Integer, nullable=True
     )  # Para perguntas fechadas: 1-5 (ou similar)
-    resposta_texto = Column(
-        Text, nullable=True
-    )  # Para perguntas abertas
+    resposta_texto = Column(Text, nullable=True)  # Para perguntas abertas
     justificativa = Column(
         Text, nullable=True
     )  # Justificativa obrigatória para respostas 1 ou 5
@@ -72,4 +72,3 @@ class AvaliacaoGestorResposta(Base):
 
     # Relacionamentos
     avaliacao = relationship("AvaliacaoGestor", back_populates="respostas")
-

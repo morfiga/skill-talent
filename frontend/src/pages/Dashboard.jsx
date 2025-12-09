@@ -24,8 +24,6 @@ function Dashboard({ onLogout }) {
       </header>
 
       <main className="dashboard-main">
-        <h2 className="dashboard-welcome">Bem-vindo ao sistema de avaliação</h2>
-
         <div className="options-grid">
           <div
             className="option-card"

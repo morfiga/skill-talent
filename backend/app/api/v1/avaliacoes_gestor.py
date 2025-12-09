@@ -17,7 +17,9 @@ from sqlalchemy.orm import Session
 router = APIRouter(prefix="/avaliacoes-gestor", tags=["avaliacoes-gestor"])
 
 
-def get_avaliacao_gestor_service(db: Session = Depends(get_db)) -> AvaliacaoGestorService:
+def get_avaliacao_gestor_service(
+    db: Session = Depends(get_db),
+) -> AvaliacaoGestorService:
     return AvaliacaoGestorService(db)
 
 
@@ -101,7 +103,4 @@ def get_avaliacoes_gestor_gestor_admin(
     service: AvaliacaoGestorService = Depends(get_avaliacao_gestor_service),
 ):
     """Endpoint admin para buscar avaliações de gestor recebidas por um gestor"""
-    return service.get_avaliacoes_gestor_admin(
-        gestor_id, ciclo_id, current_colaborador
-    )
-
+    return service.get_avaliacoes_gestor_admin(gestor_id, ciclo_id, current_colaborador)

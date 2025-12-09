@@ -1191,7 +1191,8 @@
 /* Estilos para feedback do gestor */
 .grafico-valores {
   display: flex;
-  justify-content: space-between;
+  gap: 8px;
+  justify-content: center;
   width: 100%;
   margin-top: 8px;
   font-size: 0.85rem;
@@ -1202,6 +1203,7 @@
 .valor-media {
   font-weight: 600;
   color: #333;
+  padding: 0 12px;
 }
 
 .grafico-barra.media-recebida {

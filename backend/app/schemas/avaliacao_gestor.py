@@ -274,10 +274,10 @@ class AvaliacaoGestorResponse(BaseModel):
 
     id: int
     ciclo_id: int
-    colaborador_id: int
+    # colaborador_id: int
     gestor_id: int
     respostas: List[AvaliacaoGestorRespostaResponse] = []
-    colaborador: Optional[ColaboradorResponse] = None
+    # colaborador: Optional[ColaboradorResponse] = None
     gestor: Optional[ColaboradorResponse] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -294,10 +294,10 @@ class AvaliacaoGestorResponse(BaseModel):
             data_dict = {
                 "id": data.id,
                 "ciclo_id": data.ciclo_id,
-                "colaborador_id": data.colaborador_id,
+                # "colaborador_id": data.colaborador_id,
                 "gestor_id": data.gestor_id,
                 "respostas": respostas_list,
-                "colaborador": getattr(data, "colaborador", None),
+                # "colaborador": getattr(data, "colaborador", None),
                 "gestor": getattr(data, "gestor", None),
                 "created_at": data.created_at,
                 "updated_at": getattr(data, "updated_at", None),

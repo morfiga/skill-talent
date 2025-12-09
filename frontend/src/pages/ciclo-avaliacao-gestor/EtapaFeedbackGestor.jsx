@@ -114,8 +114,6 @@ function EtapaFeedbackGestor({ colaborador, cicloAberto, onVoltar }) {
                 const resposta = avaliacao.respostas?.find(r => r.pergunta_codigo === codigo && r.resposta_texto !== null)
                 if (resposta && resposta.resposta_texto.trim() !== '') {
                     agrupadas[codigo].push({
-                        colaborador_id: avaliacao.colaborador_id,
-                        colaborador_nome: avaliacao.colaborador?.nome || 'Colaborador',
                         resposta: resposta.resposta_texto
                     })
                 }
@@ -188,10 +186,6 @@ function EtapaFeedbackGestor({ colaborador, cicloAberto, onVoltar }) {
                                                         title={`Média Recebida: ${mediaRecebida > 0 ? mediaRecebida.toFixed(1) : '-'}`}
                                                     />
                                                 </div>
-                                                <div className="grafico-valores">
-                                                    <span className="valor-autoavaliacao">{autoavaliacaoValor || '-'}</span>
-                                                    <span className="valor-media">{mediaRecebida > 0 ? mediaRecebida.toFixed(1) : '-'}</span>
-                                                </div>
                                             </div>
                                         )
                                     })}
@@ -237,9 +231,11 @@ function EtapaFeedbackGestor({ colaborador, cicloAberto, onVoltar }) {
                                         <div className="respostas-lista">
                                             {respostas.map((resposta, index) => (
                                                 <div key={index} className="resposta-item">
-                                                    <div className="resposta-header">
-                                                        <span className="resposta-autor">{resposta.colaborador_nome}</span>
-                                                    </div>
+                                                    {resposta.colaborador_nome && (
+                                                        <div className="resposta-header">
+                                                            <span className="resposta-autor">{resposta.colaborador_nome}</span>
+                                                        </div>
+                                                    )}
                                                     <div className="resposta-conteudo">
                                                         {resposta.resposta}
                                                     </div>

@@ -453,7 +453,7 @@ h3.sidebar-title {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 20px;
+  margin: 20px 0;
 }
 
 .detalhes-nome {

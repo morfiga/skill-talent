@@ -252,8 +252,7 @@ class AvaliacaoService(BaseService[Avaliacao]):
         self, ciclo_id: int, current_colaborador: Colaborador
     ) -> FeedbackResponse:
         ciclo_avaliacao = self.repository.validate_ciclo_avaliacao(
-            ciclo_id=ciclo_id,
-            colaborador_id=current_colaborador.id
+            ciclo_id=ciclo_id, colaborador_id=current_colaborador.id
         )
 
         if not ciclo_avaliacao:
@@ -265,7 +264,7 @@ class AvaliacaoService(BaseService[Avaliacao]):
         # Validar que o ciclo pertence ao colaborador logado
         if ciclo_avaliacao.colaborador_id != current_colaborador.id:
             logger.warning(
-                f"Tentativa de buscar feedback de ciclo de outro colaborador. Ciclo ID: {ciclo_id}, Colaborador do ciclo: {ciclo.colaborador_id}, Colaborador logado: {current_colaborador.id}"
+                f"Tentativa de buscar feedback de ciclo de outro colaborador. Ciclo ID: {ciclo_id}, Colaborador do ciclo: {ciclo_avaliacao.colaborador_id}, Colaborador logado: {current_colaborador.id}"
             )
             raise ForbiddenException(
                 "Você só pode buscar feedback do seu próprio ciclo de avaliação"
@@ -316,7 +315,7 @@ class AvaliacaoService(BaseService[Avaliacao]):
         )
 
         # Obter níveis esperados baseado no nível de carreira do colaborador
-        colaborador = self.colaborador_service.get_by_id(ciclo.colaborador_id)
+        colaborador = self.colaborador_service.get_by_id(ciclo_avaliacao.colaborador_id)
 
         niveis_esperados = []
         if colaborador and colaborador.nivel_carreira:

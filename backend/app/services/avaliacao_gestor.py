@@ -182,7 +182,6 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
             ]
             # Ordenar por created_at desc
             avaliacoes.sort(key=lambda x: x.created_at, reverse=True)
-            total = len(avaliacoes)
         else:
             # Validar que o usuário só pode ver suas próprias avaliações
             # Se colaborador_id for especificado, deve ser o usuário logado
