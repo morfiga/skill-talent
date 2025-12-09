@@ -1,0 +1,1052 @@
+/* Importar estilos base */
+@import '../Page.css';
+
+/* Estilos específicos do Admin */
+.admin-main {
+  flex: 1;
+  padding: 24px;
+}
+
+.admin-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 24px;
+  min-height: calc(100vh - 180px);
+}
+
+.admin-sidebar {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  position: sticky;
+  top: 24px;
+}
+
+.sidebar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+}
+
+h3.sidebar-title {
+  margin: 10px 0;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-nav-item {
+  padding: 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  text-align: left;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-nav-item:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.admin-nav-item.active {
+  background: #3b82f6;
+  color: white;
+  font-weight: 600;
+}
+
+.admin-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 500px;
+}
+
+.admin-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.panel-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.panel-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.adicionar-button {
+  padding: 12px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.adicionar-button:hover {
+  background: #2563eb;
+}
+
+.formulario-container {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+}
+
+.formulario-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 24px 0;
+}
+
+.formulario-campo {
+  margin-bottom: 20px;
+}
+
+.campo-label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.campo-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.campo-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.campo-input:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.campo-descricao {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.formulario-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.cancelar-button {
+  padding: 10px 24px;
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelar-button:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.salvar-button {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.salvar-button.enabled {
+  background: #3b82f6;
+  color: white;
+}
+
+.salvar-button.enabled:hover {
+  background: #2563eb;
+}
+
+.salvar-button.disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.admin-filtros {
+  margin-bottom: 24px;
+}
+
+.filtro-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.filtro-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.colaboradores-lista {
+  margin-top: 24px;
+}
+
+.lista-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+}
+
+.table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.colaboradores-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.colaboradores-table thead {
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.colaboradores-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.colaboradores-table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background 0.2s;
+}
+
+.colaboradores-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.colaboradores-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.colaboradores-table td {
+  padding: 16px;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.colaborador-nome {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.colaborador-email {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.colaborador-cargo {
+  color: #374151;
+}
+
+.colaborador-departamento {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.colaborador-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.action-button:hover {
+  background: #e5e7eb;
+  transform: scale(1.05);
+}
+
+.action-button.edit:hover {
+  background: #dbeafe;
+}
+
+.action-button.delete:hover {
+  background: #fee2e2;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-badge.aberto {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.em-andamento {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.concluido {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.fechado {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.status-badge.etapa-escolha-pares {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.status-badge.etapa-aprovacao-pares {
+  background: #fce7f3;
+  color: #831843;
+}
+
+.status-badge.etapa-avaliacoes {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.etapa-calibracao {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.etapa-feedback {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin: 8px 0;
+}
+
+.voltar-button {
+  padding: 10px 20px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.voltar-button:hover {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.error-message {
+  padding: 12px 16px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 8px;
+  border-left: 4px solid #ef4444;
+  margin-bottom: 20px;
+}
+
+/* Detalhes de Colaborador */
+.detalhes-header {
+  margin-bottom: 20px;
+}
+
+.detalhes-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.detalhes-nome {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.detalhes-cargo {
+  margin: 4px 0 0 0;
+  color: #666;
+}
+
+.secao-titulo {
+  margin-bottom: 20px;
+}
+
+.secao-titulo-gestor {
+  margin-bottom: 20px;
+  color: #7b1fa2;
+}
+
+.secao-subtitulo {
+  margin-bottom: 16px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Tabela de Avaliações */
+.avaliacoes-table {
+  min-width: 800px;
+}
+
+.avaliacoes-table th.sticky-col {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 10;
+}
+
+.avaliacoes-table td.sticky-col {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 9;
+}
+
+.avaliacoes-table th.col-center {
+  text-align: center;
+  min-width: 100px;
+}
+
+.avaliacoes-table th.col-comentarios {
+  min-width: 120px;
+}
+
+.avaliador-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.avaliador-tipo {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.avaliador-nome {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.nivel-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e3f2fd;
+  color: #1976d2;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.nivel-badge.high {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.nivel-badge.low {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.nivel-badge.medium {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.nivel-vazio {
+  color: #999;
+}
+
+/* Comentários Expandidos */
+.comentarios-expandidos {
+  background: #f9f9f9;
+  padding: 20px;
+  border-top: none;
+}
+
+.comentarios-container {
+  max-width: 100%;
+}
+
+.comentario-secao {
+  margin-bottom: 16px;
+}
+
+.comentario-titulo {
+  margin: 0 0 8px 0;
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.comentario-texto {
+  margin: 0;
+  color: #666;
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.justificativas-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.justificativa-card {
+  padding: 12px;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.justificativa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.justificativa-eixo {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.justificativa-nivel {
+  padding: 4px 8px;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.justificativa-texto {
+  margin: 0;
+  color: #666;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Cards de Avaliação de Gestor */
+.avaliacao-gestor-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.avaliacao-gestor-header {
+  padding: 16px;
+  background: #f3e5f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.avaliacao-gestor-header.auto {
+  background: #e3f2fd;
+}
+
+.avaliador-gestor-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avaliador-gestor-detalhes {
+  display: flex;
+  flex-direction: column;
+}
+
+.avaliador-gestor-nome {
+  font-weight: 600;
+}
+
+.avaliador-gestor-cargo {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.avaliacao-gestor-body {
+  padding: 20px;
+}
+
+.perguntas-secao {
+  margin-bottom: 24px;
+}
+
+.perguntas-secao:last-child {
+  margin-bottom: 0;
+}
+
+.perguntas-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.pergunta-card {
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.pergunta-conteudo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.pergunta-texto-area {
+  flex: 1;
+}
+
+.pergunta-titulo {
+  font-size: 0.9rem;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.pergunta-titulo.aberta {
+  font-size: 0.85rem;
+  color: #7b1fa2;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.pergunta-titulo.aberta-gestor {
+  font-size: 0.85rem;
+  color: #1976d2;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.pergunta-justificativa {
+  font-size: 0.85rem;
+  color: #666;
+  font-style: italic;
+}
+
+.pergunta-resposta-texto {
+  font-size: 0.9rem;
+  color: #333;
+  line-height: 1.6;
+}
+
+.resposta-escala {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.resposta-escala.alta {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.resposta-escala.baixa {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.resposta-escala.media {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+/* Seletor de Pares */
+.pares-info {
+  margin-bottom: 20px;
+}
+
+.pares-contador {
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.pares-confirmacao {
+  color: #4caf50;
+  font-size: 0.9rem;
+}
+
+.pares-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.par-card {
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.par-card.selecionado {
+  border-color: #4caf50;
+  background: #e8f5e9;
+}
+
+.par-card:hover {
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+}
+
+.par-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.par-nome {
+  font-weight: 500;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.par-cargo {
+  font-size: 0.8rem;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pares Selecionados (Badges) */
+.pares-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.par-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f0f0f0;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+.par-vazio {
+  color: #999;
+}
+
+/* Status Badges */
+.status-check {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-check.completo {
+  background: #4caf50;
+  color: #fff;
+}
+
+.status-check.incompleto {
+  background: #ff9800;
+  color: #fff;
+}
+
+.contador-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.contador-badge.gestor {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.contador-badge.vazio {
+  background: #f5f5f5;
+  color: #999;
+}
+
+/* Status de Progresso */
+.progresso-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.progresso-badge.completo {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.progresso-badge.pendente {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.progresso-badge.parcial {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.progresso-vazio {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* Colaborador com Avatar na Tabela */
+.colaborador-com-avatar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.colaborador-detalhes {
+  display: flex;
+  flex-direction: column;
+}
+
+.colaborador-info-nome {
+  font-size: 0.95rem;
+}
+
+.colaborador-info-secundaria {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* Seletor de Ciclo */
+.filtros-com-select {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.select-ciclo {
+  max-width: 300px;
+}
+
+.filtro-expandido {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Alinhamento de Células */
+.cell-center {
+  text-align: center!important;
+}
+
+.cell-flex-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .admin-content {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    position: static;
+  }
+
+  .admin-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .admin-nav-item {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .pares-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-panel {
+    padding: 20px;
+  }
+
+  .admin-panel-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .adicionar-button {
+    width: 100%;
+  }
+
+  .formulario-actions {
+    flex-direction: column;
+  }
+
+  .cancelar-button,
+  .salvar-button {
+    width: 100%;
+  }
+
+  .table-container {
+    font-size: 0.875rem;
+  }
+
+  .colaboradores-table th,
+  .colaboradores-table td {
+    padding: 12px;
+  }
+
+  .pares-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detalhes-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filtros-com-select {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .select-ciclo,
+  .filtro-expandido {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+

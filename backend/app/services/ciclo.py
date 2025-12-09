@@ -267,6 +267,47 @@ class CicloService(BaseService[Ciclo]):
             # 6. Verificar se tem gestor
             tem_gestor = colab.gestor_id is not None
 
+            # 7. Verificar se fez autoavaliação como gestor (se for gestor)
+            fez_autoavaliacao_gestor = (
+                self.db.query(AvaliacaoGestor)
+                .filter(
+                    and_(
+                        AvaliacaoGestor.ciclo_id == ciclo_id,
+                        AvaliacaoGestor.colaborador_id == colab.id,
+                        AvaliacaoGestor.gestor_id == colab.id,  # Autoavaliação
+                    )
+                )
+                .first()
+                is not None
+            )
+
+            # 8. Contar quantos liderados este colaborador tem
+            avaliacoes_liderados_total = (
+                self.db.query(func.count(Colaborador.id))
+                .filter(
+                    and_(
+                        Colaborador.gestor_id == colab.id,
+                        Colaborador.is_active == True,
+                    )
+                )
+                .scalar()
+                or 0
+            )
+
+            # 9. Contar quantas avaliações de gestor este colaborador fez dos seus liderados
+            avaliacoes_liderados_realizadas = (
+                self.db.query(func.count(Avaliacao.id))
+                .filter(
+                    and_(
+                        Avaliacao.ciclo_id == ciclo_id,
+                        Avaliacao.avaliador_id == colab.id,
+                        Avaliacao.tipo == TipoAvaliacao.GESTOR,
+                    )
+                )
+                .scalar()
+                or 0
+            )
+
             resultado.append(
                 ColaboradorAcompanhamentoResponse(
                     colaborador_id=colab.id,
@@ -282,15 +323,20 @@ class CicloService(BaseService[Ciclo]):
                     fez_autoavaliacao=fez_autoavaliacao,
                     fez_avaliacao_gestor=fez_avaliacao_gestor,
                     tem_gestor=tem_gestor,
+                    fez_autoavaliacao_gestor=fez_autoavaliacao_gestor,
+                    avaliacoes_liderados_total=avaliacoes_liderados_total,
+                    avaliacoes_liderados_realizadas=avaliacoes_liderados_realizadas,
                 )
             )
 
         return AcompanhamentoCicloResponse(
             ciclo_id=db_ciclo.id,
             ciclo_nome=db_ciclo.nome,
-            etapa_atual=db_ciclo.etapa_atual.value
-            if hasattr(db_ciclo.etapa_atual, "value")
-            else str(db_ciclo.etapa_atual),
+            etapa_atual=(
+                db_ciclo.etapa_atual.value
+                if hasattr(db_ciclo.etapa_atual, "value")
+                else str(db_ciclo.etapa_atual)
+            ),
             colaboradores=resultado,
             total=len(resultado),
         )

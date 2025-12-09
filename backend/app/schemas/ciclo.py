@@ -1,10 +1,9 @@
 from datetime import datetime
 from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator
-
 from app.core.validators import CAMPO_NOME_MAX, CAMPO_NOME_MIN, validate_nome
 from app.models.ciclo import EtapaCiclo, StatusCiclo
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class CicloBase(BaseModel):
@@ -29,7 +28,9 @@ class CicloBase(BaseModel):
                 return StatusCiclo(v)
             except ValueError:
                 valid_values = [s.value for s in StatusCiclo]
-                raise ValueError(f"Status inválido. Valores aceitos: {', '.join(valid_values)}")
+                raise ValueError(
+                    f"Status inválido. Valores aceitos: {', '.join(valid_values)}"
+                )
         raise ValueError("Status deve ser uma string válida")
 
     @field_validator("etapa_atual", mode="before")
@@ -42,7 +43,9 @@ class CicloBase(BaseModel):
                 return EtapaCiclo(v)
             except ValueError:
                 valid_values = [e.value for e in EtapaCiclo]
-                raise ValueError(f"Etapa inválida. Valores aceitos: {', '.join(valid_values)}")
+                raise ValueError(
+                    f"Etapa inválida. Valores aceitos: {', '.join(valid_values)}"
+                )
         raise ValueError("Etapa deve ser uma string válida")
 
 
@@ -51,7 +54,9 @@ class CicloCreate(CicloBase):
 
 
 class CicloUpdate(BaseModel):
-    nome: Optional[str] = Field(None, min_length=CAMPO_NOME_MIN, max_length=CAMPO_NOME_MAX)
+    nome: Optional[str] = Field(
+        None, min_length=CAMPO_NOME_MIN, max_length=CAMPO_NOME_MAX
+    )
     status: Optional[StatusCiclo] = None
     etapa_atual: Optional[EtapaCiclo] = None
     data_inicio: Optional[datetime] = None
@@ -76,7 +81,9 @@ class CicloUpdate(BaseModel):
                 return StatusCiclo(v)
             except ValueError:
                 valid_values = [s.value for s in StatusCiclo]
-                raise ValueError(f"Status inválido. Valores aceitos: {', '.join(valid_values)}")
+                raise ValueError(
+                    f"Status inválido. Valores aceitos: {', '.join(valid_values)}"
+                )
         raise ValueError("Status deve ser uma string válida")
 
     @field_validator("etapa_atual", mode="before")
@@ -91,7 +98,9 @@ class CicloUpdate(BaseModel):
                 return EtapaCiclo(v)
             except ValueError:
                 valid_values = [e.value for e in EtapaCiclo]
-                raise ValueError(f"Etapa inválida. Valores aceitos: {', '.join(valid_values)}")
+                raise ValueError(
+                    f"Etapa inválida. Valores aceitos: {', '.join(valid_values)}"
+                )
         raise ValueError("Etapa deve ser uma string válida")
 
 
@@ -111,13 +120,21 @@ class CicloResponse(BaseModel):
         """Converte enums para strings"""
         if isinstance(data, dict):
             return data
-        
+
         if hasattr(data, "status") and hasattr(data.status, "value"):
             data_dict = {
                 "id": data.id,
                 "nome": data.nome,
-                "status": data.status.value if hasattr(data.status, "value") else str(data.status),
-                "etapa_atual": data.etapa_atual.value if hasattr(data.etapa_atual, "value") else str(data.etapa_atual),
+                "status": (
+                    data.status.value
+                    if hasattr(data.status, "value")
+                    else str(data.status)
+                ),
+                "etapa_atual": (
+                    data.etapa_atual.value
+                    if hasattr(data.etapa_atual, "value")
+                    else str(data.etapa_atual)
+                ),
                 "data_inicio": data.data_inicio,
                 "data_fim": data.data_fim,
                 "created_at": data.created_at,
@@ -161,6 +178,11 @@ class ColaboradorAcompanhamentoResponse(BaseModel):
     fez_avaliacao_gestor: bool
     tem_gestor: bool  # Se o colaborador tem gestor cadastrado
 
+    # Status específicos para gestores
+    fez_autoavaliacao_gestor: bool  # Se é gestor e fez autoavaliação como gestor
+    avaliacoes_liderados_total: int  # Quantos liderados ele tem
+    avaliacoes_liderados_realizadas: int  # Quantos liderados ele já avaliou
+
 
 class AcompanhamentoCicloResponse(BaseModel):
     """Schema para resposta do acompanhamento do ciclo"""
@@ -170,5 +192,3 @@ class AcompanhamentoCicloResponse(BaseModel):
     etapa_atual: str
     colaboradores: List[ColaboradorAcompanhamentoResponse]
     total: int
-
-
