@@ -1,0 +1,194 @@
+.rating-slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.slider-wrapper {
+  position: relative;
+  padding: 1rem 0.5rem 0.5rem;
+}
+
+/* Estilização do input range */
+.rating-slider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #50e550;
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.2s;
+}
+
+.rating-slider.no-value {
+  opacity: 0.5;
+}
+
+.rating-slider:hover {
+  opacity: 1;
+}
+
+.rating-slider:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Estilização do thumb (botão deslizante) - Chrome/Safari */
+.rating-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid #50e550;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.rating-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+}
+
+.rating-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+  border-color: #50e550;
+}
+
+/* Estilização do thumb - Firefox */
+.rating-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid #50e550;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.rating-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+}
+
+.rating-slider::-moz-range-thumb:active {
+  transform: scale(1.05);
+  border-color: #50e550;
+}
+
+/* Marcações do slider */
+.slider-marks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 0 0.25rem;
+}
+
+.slider-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.slider-mark:hover .mark-number {
+  transform: scale(1.2);
+  font-weight: 600;
+  color: #50e550;
+}
+
+.mark-number {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  background: #f3f4f6;
+}
+
+.slider-mark.active .mark-number {
+  background: #50e550;
+  color: white;
+  font-weight: 600;
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+/* Descrição da avaliação */
+.rating-description {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.rating-placeholder {
+  font-size: 1rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Responsividade */
+@media (max-width: 640px) {
+  .rating-slider-container {
+    gap: 0.75rem;
+  }
+
+  .slider-wrapper {
+    padding: 0.75rem 0.25rem 0.25rem;
+  }
+
+  .rating-slider::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+
+  .rating-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mark-number {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .rating-description {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .rating-value {
+    font-size: 1.25rem;
+  }
+
+  .rating-separator {
+    display: none;
+  }
+
+  .rating-text {
+    font-size: 0.875rem;
+  }
+
+  .rating-placeholder {
+    font-size: 0.875rem;
+  }
+}
+

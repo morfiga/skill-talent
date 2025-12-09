@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useToast } from '../../contexts/ToastContext'
 import { avaliacoesGestorAPI } from '../../services/api'
 import { handleApiError } from '../../utils/errorHandler'
+import RatingSlider from '../../components/RatingSlider'
 import '../CicloAvaliacao.css'
 
 function EtapaAutoavaliacaoGestor({ colaboradorId, cicloAberto, onVoltar }) {
@@ -208,24 +209,10 @@ function EtapaAutoavaliacaoGestor({ colaboradorId, cicloAberto, onVoltar }) {
               {fechadas.map((pergunta) => (
                 <div key={pergunta.codigo} className="pergunta-card">
                   <p className="pergunta-texto">{pergunta.texto}</p>
-                  <div className="escala-container">
-                    <div className="escala-buttons">
-                      {[1, 2, 3, 4, 5].map((escala) => (
-                        <button
-                          key={escala}
-                          className={`escala-button ${respostasFechadas[pergunta.codigo] === escala ? 'selecionado' : ''
-                            }`}
-                          onClick={() => handleRespostaFechadaChange(pergunta.codigo, escala)}
-                        >
-                          {escala}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="escala-labels">
-                      <span>Discordo totalmente</span>
-                      <span>Concordo totalmente</span>
-                    </div>
-                  </div>
+                  <RatingSlider
+                    value={respostasFechadas[pergunta.codigo]}
+                    onChange={(value) => handleRespostaFechadaChange(pergunta.codigo, value)}
+                  />
                 </div>
               ))}
 
