@@ -15,6 +15,7 @@ function EntregaOutstanding({ onLogout }) {
   const [entregas, setEntregas] = useState([])
   const [loading, setLoading] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [entregaEditando, setEntregaEditando] = useState(null)
   const [formulario, setFormulario] = useState({
     descricao: '',
     impacto: '',
@@ -49,11 +50,23 @@ function EntregaOutstanding({ onLogout }) {
   const handleSalvarEntrega = async () => {
     if (formulario.descricao.trim() && formulario.impacto.trim() && formulario.evidencias.trim()) {
       try {
-        await entregasOutstandingAPI.create(colaboradorId, {
-          descricao: formulario.descricao,
-          impacto: formulario.impacto,
-          evidencias: formulario.evidencias
-        })
+        if (entregaEditando) {
+          // Editando uma entrega existente
+          await entregasOutstandingAPI.update(entregaEditando.id, {
+            descricao: formulario.descricao,
+            impacto: formulario.impacto,
+            evidencias: formulario.evidencias
+          })
+          success('Entrega atualizada com sucesso!')
+        } else {
+          // Criando nova entrega
+          await entregasOutstandingAPI.create(colaboradorId, {
+            descricao: formulario.descricao,
+            impacto: formulario.impacto,
+            evidencias: formulario.evidencias
+          })
+          success('Entrega registrada com sucesso!')
+        }
 
         setFormulario({
           descricao: '',
@@ -61,10 +74,10 @@ function EntregaOutstanding({ onLogout }) {
           evidencias: ''
         })
         setMostrarFormulario(false)
+        setEntregaEditando(null)
         await loadEntregas()
-        success('Entrega registrada com sucesso!')
       } catch (error) {
-        handleApiError(error, 'salvar entrega', '/entregas-outstanding', showError)
+        handleApiError(error, entregaEditando ? 'atualizar entrega' : 'salvar entrega', '/entregas-outstanding', showError)
       }
     }
   }
@@ -76,6 +89,29 @@ function EntregaOutstanding({ onLogout }) {
       evidencias: ''
     })
     setMostrarFormulario(false)
+    setEntregaEditando(null)
+  }
+
+  const handleEditarEntrega = (entrega) => {
+    setEntregaEditando(entrega)
+    setFormulario({
+      descricao: entrega.descricao,
+      impacto: entrega.impacto,
+      evidencias: entrega.evidencias
+    })
+    setMostrarFormulario(true)
+  }
+
+  const handleExcluirEntrega = async (entregaId) => {
+    if (window.confirm('Tem certeza que deseja excluir esta entrega? Esta ação não pode ser desfeita.')) {
+      try {
+        await entregasOutstandingAPI.delete(entregaId)
+        await loadEntregas()
+        success('Entrega excluída com sucesso!')
+      } catch (error) {
+        handleApiError(error, 'excluir entrega', '/entregas-outstanding', showError)
+      }
+    }
   }
 
   const formatarData = (dataISO) => {
@@ -128,7 +164,7 @@ function EntregaOutstanding({ onLogout }) {
 
           {mostrarFormulario && (
             <div className="formulario-container">
-              <h3 className="formulario-title">Nova Entrega Outstanding</h3>
+              <h3 className="formulario-title">{entregaEditando ? 'Editar Entrega Outstanding' : 'Nova Entrega Outstanding'}</h3>
 
               <div className="formulario-campo">
                 <label className="campo-label">
@@ -190,7 +226,7 @@ function EntregaOutstanding({ onLogout }) {
                   onClick={handleSalvarEntrega}
                   disabled={!formulario.descricao.trim() || !formulario.impacto.trim() || !formulario.evidencias.trim()}
                 >
-                  Salvar Entrega
+                  {entregaEditando ? 'Atualizar Entrega' : 'Salvar Entrega'}
                 </button>
               </div>
             </div>
@@ -215,6 +251,22 @@ function EntregaOutstanding({ onLogout }) {
                   <div className="entrega-data">
                     <span className="data-icon">📅</span>
                     <span className="data-text">{formatarData(entrega.created_at)}</span>
+                  </div>
+                  <div className="entrega-actions">
+                    <button
+                      className="edit-button"
+                      onClick={() => handleEditarEntrega(entrega)}
+                      title="Editar entrega"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="delete-button"
+                      onClick={() => handleExcluirEntrega(entrega.id)}
+                      title="Excluir entrega"
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </div>
 

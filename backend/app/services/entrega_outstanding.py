@@ -45,6 +45,10 @@ class EntregaOutstandingService(BaseService[EntregaOutstanding]):
     ) -> List[EntregaOutstanding]:
         # Filtra corretamente usando kwargs, compatível com BaseRepository.get_all
         return self.repository.get_all(colaborador_id=current_colaborador.id)
+    
+    def get_by_colaborador_id(self, colaborador_id: int) -> List[EntregaOutstanding]:
+        """Retorna entregas de um colaborador específico (usado por admin)"""
+        return self.repository.get_all(colaborador_id=colaborador_id)
 
     def get_by_id(
         self, entrega_id: int, current_colaborador: Colaborador

@@ -4,6 +4,7 @@ import { ciclosAPI, colaboradoresAPI } from '../../services/api'
 import { handleApiError } from '../../utils/errorHandler'
 import TabelaAcompanhamentoColaboradores from './components/TabelaAcompanhamentoColaboradores'
 import TabelaAcompanhamentoGestores from './components/TabelaAcompanhamentoGestores'
+import DetalhesAcompanhamentoColaborador from './components/DetalhesAcompanhamentoColaborador'
 
 function AcompanhamentoAdmin() {
   const { error: showError } = useToast()
@@ -14,6 +15,7 @@ function AcompanhamentoAdmin() {
   const [loading, setLoading] = useState(false)
   const [filtro, setFiltro] = useState('')
   const [error, setError] = useState(null)
+  const [colaboradorSelecionado, setColaboradorSelecionado] = useState(null)
 
   useEffect(() => {
     loadAcompanhamento()
@@ -79,6 +81,14 @@ function AcompanhamentoAdmin() {
     col.departamento?.toLowerCase().includes(filtro.toLowerCase())
   )
 
+  const handleVerDetalhes = (colaborador) => {
+    setColaboradorSelecionado(colaborador)
+  }
+
+  const handleVoltar = () => {
+    setColaboradorSelecionado(null)
+  }
+
   const getEtapaLabel = (etapa) => {
     const labels = {
       'escolha_pares': 'Escolha de Pares',
@@ -124,6 +134,11 @@ function AcompanhamentoAdmin() {
             Crie um ciclo com status "Aberto" ou "Em Andamento" para ver o acompanhamento.
           </p>
         </div>
+      ) : colaboradorSelecionado ? (
+        <DetalhesAcompanhamentoColaborador
+          colaborador={colaboradorSelecionado}
+          onVoltar={handleVoltar}
+        />
       ) : (
         <>
           <div className="admin-filtros filtros-com-select">
@@ -178,7 +193,10 @@ function AcompanhamentoAdmin() {
                           </p>
                         </div>
                       ) : (
-                        <TabelaAcompanhamentoGestores gestores={gestoresFiltrados} />
+                        <TabelaAcompanhamentoGestores 
+                          gestores={gestoresFiltrados}
+                          onVerDetalhes={handleVerDetalhes}
+                        />
                       )}
 
                       <h3 className="lista-title">
@@ -192,7 +210,10 @@ function AcompanhamentoAdmin() {
                           </p>
                         </div>
                       ) : (
-                        <TabelaAcompanhamentoColaboradores colaboradores={colaboradoresSemGestorFiltrados} />
+                        <TabelaAcompanhamentoColaboradores 
+                          colaboradores={colaboradoresSemGestorFiltrados}
+                          onVerDetalhes={handleVerDetalhes}
+                        />
                       )}
                     </>
                   )

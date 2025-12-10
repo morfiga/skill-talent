@@ -1,6 +1,6 @@
 import Avatar from '../../../components/Avatar'
 
-function TabelaAcompanhamentoColaboradores({ colaboradores }) {
+function TabelaAcompanhamentoColaboradores({ colaboradores, onVerDetalhes }) {
   if (colaboradores.length === 0) {
     return null
   }
@@ -15,6 +15,7 @@ function TabelaAcompanhamentoColaboradores({ colaboradores }) {
             <th className="cell-center" style={{ minWidth: '140px' }}>Avaliações de Pares</th>
             <th className="cell-center" style={{ minWidth: '120px' }}>Autoavaliação</th>
             <th className="cell-center" style={{ minWidth: '140px' }}>Avaliação do Gestor</th>
+            <th className="cell-center" style={{ minWidth: '100px' }}>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -52,11 +53,10 @@ function TabelaAcompanhamentoColaboradores({ colaboradores }) {
               </td>
               <td className="cell-center">
                 {colab.avaliacoes_pares_total > 0 ? (
-                  <span className={`progresso-badge ${
-                    colab.avaliacoes_pares_realizadas >= colab.avaliacoes_pares_total
+                  <span className={`progresso-badge ${colab.avaliacoes_pares_realizadas >= colab.avaliacoes_pares_total
                       ? 'completo'
                       : 'parcial'
-                  }`}>
+                    }`}>
                     {colab.avaliacoes_pares_realizadas}/{colab.avaliacoes_pares_total}
                   </span>
                 ) : (
@@ -89,6 +89,17 @@ function TabelaAcompanhamentoColaboradores({ colaboradores }) {
                   <span className="progresso-badge pendente">
                     Pendente
                   </span>
+                )}
+              </td>
+              <td className="cell-center">
+                {onVerDetalhes && (
+                  <button
+                    className="action-button"
+                    onClick={() => onVerDetalhes(colab)}
+                    title="Ver detalhes do colaborador"
+                  >
+                    🔍
+                  </button>
                 )}
               </td>
             </tr>

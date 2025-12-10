@@ -31,11 +31,17 @@ def create_entrega_outstanding(
 
 @router.get("/", response_model=EntregaOutstandingListResponse)
 def get_entregas_outstanding(
+    colaborador_id: int = None,
     current_colaborador: Colaborador = Depends(get_current_colaborador),
     service: EntregaOutstandingService = Depends(get_entrega_outstanding_service),
 ):
-    """Lista entregas outstanding do usuário logado"""
-    entregas = service.get_by_colaborador(current_colaborador)
+    """Lista entregas outstanding do usuário logado ou de um colaborador específico (apenas admin)"""
+    if colaborador_id is not None and current_colaborador.is_admin:
+        # Admin pode ver entregas de qualquer colaborador
+        entregas = service.get_by_colaborador_id(colaborador_id)
+    else:
+        # Colaborador comum vê apenas suas próprias entregas
+        entregas = service.get_by_colaborador(current_colaborador)
     return {"entregas": entregas, "total": len(entregas)}
 
 

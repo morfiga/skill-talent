@@ -1,6 +1,6 @@
 import Avatar from '../../../components/Avatar'
 
-function TabelaAcompanhamentoGestores({ gestores }) {
+function TabelaAcompanhamentoGestores({ gestores, onVerDetalhes }) {
   if (gestores.length === 0) {
     return null
   }
@@ -13,6 +13,7 @@ function TabelaAcompanhamentoGestores({ gestores }) {
             <th style={{ minWidth: '200px' }}>Gestor</th>
             <th className="cell-center" style={{ minWidth: '180px' }}>Autoavaliação</th>
             <th className="cell-center" style={{ minWidth: '180px' }}>Avaliações dos Liderados</th>
+            <th className="cell-center" style={{ minWidth: '100px' }}>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -58,6 +59,17 @@ function TabelaAcompanhamentoGestores({ gestores }) {
                   <span className="progresso-vazio">
                     Sem liderados
                   </span>
+                )}
+              </td>
+              <td className="cell-center">
+                {onVerDetalhes && (
+                  <button
+                    className="action-button"
+                    onClick={() => onVerDetalhes(colab)}
+                    title="Ver detalhes do gestor"
+                  >
+                    🔍
+                  </button>
                 )}
               </td>
             </tr>

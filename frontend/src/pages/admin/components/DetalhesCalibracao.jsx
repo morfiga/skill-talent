@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import Avatar from '../../../components/Avatar'
 import { getTextoPergunta } from '../../../constants/perguntasGestor'
+import ListaEntregasOutstanding from './ListaEntregasOutstanding'
+import ListaRegistrosValor from './ListaRegistrosValor'
 
 function DetalhesCalibracao({
   colaborador,
@@ -72,6 +74,12 @@ function DetalhesCalibracao({
         </div>
       ) : (
         <div>
+          {/* Entregas Outstanding e Registros de Valor */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
+            <ListaEntregasOutstanding colaboradorId={colaborador.id} />
+            <ListaRegistrosValor colaboradorId={colaborador.id} />
+          </div>
+
           {/* Avaliações de Competências */}
           {avaliacoes.length > 0 && (
             <>

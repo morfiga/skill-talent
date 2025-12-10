@@ -96,13 +96,18 @@ function FormularioColaborador({ colaborador, onSalvar, onCancelar, departamento
           onChange={(e) => handleInputChange('nivel_carreira', e.target.value)}
         >
           <option value="">Selecione um nível</option>
-          <option value="Junior">Junior</option>
-          <option value="Pleno">Pleno</option>
-          <option value="Senior">Senior</option>
-          <option value="Especialista">Especialista</option>
-          <option value="Coordenador">Coordenador</option>
-          <option value="Gerente">Gerente</option>
-          <option value="Diretor">Diretor</option>
+          <option value="E">Estagiário</option>
+          <option value="J1">Junior 1</option>
+          <option value="J2">Junior 2</option>
+          <option value="J3">Junior 3</option>
+          <option value="P1">Pleno 1</option>
+          <option value="P2">Pleno 2</option>
+          <option value="P3">Pleno 3</option>
+          <option value="S1">Senior 1</option>
+          <option value="S2">Senior 2</option>
+          <option value="S3">Senior 3</option>
+          <option value="ES1">Especialista 1</option>
+          <option value="ES2">Especialista 2</option>
         </select>
         <p className="campo-descricao" style={{ marginTop: '4px', fontSize: '0.85rem', color: '#666' }}>
           Nível hierárquico ou senioridade do colaborador na empresa.

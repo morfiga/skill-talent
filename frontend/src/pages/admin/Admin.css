@@ -1049,3 +1049,205 @@ h3.sidebar-title {
   }
 }
 
+/* Estilos para Entregas Outstanding e Registros de Valor */
+.entregas-container,
+.registros-container {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.secao-titulo-menor {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+}
+
+.entregas-lista,
+.registros-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.entrega-card,
+.registro-card {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s;
+}
+
+.entrega-card:hover,
+.registro-card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.entrega-card .entrega-header,
+.registro-card .registro-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.entrega-info,
+.registro-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.entrega-data,
+.registro-data {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.entrega-descricao-preview,
+.registro-descricao-preview {
+  font-size: 0.95rem;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.entrega-detalhes,
+.registro-detalhes {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.entrega-secao,
+.registro-secao {
+  margin-bottom: 16px;
+}
+
+.entrega-secao:last-child,
+.registro-secao:last-child {
+  margin-bottom: 0;
+}
+
+.entrega-label,
+.registro-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 6px 0;
+}
+
+.entrega-texto,
+.registro-texto {
+  font-size: 0.95rem;
+  color: #4b5563;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.registro-valores {
+  margin-bottom: 8px;
+}
+
+.valores-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.valor-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.sem-valores {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.empty-state-pequeno {
+  text-align: center;
+  padding: 20px;
+}
+
+.empty-text-pequeno {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Estilos para detalhes de acompanhamento */
+.detalhes-conteudo {
+  margin-top: 24px;
+}
+
+.progresso-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.progresso-item {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.progresso-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.progresso-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.progresso-badge.completo {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.progresso-badge.parcial {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.progresso-badge.pendente {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.progresso-vazio {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .entregas-container,
+  .registros-container {
+    padding: 16px;
+  }
+
+  .progresso-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

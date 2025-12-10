@@ -219,6 +219,32 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
+.entrega-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-button,
+.delete-button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #f5f7fa;
+}
+
+.edit-button:hover {
+  background: #e3f2fd;
+  transform: scale(1.1);
+}
+
+.delete-button:hover {
+  background: #ffebee;
+  transform: scale(1.1);
+}
+
 .entrega-data {
   display: flex;
   align-items: center;

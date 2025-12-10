@@ -16,6 +16,7 @@ function RegistroValor({ onLogout }) {
   const [registros, setRegistros] = useState([])
   const [loading, setLoading] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [registroEditando, setRegistroEditando] = useState(null)
   const [formulario, setFormulario] = useState({
     descricao: '',
     valoresSelecionados: [],
@@ -83,11 +84,23 @@ function RegistroValor({ onLogout }) {
       formulario.impacto.trim()
     ) {
       try {
-        await registrosValorAPI.create(colaboradorId, {
-          descricao: formulario.descricao,
-          impacto: formulario.impacto,
-          valores_ids: formulario.valoresSelecionados
-        })
+        if (registroEditando) {
+          // Editando um registro existente
+          await registrosValorAPI.update(registroEditando.id, {
+            descricao: formulario.descricao,
+            impacto: formulario.impacto,
+            valores_ids: formulario.valoresSelecionados
+          })
+          success('Registro atualizado com sucesso!')
+        } else {
+          // Criando novo registro
+          await registrosValorAPI.create(colaboradorId, {
+            descricao: formulario.descricao,
+            impacto: formulario.impacto,
+            valores_ids: formulario.valoresSelecionados
+          })
+          success('Registro salvo com sucesso!')
+        }
 
         setFormulario({
           descricao: '',
@@ -95,10 +108,10 @@ function RegistroValor({ onLogout }) {
           impacto: ''
         })
         setMostrarFormulario(false)
+        setRegistroEditando(null)
         await loadRegistros()
-        success('Registro salvo com sucesso!')
       } catch (error) {
-        handleApiError(error, 'salvar registro', '/registros-valor', showError)
+        handleApiError(error, registroEditando ? 'atualizar registro' : 'salvar registro', '/registros-valor', showError)
       }
     }
   }
@@ -110,6 +123,29 @@ function RegistroValor({ onLogout }) {
       impacto: ''
     })
     setMostrarFormulario(false)
+    setRegistroEditando(null)
+  }
+
+  const handleEditarRegistro = (registro) => {
+    setRegistroEditando(registro)
+    setFormulario({
+      descricao: registro.descricao,
+      impacto: registro.impacto,
+      valoresSelecionados: registro.valores ? registro.valores.map(v => v.id) : []
+    })
+    setMostrarFormulario(true)
+  }
+
+  const handleExcluirRegistro = async (registroId) => {
+    if (window.confirm('Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.')) {
+      try {
+        await registrosValorAPI.delete(registroId)
+        await loadRegistros()
+        success('Registro excluído com sucesso!')
+      } catch (error) {
+        handleApiError(error, 'excluir registro', '/registros-valor', showError)
+      }
+    }
   }
 
   const isFormularioValido = () => {
@@ -170,7 +206,7 @@ function RegistroValor({ onLogout }) {
 
           {mostrarFormulario && (
             <div className="formulario-container">
-              <h3 className="formulario-title">Novo Registro de Valor</h3>
+              <h3 className="formulario-title">{registroEditando ? 'Editar Registro de Valor' : 'Novo Registro de Valor'}</h3>
 
               <div className="formulario-campo">
                 <label className="campo-label">
@@ -243,7 +279,7 @@ function RegistroValor({ onLogout }) {
                   onClick={handleSalvarRegistro}
                   disabled={!isFormularioValido()}
                 >
-                  Salvar Registro
+                  {registroEditando ? 'Atualizar Registro' : 'Salvar Registro'}
                 </button>
               </div>
             </div>
@@ -265,16 +301,34 @@ function RegistroValor({ onLogout }) {
             {registros.map((registro) => (
               <div key={registro.id} className="registro-card">
                 <div className="registro-card-header">
-                  <div className="registro-data">
-                    <span className="data-icon">📅</span>
-                    <span className="data-text">{formatarData(registro.created_at)}</span>
+                  <div className="registro-header-left">
+                    <div className="registro-data">
+                      <span className="data-icon">📅</span>
+                      <span className="data-text">{formatarData(registro.created_at)}</span>
+                    </div>
+                    <div className="registro-valores">
+                      {registro.valores && registro.valores.map((valor, index) => (
+                        <span key={index} className="valor-badge">
+                          {valor.icone} {valor.nome}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  <div className="registro-valores">
-                    {registro.valores && registro.valores.map((valor, index) => (
-                      <span key={index} className="valor-badge">
-                        {valor.icone} {valor.nome}
-                      </span>
-                    ))}
+                  <div className="registro-actions">
+                    <button
+                      className="edit-button"
+                      onClick={() => handleEditarRegistro(registro)}
+                      title="Editar registro"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="delete-button"
+                      onClick={() => handleExcluirRegistro(registro.id)}
+                      title="Excluir registro"
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </div>
 

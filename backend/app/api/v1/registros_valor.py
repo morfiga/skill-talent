@@ -30,11 +30,17 @@ def create_registro_valor(
 
 @router.get("/", response_model=RegistroValorListResponse)
 def get_registros_valor(
+    colaborador_id: int = None,
     current_colaborador: Colaborador = Depends(get_current_colaborador),
     service: RegistroValorService = Depends(get_registro_valor_service),
 ):
-    """Lista registros de valor do usuário logado"""
-    registros = service.get_by_colaborador(current_colaborador.id)
+    """Lista registros de valor do usuário logado ou de um colaborador específico (apenas admin)"""
+    if colaborador_id is not None and current_colaborador.is_admin:
+        # Admin pode ver registros de qualquer colaborador
+        registros = service.get_by_colaborador(colaborador_id)
+    else:
+        # Colaborador comum vê apenas seus próprios registros
+        registros = service.get_by_colaborador(current_colaborador.id)
     return {"registros": registros, "total": len(registros)}
 
 
