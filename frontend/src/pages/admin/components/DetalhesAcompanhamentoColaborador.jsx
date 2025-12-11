@@ -99,10 +99,8 @@ function DetalhesAcompanhamentoColaborador({ colaborador, onVoltar }) {
                     )}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '30px' }}>
-                    <ListaEntregasOutstanding colaboradorId={colaborador.colaborador_id || colaborador.id} />
-                    <ListaRegistrosValor colaboradorId={colaborador.colaborador_id || colaborador.id} />
-                </div>
+                <ListaEntregasOutstanding colaboradorId={colaborador.colaborador_id || colaborador.id} />
+                <ListaRegistrosValor colaboradorId={colaborador.colaborador_id || colaborador.id} />
             </div>
         </div>
     )
