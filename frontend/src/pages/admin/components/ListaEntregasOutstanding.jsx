@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useToast } from '../../../contexts/ToastContext'
 import { entregasOutstandingAPI } from '../../../services/api'
 import { handleApiError } from '../../../utils/errorHandler'
-import { useToast } from '../../../contexts/ToastContext'
 
 function ListaEntregasOutstanding({ colaboradorId }) {
   const { error: showError } = useToast()
@@ -80,8 +80,7 @@ function ListaEntregasOutstanding({ colaboradorId }) {
                     {formatDate(entrega.created_at)}
                   </div>
                   <div className="entrega-descricao-preview">
-                    {entrega.descricao.substring(0, 100)}
-                    {entrega.descricao.length > 100 ? '...' : ''}
+                    {entrega.descricao}
                   </div>
                 </div>
                 <button

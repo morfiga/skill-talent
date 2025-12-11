@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useToast } from '../../../contexts/ToastContext'
 import { registrosValorAPI } from '../../../services/api'
 import { handleApiError } from '../../../utils/errorHandler'
-import { useToast } from '../../../contexts/ToastContext'
 
 function ListaRegistrosValor({ colaboradorId }) {
   const { error: showError } = useToast()
@@ -93,8 +93,7 @@ function ListaRegistrosValor({ colaboradorId }) {
                     )}
                   </div>
                   <div className="registro-descricao-preview">
-                    {registro.descricao.substring(0, 100)}
-                    {registro.descricao.length > 100 ? '...' : ''}
+                    {registro.descricao}
                   </div>
                 </div>
                 <button
