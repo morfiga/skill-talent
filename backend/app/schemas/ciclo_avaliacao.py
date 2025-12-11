@@ -1,11 +1,10 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, field_validator
-
 from app.core.validators import NUMERO_PARES_OBRIGATORIO, validate_pares_ids
 from app.schemas.ciclo import CicloResponse
 from app.schemas.colaborador import ColaboradorResponse
+from pydantic import BaseModel, Field, field_validator
 
 
 class CicloAvaliacaoBase(BaseModel):
@@ -18,7 +17,7 @@ class CicloAvaliacaoCreate(CicloAvaliacaoBase):
         ...,
         min_length=NUMERO_PARES_OBRIGATORIO,
         max_length=NUMERO_PARES_OBRIGATORIO,
-        description=f"IDs dos {NUMERO_PARES_OBRIGATORIO} pares selecionados"
+        description=f"IDs dos {NUMERO_PARES_OBRIGATORIO} pares selecionados",
     )
 
     @field_validator("pares_ids")
@@ -30,9 +29,9 @@ class CicloAvaliacaoCreate(CicloAvaliacaoBase):
 class CicloAvaliacaoUpdate(BaseModel):
     pares_ids: List[int] = Field(
         ...,
-        min_length=NUMERO_PARES_OBRIGATORIO,
+        min_length=1,
         max_length=NUMERO_PARES_OBRIGATORIO,
-        description=f"IDs dos {NUMERO_PARES_OBRIGATORIO} pares selecionados"
+        description=f"IDs dos {NUMERO_PARES_OBRIGATORIO} pares selecionados",
     )
 
     @field_validator("pares_ids")

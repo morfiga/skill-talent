@@ -77,17 +77,14 @@ function AprovacaoParesAdmin() {
       if (prev.includes(colaboradorId)) {
         return prev.filter(id => id !== colaboradorId)
       } else {
-        if (prev.length < 4) {
-          return [...prev, colaboradorId]
-        }
-        return prev
+        return [...prev, colaboradorId]
       }
     })
   }
 
   const handleSalvarPares = async () => {
-    if (paresSelecionados.length !== 4) {
-      warning('É necessário selecionar exatamente 4 pares')
+    if (paresSelecionados.length === 0) {
+      warning('É necessário selecionar pelo menos 1 par')
       return
     }
 
@@ -133,16 +130,16 @@ function AprovacaoParesAdmin() {
             Editar pares de {lideradoEditando.colaborador?.nome || 'Liderado'}
           </h3>
           <p className="campo-descricao">
-            Selecione exatamente 4 colaboradores como pares. Você pode alterar os pares escolhidos pelo liderado.
+            Selecione os colaboradores como pares. Você pode alterar os pares escolhidos pelo liderado.
           </p>
 
           <div className="pares-info">
             <p className="pares-contador">
-              Pares selecionados: {paresSelecionados.length} / 4
+              Pares selecionados: {paresSelecionados.length}
             </p>
-            {paresSelecionados.length === 4 && (
+            {paresSelecionados.length > 0 && (
               <p className="pares-confirmacao">
-                ✓ Quantidade correta de pares selecionados
+                ✓ {paresSelecionados.length} {paresSelecionados.length === 1 ? 'par selecionado' : 'pares selecionados'}
               </p>
             )}
           </div>
@@ -177,9 +174,9 @@ function AprovacaoParesAdmin() {
               Cancelar
             </button>
             <button
-              className={`salvar-button ${paresSelecionados.length === 4 ? 'enabled' : 'disabled'}`}
+              className={`salvar-button ${paresSelecionados.length > 0 ? 'enabled' : 'disabled'}`}
               onClick={handleSalvarPares}
-              disabled={paresSelecionados.length !== 4}
+              disabled={paresSelecionados.length === 0}
             >
               Salvar Pares
             </button>
