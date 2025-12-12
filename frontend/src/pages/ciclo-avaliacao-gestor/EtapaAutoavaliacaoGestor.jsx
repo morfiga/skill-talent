@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
+import RatingSlider from '../../components/RatingSlider'
 import { useToast } from '../../contexts/ToastContext'
 import { avaliacoesGestorAPI } from '../../services/api'
 import { handleApiError } from '../../utils/errorHandler'
-import RatingSlider from '../../components/RatingSlider'
 import '../CicloAvaliacao.css'
 
 function EtapaAutoavaliacaoGestor({ colaboradorId, cicloAberto, onVoltar }) {
@@ -208,7 +208,7 @@ function EtapaAutoavaliacaoGestor({ colaboradorId, cicloAberto, onVoltar }) {
               {/* Perguntas Fechadas */}
               {fechadas.map((pergunta) => (
                 <div key={pergunta.codigo} className="pergunta-card">
-                  <p className="pergunta-texto">{pergunta.texto}</p>
+                  <p className="pergunta-texto">{pergunta.texto_gestor}</p>
                   <RatingSlider
                     value={respostasFechadas[pergunta.codigo]}
                     onChange={(value) => handleRespostaFechadaChange(pergunta.codigo, value)}
@@ -220,7 +220,7 @@ function EtapaAutoavaliacaoGestor({ colaboradorId, cicloAberto, onVoltar }) {
               {abertas.map((pergunta) => (
                 <div key={pergunta.codigo} className="pergunta-card">
                   <label className="pergunta-label">
-                    {pergunta.texto} <span className="required">*</span>
+                    {pergunta.texto_gestor} <span className="required">*</span>
                   </label>
                   <textarea
                     className="pergunta-textarea"

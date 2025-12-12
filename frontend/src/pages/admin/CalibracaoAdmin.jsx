@@ -15,6 +15,7 @@ function CalibracaoAdmin() {
   const [loadingCalibracao, setLoadingCalibracao] = useState(false)
   const [colaboradoresInfo, setColaboradoresInfo] = useState({})
   const [eixosAvaliacao, setEixosAvaliacao] = useState([])
+  const [perguntas, setPerguntas] = useState([])
   const [filtro, setFiltro] = useState('')
   const [error, setError] = useState(null)
 
@@ -27,6 +28,8 @@ function CalibracaoAdmin() {
       setError(null)
       // Carregar colaboradores primeiro
       await loadColaboradores()
+
+      await loadPerguntas()
 
       // Buscar ciclo na etapa de calibração
       const response = await ciclosAPI.getAll()
@@ -45,6 +48,17 @@ function CalibracaoAdmin() {
     }
   }
 
+  const loadPerguntas = async () => {
+    try {
+      const response = await avaliacoesGestorAPI.getPerguntas()
+
+      console.log('response', response)
+      setPerguntas(response)
+    } catch (err) {
+      console.error('Erro ao carregar perguntas:', err)
+    }
+  }
+
   const loadColaboradores = async () => {
     try {
       const response = await colaboradoresAPI.getAll()
@@ -54,7 +68,7 @@ function CalibracaoAdmin() {
       // Carregar informações de calibração para todos
       const ciclosResponse = await ciclosAPI.getAll()
       const ciclosCalibracao = ciclosResponse.ciclos?.filter(c => c.etapa_atual === 'calibracao') || []
-      
+
       if (ciclosCalibracao.length > 0) {
         await loadColaboradoresInfo(ciclosCalibracao[0].id, listaColaboradores)
       }
@@ -262,6 +276,7 @@ function CalibracaoAdmin() {
           avaliacoes={avaliacoesCalibracao}
           avaliacoesGestor={avaliacoesGestorCalibracao}
           eixosAvaliacao={eixosAvaliacao}
+          perguntas={perguntas}
           onVoltar={handleVoltar}
           loading={loadingCalibracao}
         />

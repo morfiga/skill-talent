@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import Avatar from '../../../components/Avatar'
-import { getTextoPergunta } from '../../../constants/perguntasGestor'
 import ListaEntregasOutstanding from './ListaEntregasOutstanding'
 import ListaRegistrosValor from './ListaRegistrosValor'
 
@@ -9,6 +8,7 @@ function DetalhesCalibracao({
   avaliacoes,
   avaliacoesGestor,
   eixosAvaliacao,
+  perguntas,
   onVoltar,
   loading
 }) {
@@ -39,6 +39,23 @@ function DetalhesCalibracao({
     if (escala >= 4) return 'resposta-escala alta'
     if (escala <= 2) return 'resposta-escala baixa'
     return 'resposta-escala media'
+  }
+
+  const getTextoPergunta = (codigo) => {
+    if (!codigo) return ''
+
+    // Procurar em perguntas fechadas
+    if (perguntas?.perguntas_fechadas?.[codigo]) {
+      return perguntas.perguntas_fechadas[codigo].texto
+    }
+
+    // Procurar em perguntas abertas
+    if (perguntas?.perguntas_abertas?.[codigo]) {
+      return perguntas.perguntas_abertas[codigo].texto
+    }
+
+    // Fallback: retornar o código se não encontrar
+    return codigo
   }
 
   return (
@@ -207,7 +224,7 @@ function DetalhesCalibracao({
                 👔 Avaliações de Gestor Recebidas ({avaliacoesGestor.filter(av => av.colaborador_id !== av.gestor_id).length})
               </h3>
               <p className="secao-subtitulo">
-                Avaliações que os liderados fizeram deste colaborador como gestor
+                Avaliações que os liderados fizeram do gestor
               </p>
 
               {avaliacoesGestor.filter(av => av.colaborador_id !== av.gestor_id).map((avaliacao) => {

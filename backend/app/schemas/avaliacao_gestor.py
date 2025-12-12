@@ -24,59 +24,72 @@ PERGUNTAS_FECHADAS = {
     "ld01": {
         "categoria": "lideranca_direcionamento",
         "texto": "Meu gestor define prioridades claras e revisa com o time quando necessário.",
+        "texto_gestor": "Defino prioridades claras e reviso com o time quando necessário.",
     },
     "ld02": {
         "categoria": "lideranca_direcionamento",
         "texto": "Meu gestor toma decisões com rapidez e explica o racional de forma objetiva.",
+        "texto_gestor": "Tomo decisões com rapidez e explico o racional de forma objetiva.",
     },
     "ld03": {
         "categoria": "lideranca_direcionamento",
         "texto": "Meu gestor estabelece padrões de qualidade e acompanha a consistência das entregas.",
+        "texto_gestor": "Estabeleço padrões de qualidade e acompanho a consistência das entregas.",
     },
     # Comunicação
     "c01": {
         "categoria": "comunicacao",
         "texto": "Meu gestor se comunica com clareza, evita ruídos e traz o contexto necessário no momento certo.",
+        "texto_gestor": "Me comunico com clareza, evito ruídos e trago o contexto necessário no momento certo.",
     },
     "c02": {
         "categoria": "comunicacao",
         "texto": "Minhas opiniões são consideradas e meu gestor explica quando não as adota.",
+        "texto_gestor": "As opiniões dos meus liderados são consideradas e explico quando não as adoto.",
     },
     # Desenvolvimento e Suporte
     "ds01": {
         "categoria": "desenvolvimento_suporte",
         "texto": "Meu gestor oferece feedbacks frequentes, diretos e úteis.",
+        "texto_gestor": "Ofereço feedbacks frequentes, diretos e úteis.",
     },
     "ds02": {
         "categoria": "desenvolvimento_suporte",
         "texto": "Meu gestor reconhece boas entregas e ajuda a ajustar rota quando necessário.",
+        "texto_gestor": "Reconheço boas entregas e ajudo a ajustar rota quando necessário.",
     },
     # Cultura e Comportamento
     "cc01": {
         "categoria": "cultura_comportamento",
         "texto": "Meu gestor vive os valores da Ada no dia a dia.",
+        "texto_gestor": "Vivo os valores da Ada no dia a dia.",
     },
     "cc02": {
         "categoria": "cultura_comportamento",
         "texto": "Meu gestor assume responsabilidades, corrige rapidamente erros e lida com problemas de forma transparente.",
+        "texto_gestor": "Assumo responsabilidades, corrigo rapidamente erros e lidio com problemas de forma transparente.",
     },
     # Execução e Organização
     "eo01": {
         "categoria": "execucao_organizacao",
         "texto": "Os rituais do time são consistentes e produtivos.",
+        "texto_gestor": "Os rituais do time são consistentes e produtivos.",
     },
     "eo02": {
         "categoria": "execucao_organizacao",
         "texto": "As responsabilidades do time são distribuídas de forma justa e equilibrada, conforme competências e capacidade de entrega.",
+        "texto_gestor": "As responsabilidades do time são distribuídas de forma justa e equilibrada, conforme competências e capacidade de entrega.",
     },
     # Coragem e Maturidade de Liderança
     "pa01": {
         "categoria": "coragem_maturidade_lideranca",
         "texto": "Meu gestor endereça conflitos e conversas difíceis com respeito e objetividade.",
+        "texto_gestor": "Endereço conflitos e conversas difíceis com respeito e objetividade.",
     },
     "pa02": {
         "categoria": "coragem_maturidade_lideranca",
         "texto": "Meu gestor protege o foco do time e diz “não” quando necessário.",
+        "texto_gestor": "Protejo o foco do time e digo “não” quando necessário.",
     },
 }
 
@@ -84,10 +97,12 @@ PERGUNTAS_ABERTAS = {
     "aberta_continuar_fazendo": {
         "categoria": "perguntas_abertas",
         "texto": "O que o seu gestor faz bem e que contribui positivamente para seu desenvolvimento ou para o desempenho do time?",
+        "texto_gestor": "O que faço bem e que contribui positivamente para o desenvolvimento ou o desempenho do time?",
     },
     "aberta_melhorar": {
         "categoria": "perguntas_abertas",
         "texto": "O que seu gestor poderia fazer de forma diferente para melhorar sua experiência e apoiar melhor seu trabalho no dia a dia?",
+        "texto_gestor": "O que eu poderia fazer de forma diferente para melhorar a experiência do time e apoiar melhor no trabalho do dia a dia?",
     },
 }
 
