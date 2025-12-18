@@ -67,7 +67,7 @@ PERGUNTAS_FECHADAS = {
     "cc02": {
         "categoria": "cultura_comportamento",
         "texto": "Meu gestor assume responsabilidades, corrige rapidamente erros e lida com problemas de forma transparente.",
-        "texto_gestor": "Assumo responsabilidades, corrigo rapidamente erros e lidio com problemas de forma transparente.",
+        "texto_gestor": "Assumo responsabilidades, corrigo rapidamente erros e lido com problemas de forma transparente.",
     },
     # Execução e Organização
     "eo01": {
