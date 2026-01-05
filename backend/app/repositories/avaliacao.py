@@ -1,13 +1,12 @@
 from typing import Dict, List, Optional
 
-from sqlalchemy import and_
-from sqlalchemy.orm import Session, joinedload
-
 from app.models.avaliacao import Avaliacao, AvaliacaoEixo, TipoAvaliacao
 from app.models.ciclo_avaliacao import CicloAvaliacao
 from app.models.colaborador import Colaborador
 from app.models.eixo_avaliacao import EixoAvaliacao
 from app.repositories.base import BaseRepository
+from sqlalchemy import and_
+from sqlalchemy.orm import Session, joinedload
 
 
 class AvaliacaoRepository(BaseRepository[Avaliacao]):
@@ -159,6 +158,7 @@ class AvaliacaoRepository(BaseRepository[Avaliacao]):
                     )
                     self.db.add(avaliacao_eixo)
 
+        self.db.flush()
         return db_avaliacao
 
     def get_media_pares_por_eixo(
