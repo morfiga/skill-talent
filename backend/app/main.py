@@ -11,6 +11,7 @@ from app.api.v1 import (
     colaboradores,
     eixos_avaliacao,
     entregas_outstanding,
+    feedback_liberacao,
     niveis_carreira,
     registros_valor,
     valores,
@@ -79,6 +80,7 @@ app.include_router(avaliacoes_gestor.router, prefix="/api/v1")
 app.include_router(entregas_outstanding.router, prefix="/api/v1")
 app.include_router(valores.router, prefix="/api/v1")
 app.include_router(registros_valor.router, prefix="/api/v1")
+app.include_router(feedback_liberacao.router, prefix="/api/v1")
 
 
 @app.get("/")

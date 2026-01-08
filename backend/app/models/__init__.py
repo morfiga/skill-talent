@@ -6,6 +6,7 @@ from app.models import (
     colaborador,
     eixo_avaliacao,
     entrega_outstanding,
+    feedback_liberacao,
     registro_valor,
 )
 
@@ -17,5 +18,6 @@ __all__ = [
     "avaliacao",
     "avaliacao_gestor",
     "entrega_outstanding",
+    "feedback_liberacao",
     "registro_valor",
 ]

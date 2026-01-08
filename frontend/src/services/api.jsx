@@ -225,3 +225,14 @@ export const avaliacoesGestorAPI = {
   },
 }
 
+// API de Liberação de Feedback
+export const feedbackLiberacaoAPI = {
+  getByCiclo: (cicloId) => request(`/feedback-liberacao/ciclo/${cicloId}`),
+  liberar: (cicloId, colaboradorId) => request(`/feedback-liberacao/ciclo/${cicloId}/colaborador/${colaboradorId}/liberar`, {
+    method: 'POST',
+  }),
+  revogar: (cicloId, colaboradorId) => request(`/feedback-liberacao/ciclo/${cicloId}/colaborador/${colaboradorId}/revogar`, {
+    method: 'POST',
+  }),
+}
+

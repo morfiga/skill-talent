@@ -51,3 +51,4 @@ class Ciclo(Base):
     ciclos_avaliacao = relationship("CicloAvaliacao", back_populates="ciclo")
     avaliacoes = relationship("Avaliacao", back_populates="ciclo")
     avaliacoes_gestor = relationship("AvaliacaoGestor", back_populates="ciclo")
+    feedbacks_liberacao = relationship("FeedbackLiberacao", back_populates="ciclo")

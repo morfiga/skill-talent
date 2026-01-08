@@ -156,6 +156,26 @@ CREATE TABLE `avaliacoes_eixos` (
   CONSTRAINT `fk_avaliacoes_eixos_eixo_avaliacao` FOREIGN KEY (`eixo_id`) REFERENCES `eixos_avaliacao` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Criar tabela de liberação de feedback
+CREATE TABLE `feedback_liberacao` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `ciclo_id` int NOT NULL,
+  `colaborador_id` int NOT NULL,
+  `liberado` tinyint(1) NOT NULL DEFAULT '0',
+  `liberado_por_id` int DEFAULT NULL,
+  `liberado_em` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_ciclo_colaborador` (`ciclo_id`,`colaborador_id`),
+  KEY `idx_ciclo_id` (`ciclo_id`),
+  KEY `idx_colaborador_id` (`colaborador_id`),
+  KEY `idx_liberado_por_id` (`liberado_por_id`),
+  CONSTRAINT `fk_feedback_liberacao_ciclo` FOREIGN KEY (`ciclo_id`) REFERENCES `ciclos` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_feedback_liberacao_colaborador` FOREIGN KEY (`colaborador_id`) REFERENCES `colaboradores` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_feedback_liberacao_liberado_por` FOREIGN KEY (`liberado_por_id`) REFERENCES `colaboradores` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================
 -- TABELAS DE ENTREGAS E VALORES
 -- ============================================
@@ -246,7 +266,7 @@ SELECT id, 1, 'Aprende rapidamente com colegas e consistentemente assume a respo
 FROM eixos_avaliacao WHERE codigo = 'colaboracao';
 
 INSERT IGNORE INTO niveis_eixo (eixo_id, nivel, descricao) 
-SELECT id, 2, 'Pró ativamente direciona outras pessoas e dá os feeedbacks necessários'
+SELECT id, 2, 'Pró ativamente direciona outras pessoas e dá os feedbacks necessários'
 FROM eixos_avaliacao WHERE codigo = 'colaboracao';
 
 INSERT IGNORE INTO niveis_eixo (eixo_id, nivel, descricao) 

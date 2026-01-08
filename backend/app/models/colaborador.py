@@ -48,3 +48,13 @@ class Colaborador(Base):
         foreign_keys="AvaliacaoGestor.gestor_id",
         back_populates="gestor",
     )
+    feedbacks_liberacao_recebidos = relationship(
+        "FeedbackLiberacao",
+        foreign_keys="FeedbackLiberacao.colaborador_id",
+        back_populates="colaborador",
+    )
+    feedbacks_liberacao_concedidos = relationship(
+        "FeedbackLiberacao",
+        foreign_keys="FeedbackLiberacao.liberado_por_id",
+        back_populates="liberado_por",
+    )

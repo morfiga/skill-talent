@@ -10,6 +10,7 @@ from app.models.avaliacao import Avaliacao, TipoAvaliacao
 from app.models.ciclo import EtapaCiclo
 from app.models.colaborador import Colaborador
 from app.repositories import AvaliacaoRepository, CicloRepository
+from app.repositories.feedback_liberacao import FeedbackLiberacaoRepository
 from app.schemas.avaliacao import (
     AvaliacaoCreate,
     AvaliacaoListResponse,
@@ -31,6 +32,7 @@ class AvaliacaoService(BaseService[Avaliacao]):
         self.repository = AvaliacaoRepository(db)
         self.colaborador_service = ColaboradorService(db)
         self.ciclo_repository = CicloRepository(db)
+        self.feedback_liberacao_repository = FeedbackLiberacaoRepository(db)
 
     def create(
         self, avaliacao: AvaliacaoCreate, current_colaborador: Colaborador
@@ -274,7 +276,30 @@ class AvaliacaoService(BaseService[Avaliacao]):
             f"Ciclo de avaliação encontrado. ID: {ciclo_id}, Colaborador ID: {ciclo_avaliacao.colaborador_id}, Ciclo ID: {ciclo_avaliacao.ciclo_id}"
         )
 
-        # Buscar autoavaliação
+        # Verificar se o feedback foi liberado para o colaborador
+        feedback_liberado = self.feedback_liberacao_repository.is_feedback_liberado(
+            ciclo_id=ciclo_id,
+            colaborador_id=current_colaborador.id,
+        )
+        
+        # Verificar se o ciclo está na fase de feedback
+        ciclo = ciclo_avaliacao.ciclo
+        is_fase_feedback = ciclo and ciclo.etapa_atual == EtapaCiclo.FEEDBACK
+
+        # Se não for admin, não estiver na fase de feedback, ou o feedback não foi liberado,
+        # retornar apenas a autoavaliação
+        pode_ver_feedback = (
+            current_colaborador.is_admin or 
+            (is_fase_feedback and feedback_liberado)
+        )
+
+        logger.debug(
+            f"Verificação de acesso ao feedback - Fase: {ciclo.etapa_atual if ciclo else 'N/A'}, "
+            f"Liberado: {feedback_liberado}, Admin: {current_colaborador.is_admin}, "
+            f"Pode ver feedback: {pode_ver_feedback}"
+        )
+
+        # Buscar autoavaliação (sempre disponível)
         autoavaliacao = self.repository.get_by_ciclo_and_tipo(
             avaliado_id=current_colaborador.id,
             avaliador_id=current_colaborador.id,
@@ -287,32 +312,42 @@ class AvaliacaoService(BaseService[Avaliacao]):
             f"Autoavaliação {'encontrada' if autoavaliacao else 'não encontrada'}"
         )
 
-        # Buscar avaliação do gestor
-        avaliacao_gestor = self.repository.get_by_ciclo_and_tipo(
-            avaliado_id=current_colaborador.id,
-            ciclo_id=ciclo_id,
-            tipo=TipoAvaliacao.GESTOR,
-        )
-        if avaliacao_gestor:
-            avaliacao_gestor = avaliacao_gestor[0]
-        logger.debug(
-            f"Avaliação do gestor {'encontrada' if avaliacao_gestor else 'não encontrada'}"
-        )
+        # Buscar avaliação do gestor (apenas se pode ver feedback)
+        avaliacao_gestor = None
+        avaliacoes_pares = []
+        media_pares_por_eixo = {}
+        
+        if pode_ver_feedback:
+            avaliacao_gestor = self.repository.get_by_ciclo_and_tipo(
+                avaliado_id=current_colaborador.id,
+                ciclo_id=ciclo_id,
+                tipo=TipoAvaliacao.GESTOR,
+            )
+            if avaliacao_gestor:
+                avaliacao_gestor = avaliacao_gestor[0]
+            logger.debug(
+                f"Avaliação do gestor {'encontrada' if avaliacao_gestor else 'não encontrada'}"
+            )
 
-        # Buscar avaliações de pares
-        avaliacoes_pares = self.repository.get_by_ciclo_and_tipo(
-            avaliado_id=current_colaborador.id,
-            ciclo_id=ciclo_id,
-            tipo=TipoAvaliacao.PAR,
-        )
-        logger.debug(f"Encontradas {len(avaliacoes_pares)} avaliações de pares")
+            # Buscar avaliações de pares
+            avaliacoes_pares = self.repository.get_by_ciclo_and_tipo(
+                avaliado_id=current_colaborador.id,
+                ciclo_id=ciclo_id,
+                tipo=TipoAvaliacao.PAR,
+            )
+            logger.debug(f"Encontradas {len(avaliacoes_pares)} avaliações de pares")
 
-        # Calcular média dos pares por eixo
-        logger.debug("Calculando média dos pares por eixo")
-        media_pares_por_eixo = self.repository.get_media_pares_por_eixo(
-            avaliado_id=current_colaborador.id,
-            ciclo_id=ciclo_id,
-        )
+            # Calcular média dos pares por eixo
+            logger.debug("Calculando média dos pares por eixo")
+            media_pares_por_eixo = self.repository.get_media_pares_por_eixo(
+                avaliado_id=current_colaborador.id,
+                ciclo_id=ciclo_id,
+            )
+        else:
+            logger.info(
+                f"Feedback não liberado para colaborador {current_colaborador.id} no ciclo {ciclo_id}. "
+                f"Retornando apenas autoavaliação."
+            )
 
         # Obter níveis esperados baseado no nível de carreira do colaborador
         colaborador = self.colaborador_service.get_by_id(ciclo_avaliacao.colaborador_id)

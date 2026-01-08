@@ -6,6 +6,7 @@ from app.repositories.ciclo_avaliacao import CicloAvaliacaoRepository
 from app.repositories.colaborador import ColaboradorRepository
 from app.repositories.eixo_avaliacao import EixoAvaliacaoRepository
 from app.repositories.entrega_outstanding import EntregaOutstandingRepository
+from app.repositories.feedback_liberacao import FeedbackLiberacaoRepository
 from app.repositories.registro_valor import RegistroValorRepository
 from app.repositories.valor import ValorRepository
 
@@ -18,6 +19,7 @@ __all__ = [
     "ColaboradorRepository",
     "EixoAvaliacaoRepository",
     "EntregaOutstandingRepository",
+    "FeedbackLiberacaoRepository",
     "RegistroValorRepository",
     "ValorRepository",
 ]

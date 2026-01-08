@@ -17,6 +17,7 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
   const [niveisEsperados, setNiveisEsperados] = useState([0, 0, 0, 0])
   const [feedbackData, setFeedbackData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [feedbackLiberado, setFeedbackLiberado] = useState(false)
 
   useEffect(() => {
     if (cicloAberto) {
@@ -46,6 +47,11 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
       // Carregar feedback
       const feedback = await avaliacoesAPI.getFeedback(cicloAberto.id)
       setFeedbackData(feedback)
+
+      // Verificar se o feedback está liberado
+      // Se houver avaliação do gestor ou avaliações de pares, o feedback foi liberado
+      const liberado = !!(feedback.avaliacao_gestor || (feedback.avaliacoes_pares && feedback.avaliacoes_pares.length > 0))
+      setFeedbackLiberado(liberado)
 
       // Atualizar estados locais com dados do feedback
       if (feedback.autoavaliacao) {
@@ -176,15 +182,42 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
         </p>
       </div>
 
+      {/* Mensagem de feedback não liberado */}
+      {!feedbackLiberado && (
+        <div className="info-banner" style={{
+          background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+          color: 'white',
+          padding: '20px',
+          borderRadius: '12px',
+          marginBottom: '24px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '2rem' }}>⏳</span>
+            <div>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '1.25rem', fontWeight: '600' }}>
+                Feedback em Análise
+              </h3>
+              <p style={{ margin: 0, fontSize: '1rem', opacity: 0.95 }}>
+                Seu feedback ainda está sendo preparado pelo seu gestor. Por enquanto, você pode visualizar apenas sua autoavaliação.
+                Assim que seu gestor liberar, você terá acesso ao feedback completo com a avaliação dele e dos seus pares.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="feedback-section">
         <div className="grafico-container">
-          <h3 className="grafico-title">Comparativo de Avaliação</h3>
+          <h3 className="grafico-title">
+            {feedbackLiberado ? 'Comparativo de Avaliação' : 'Sua Autoavaliação'}
+          </h3>
           <div className="grafico-area">
             <div className="grafico-eixos">
               {eixosAvaliacao.map((eixo) => {
                 const nivelAuto = autoavaliacao.eixos[eixo.id]?.nivel || 0
-                const nivelGestor = avaliacaoGestor.eixos[eixo.id]?.nivel || 0
-                const nivelMediaPares = feedbackData?.media_pares_por_eixo?.[eixo.id] || calcularMediaPares[eixo.id] || 0
+                const nivelGestor = feedbackLiberado ? (avaliacaoGestor.eixos[eixo.id]?.nivel || 0) : 0
+                const nivelMediaPares = feedbackLiberado ? (feedbackData?.media_pares_por_eixo?.[eixo.id] || calcularMediaPares[eixo.id] || 0) : 0
 
                 return (
                   <div key={eixo.id} className="grafico-barra-container">
@@ -195,16 +228,20 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
                         style={{ height: `${(nivelAuto / 5) * 100}%` }}
                         title={`Autoavaliação: ${nivelAuto || '-'}`}
                       />
-                      <div
-                        className="grafico-barra gestor"
-                        style={{ height: `${(nivelGestor / 5) * 100}%` }}
-                        title={`Gestor: ${nivelGestor || '-'}`}
-                      />
-                      <div
-                        className="grafico-barra media-pares"
-                        style={{ height: `${(nivelMediaPares / 5) * 100}%` }}
-                        title={`Média Pares: ${nivelMediaPares > 0 ? nivelMediaPares.toFixed(1) : '-'}`}
-                      />
+                      {feedbackLiberado && (
+                        <>
+                          <div
+                            className="grafico-barra gestor"
+                            style={{ height: `${(nivelGestor / 5) * 100}%` }}
+                            title={`Gestor: ${nivelGestor || '-'}`}
+                          />
+                          <div
+                            className="grafico-barra media-pares"
+                            style={{ height: `${(nivelMediaPares / 5) * 100}%` }}
+                            title={`Média Pares: ${nivelMediaPares > 0 ? nivelMediaPares.toFixed(1) : '-'}`}
+                          />
+                        </>
+                      )}
                     </div>
                   </div>
                 )
@@ -215,14 +252,18 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
                 <div className="legend-color autoavaliacao"></div>
                 <span>Autoavaliação</span>
               </div>
-              <div className="legend-item">
-                <div className="legend-color gestor"></div>
-                <span>Gestor</span>
-              </div>
-              <div className="legend-item">
-                <div className="legend-color media-pares"></div>
-                <span>Média Pares</span>
-              </div>
+              {feedbackLiberado && (
+                <>
+                  <div className="legend-item">
+                    <div className="legend-color gestor"></div>
+                    <span>Gestor</span>
+                  </div>
+                  <div className="legend-item">
+                    <div className="legend-color media-pares"></div>
+                    <span>Média Pares</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -235,8 +276,12 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
                 <tr>
                   <th>Eixo</th>
                   <th>Autoavaliação</th>
-                  <th>Gestor</th>
-                  <th>Média Pares</th>
+                  {feedbackLiberado && (
+                    <>
+                      <th>Gestor</th>
+                      <th>Média Pares</th>
+                    </>
+                  )}
                   <th>Esperado ({colaborador?.nivel_carreira || '-'})</th>
                   <th>Status</th>
                 </tr>
@@ -244,8 +289,8 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
               <tbody>
                 {eixosAvaliacao.map((eixo, index) => {
                   const nivelAuto = autoavaliacao.eixos[eixo.id]?.nivel || 0
-                  const nivelGestor = avaliacaoGestor.eixos[eixo.id]?.nivel || 0
-                  const nivelMediaPares = feedbackData?.media_pares_por_eixo?.[eixo.id] || calcularMediaPares[eixo.id] || 0
+                  const nivelGestor = feedbackLiberado ? (avaliacaoGestor.eixos[eixo.id]?.nivel || 0) : 0
+                  const nivelMediaPares = feedbackLiberado ? (feedbackData?.media_pares_por_eixo?.[eixo.id] || calcularMediaPares[eixo.id] || 0) : 0
                   const nivelEsperado = niveisEsperados[index] || 0
 
                   const statusAuto = nivelAuto > 0 ? compararNivel(nivelAuto, nivelEsperado) : null
@@ -263,26 +308,30 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
                           )}
                         </div>
                       </td>
-                      <td>
-                        <div className="nivel-cell">
-                          <span className="nivel-valor">{nivelGestor || '-'}</span>
-                          {nivelGestor > 0 && (
-                            <span className={`status-indicator ${compararNivel(nivelGestor, nivelEsperado)}`}>
-                              {compararNivel(nivelGestor, nivelEsperado) === 'atende' ? '✓' : compararNivel(nivelGestor, nivelEsperado) === 'abaixo' ? '↓' : '↑'}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="nivel-cell">
-                          <span className="nivel-valor">{nivelMediaPares > 0 ? nivelMediaPares.toFixed(1) : '-'}</span>
-                          {nivelMediaPares > 0 && (
-                            <span className={`status-indicator ${compararNivel(Math.round(nivelMediaPares), nivelEsperado)}`}>
-                              {compararNivel(Math.round(nivelMediaPares), nivelEsperado) === 'atende' ? '✓' : compararNivel(Math.round(nivelMediaPares), nivelEsperado) === 'abaixo' ? '↓' : '↑'}
-                            </span>
-                          )}
-                        </div>
-                      </td>
+                      {feedbackLiberado && (
+                        <>
+                          <td>
+                            <div className="nivel-cell">
+                              <span className="nivel-valor">{nivelGestor || '-'}</span>
+                              {nivelGestor > 0 && (
+                                <span className={`status-indicator ${compararNivel(nivelGestor, nivelEsperado)}`}>
+                                  {compararNivel(nivelGestor, nivelEsperado) === 'atende' ? '✓' : compararNivel(nivelGestor, nivelEsperado) === 'abaixo' ? '↓' : '↑'}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="nivel-cell">
+                              <span className="nivel-valor">{nivelMediaPares > 0 ? nivelMediaPares.toFixed(1) : '-'}</span>
+                              {nivelMediaPares > 0 && (
+                                <span className={`status-indicator ${compararNivel(Math.round(nivelMediaPares), nivelEsperado)}`}>
+                                  {compararNivel(Math.round(nivelMediaPares), nivelEsperado) === 'atende' ? '✓' : compararNivel(Math.round(nivelMediaPares), nivelEsperado) === 'abaixo' ? '↓' : '↑'}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </>
+                      )}
                       <td className="esperado-cell">{nivelEsperado}</td>
                       <td>
                         <div className="status-cell">
@@ -299,8 +348,8 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
           </div>
         </div>
 
-        {/* Listagem de Justificativas por Eixo */}
-        {eixosAvaliacao.length > 0 && (
+        {/* Listagem de Justificativas por Eixo - Apenas quando feedback liberado */}
+        {feedbackLiberado && eixosAvaliacao.length > 0 && (
           <div className="perguntas-abertas-container">
             <h3 className="perguntas-abertas-title">Justificativas Recebidas dos Pares</h3>
             {eixosAvaliacao.map((eixo) => {
