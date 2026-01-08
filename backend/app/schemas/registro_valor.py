@@ -1,9 +1,16 @@
 from datetime import datetime
 from typing import List, Optional
+from enum import Enum
 
 from app.core.validators import CAMPO_TEXTO_LONGO_MAX, CAMPO_TEXTO_MAX
 from app.schemas.colaborador import ColaboradorResponse
 from pydantic import BaseModel, Field
+
+
+class StatusAprovacao(str, Enum):
+    PENDENTE = "pendente"
+    APROVADO = "aprovado"
+    REPROVADO = "reprovado"
 
 
 class ValorBase(BaseModel):
@@ -47,6 +54,11 @@ class RegistroValorResponse(RegistroValorBase):
     colaborador_id: int
     colaborador: Optional[ColaboradorResponse] = None
     valores: List[ValorResponse] = []
+    status_aprovacao: StatusAprovacao = StatusAprovacao.PENDENTE
+    aprovado_por_id: Optional[int] = None
+    aprovado_por: Optional[ColaboradorResponse] = None
+    aprovado_em: Optional[datetime] = None
+    observacao_aprovacao: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -57,3 +69,11 @@ class RegistroValorResponse(RegistroValorBase):
 class RegistroValorListResponse(BaseModel):
     registros: List[RegistroValorResponse]
     total: int
+
+
+class AprovarRegistroValorRequest(BaseModel):
+    observacao: Optional[str] = Field(None, max_length=CAMPO_TEXTO_LONGO_MAX)
+
+
+class ReprovarRegistroValorRequest(BaseModel):
+    observacao: str = Field(..., min_length=1, max_length=CAMPO_TEXTO_LONGO_MAX)

@@ -1,8 +1,9 @@
+from datetime import datetime
 from typing import List
 
 from app.core.exceptions import NotFoundException, UnauthorizedActionException
 from app.models.colaborador import Colaborador
-from app.models.registro_valor import RegistroValor
+from app.models.registro_valor import RegistroValor, StatusAprovacao
 from app.repositories.registro_valor import RegistroValorRepository
 from app.repositories.valor import ValorRepository
 from app.schemas.registro_valor import RegistroValorCreate, RegistroValorUpdate
@@ -66,6 +67,11 @@ class RegistroValorService(BaseService[RegistroValor]):
         if registro.colaborador_id != current_colaborador.id:
             raise UnauthorizedActionException()
 
+        if registro.status_aprovacao != StatusAprovacao.PENDENTE.value:
+            raise ValueError(
+                f"Não é possível editar um registro {registro.status_aprovacao}. Apenas registros pendentes podem ser editados."
+            )
+
         try:
             # Atualizar campos básicos manualmente
             if registro_valor_data.descricao is not None:
@@ -99,4 +105,72 @@ class RegistroValorService(BaseService[RegistroValor]):
         if registro.colaborador_id != current_colaborador_id:
             raise UnauthorizedActionException()
 
+        if registro.status_aprovacao != StatusAprovacao.PENDENTE.value:
+            raise ValueError(
+                f"Não é possível excluir um registro {registro.status_aprovacao}. Apenas registros pendentes podem ser excluídos."
+            )
+
         return self.repository.delete(registro_id)
+
+    def get_all_pendentes(self) -> List[RegistroValor]:
+        """Retorna todos os registros de valor pendentes de aprovação"""
+        return self.repository.get_all(status_aprovacao=StatusAprovacao.PENDENTE.value)
+
+    def aprovar(
+        self, registro_id: int, admin_colaborador: Colaborador, observacao: str = None
+    ) -> RegistroValor:
+        """Aprova um registro de valor"""
+        if not admin_colaborador.is_admin:
+            raise UnauthorizedActionException()
+
+        registro = self.repository.get(registro_id)
+        if not registro:
+            raise NotFoundException("Registro de valor", registro_id)
+
+        if registro.status_aprovacao != StatusAprovacao.PENDENTE.value:
+            raise ValueError(
+                f"Registro já foi {registro.status_aprovacao}. Apenas registros pendentes podem ser aprovados."
+            )
+
+        try:
+            registro.status_aprovacao = StatusAprovacao.APROVADO.value
+            registro.aprovado_por_id = admin_colaborador.id
+            registro.aprovado_em = datetime.now()
+            registro.observacao_aprovacao = observacao
+
+            self.db.flush()
+            self.repository.refresh(registro)
+            return registro
+        except SQLAlchemyError:
+            self._handle_database_error("aprovar registro de valor")
+
+    def reprovar(
+        self, registro_id: int, admin_colaborador: Colaborador, observacao: str
+    ) -> RegistroValor:
+        """Reprova um registro de valor"""
+        if not admin_colaborador.is_admin:
+            raise UnauthorizedActionException()
+
+        registro = self.repository.get(registro_id)
+        if not registro:
+            raise NotFoundException("Registro de valor", registro_id)
+
+        if registro.status_aprovacao != StatusAprovacao.PENDENTE.value:
+            raise ValueError(
+                f"Registro já foi {registro.status_aprovacao}. Apenas registros pendentes podem ser reprovados."
+            )
+
+        if not observacao or not observacao.strip():
+            raise ValueError("Observação é obrigatória para reprovar um registro")
+
+        try:
+            registro.status_aprovacao = StatusAprovacao.REPROVADO.value
+            registro.aprovado_por_id = admin_colaborador.id
+            registro.aprovado_em = datetime.now()
+            registro.observacao_aprovacao = observacao
+
+            self.db.flush()
+            self.repository.refresh(registro)
+            return registro
+        except SQLAlchemyError:
+            self._handle_database_error("reprovar registro de valor")

@@ -111,7 +111,14 @@ function RegistroValor({ onLogout }) {
         setRegistroEditando(null)
         await loadRegistros()
       } catch (error) {
-        handleApiError(error, registroEditando ? 'atualizar registro' : 'salvar registro', '/registros-valor', showError)
+        if (error.response?.status === 400 && error.response?.data?.detail?.includes('pendente')) {
+          showError('Este registro não pode ser editado pois já foi aprovado ou reprovado.')
+          setMostrarFormulario(false)
+          setRegistroEditando(null)
+          await loadRegistros()
+        } else {
+          handleApiError(error, registroEditando ? 'atualizar registro' : 'salvar registro', '/registros-valor', showError)
+        }
       }
     }
   }
@@ -143,7 +150,12 @@ function RegistroValor({ onLogout }) {
         await loadRegistros()
         success('Registro excluído com sucesso!')
       } catch (error) {
-        handleApiError(error, 'excluir registro', '/registros-valor', showError)
+        if (error.response?.status === 400 && error.response?.data?.detail?.includes('pendente')) {
+          showError('Este registro não pode ser excluído pois já foi aprovado ou reprovado.')
+          await loadRegistros()
+        } else {
+          handleApiError(error, 'excluir registro', '/registros-valor', showError)
+        }
       }
     }
   }
@@ -314,21 +326,30 @@ function RegistroValor({ onLogout }) {
                       ))}
                     </div>
                   </div>
-                  <div className="registro-actions">
-                    <button
-                      className="edit-button"
-                      onClick={() => handleEditarRegistro(registro)}
-                      title="Editar registro"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="delete-button"
-                      onClick={() => handleExcluirRegistro(registro.id)}
-                      title="Excluir registro"
-                    >
-                      🗑️
-                    </button>
+                  <div className="registro-header-right">
+                    <div className={`status-badge status-${registro.status_aprovacao || 'pendente'}`}>
+                      {registro.status_aprovacao === 'aprovado' && '✓ Aprovado'}
+                      {registro.status_aprovacao === 'reprovado' && '✗ Reprovado'}
+                      {(!registro.status_aprovacao || registro.status_aprovacao === 'pendente') && '⏳ Pendente'}
+                    </div>
+                    <div className="registro-actions">
+                      <button
+                        className="edit-button"
+                        onClick={() => handleEditarRegistro(registro)}
+                        title="Editar registro"
+                        disabled={registro.status_aprovacao !== 'pendente' && registro.status_aprovacao}
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        className="delete-button"
+                        onClick={() => handleExcluirRegistro(registro.id)}
+                        title="Excluir registro"
+                        disabled={registro.status_aprovacao !== 'pendente' && registro.status_aprovacao}
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -342,6 +363,20 @@ function RegistroValor({ onLogout }) {
                     <h4 className="secao-title">Por que isso representa esse valor e qual foi o impacto?</h4>
                     <p className="secao-conteudo">{registro.impacto}</p>
                   </div>
+
+                  {registro.observacao_aprovacao && (
+                    <div className="registro-secao observacao-aprovacao">
+                      <h4 className="secao-title">
+                        {registro.status_aprovacao === 'aprovado' ? 'Observação da Aprovação' : 'Motivo da Reprovação'}
+                      </h4>
+                      <p className="secao-conteudo">{registro.observacao_aprovacao}</p>
+                      {registro.aprovado_por && (
+                        <p className="aprovado-info">
+                          Por {registro.aprovado_por.nome} em {formatarData(registro.aprovado_em)}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

@@ -287,6 +287,38 @@
   flex: 1;
 }
 
+.registro-header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-pendente {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+}
+
+.status-aprovado {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #28a745;
+}
+
+.status-reprovado {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #dc3545;
+}
+
 .registro-actions {
   display: flex;
   gap: 10px;
@@ -303,14 +335,20 @@
   background: #f5f7fa;
 }
 
-.edit-button:hover {
+.edit-button:hover:not(:disabled) {
   background: #e3f2fd;
   transform: scale(1.1);
 }
 
-.delete-button:hover {
+.delete-button:hover:not(:disabled) {
   background: #ffebee;
   transform: scale(1.1);
+}
+
+.edit-button:disabled,
+.delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .registro-data {
@@ -370,6 +408,22 @@
   line-height: 1.6;
   margin: 0;
   white-space: pre-wrap;
+}
+
+.observacao-aprovacao {
+  background: #fff9e6;
+  border-left: 4px solid #ffc107;
+}
+
+.observacao-aprovacao .secao-title {
+  color: #856404;
+}
+
+.aprovado-info {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 8px;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {

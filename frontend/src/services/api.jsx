@@ -174,6 +174,15 @@ export const entregasOutstandingAPI = {
   delete: (id) => request(`/entregas-outstanding/${id}`, {
     method: 'DELETE',
   }),
+  getAdminPendentes: () => request('/entregas-outstanding/admin/pendentes'),
+  aprovar: (entregaId, data = {}) => request(`/entregas-outstanding/${entregaId}/aprovar`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  reprovar: (entregaId, data) => request(`/entregas-outstanding/${entregaId}/reprovar`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
 }
 
 // API de Valores
@@ -199,6 +208,15 @@ export const registrosValorAPI = {
   }),
   delete: (id) => request(`/registros-valor/${id}`, {
     method: 'DELETE',
+  }),
+  getAdminPendentes: () => request('/registros-valor/admin/pendentes'),
+  aprovar: (registroId, data = {}) => request(`/registros-valor/${registroId}/aprovar`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  reprovar: (registroId, data) => request(`/registros-valor/${registroId}/reprovar`, {
+    method: 'POST',
+    body: JSON.stringify(data),
   }),
 }
 

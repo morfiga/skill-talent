@@ -35,9 +35,25 @@ class Colaborador(Base):
     )
     ciclos_avaliacao = relationship("CicloAvaliacao", back_populates="colaborador")
     entregas_outstanding = relationship(
-        "EntregaOutstanding", back_populates="colaborador"
+        "EntregaOutstanding",
+        foreign_keys="[EntregaOutstanding.colaborador_id]",
+        back_populates="colaborador",
     )
-    registros_valor = relationship("RegistroValor", back_populates="colaborador")
+    entregas_outstanding_aprovadas = relationship(
+        "EntregaOutstanding",
+        foreign_keys="[EntregaOutstanding.aprovado_por_id]",
+        back_populates="aprovado_por",
+    )
+    registros_valor = relationship(
+        "RegistroValor",
+        foreign_keys="[RegistroValor.colaborador_id]",
+        back_populates="colaborador",
+    )
+    registros_valor_aprovados = relationship(
+        "RegistroValor",
+        foreign_keys="[RegistroValor.aprovado_por_id]",
+        back_populates="aprovado_por",
+    )
     avaliacoes_gestor_realizadas = relationship(
         "AvaliacaoGestor",
         foreign_keys="AvaliacaoGestor.colaborador_id",

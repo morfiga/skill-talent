@@ -77,7 +77,14 @@ function EntregaOutstanding({ onLogout }) {
         setEntregaEditando(null)
         await loadEntregas()
       } catch (error) {
-        handleApiError(error, entregaEditando ? 'atualizar entrega' : 'salvar entrega', '/entregas-outstanding', showError)
+        if (error.response?.status === 400 && error.response?.data?.detail?.includes('pendente')) {
+          showError('Esta entrega não pode ser editada pois já foi aprovada ou reprovada.')
+          setMostrarFormulario(false)
+          setEntregaEditando(null)
+          await loadEntregas()
+        } else {
+          handleApiError(error, entregaEditando ? 'atualizar entrega' : 'salvar entrega', '/entregas-outstanding', showError)
+        }
       }
     }
   }
@@ -109,7 +116,12 @@ function EntregaOutstanding({ onLogout }) {
         await loadEntregas()
         success('Entrega excluída com sucesso!')
       } catch (error) {
-        handleApiError(error, 'excluir entrega', '/entregas-outstanding', showError)
+        if (error.response?.status === 400 && error.response?.data?.detail?.includes('pendente')) {
+          showError('Esta entrega não pode ser excluída pois já foi aprovada ou reprovada.')
+          await loadEntregas()
+        } else {
+          handleApiError(error, 'excluir entrega', '/entregas-outstanding', showError)
+        }
       }
     }
   }
@@ -248,25 +260,36 @@ function EntregaOutstanding({ onLogout }) {
             {entregas.map((entrega) => (
               <div key={entrega.id} className="entrega-card">
                 <div className="entrega-card-header">
-                  <div className="entrega-data">
-                    <span className="data-icon">📅</span>
-                    <span className="data-text">{formatarData(entrega.created_at)}</span>
+                  <div className="entrega-header-left">
+                    <div className="entrega-data">
+                      <span className="data-icon">📅</span>
+                      <span className="data-text">{formatarData(entrega.created_at)}</span>
+                    </div>
                   </div>
-                  <div className="entrega-actions">
-                    <button
-                      className="edit-button"
-                      onClick={() => handleEditarEntrega(entrega)}
-                      title="Editar entrega"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="delete-button"
-                      onClick={() => handleExcluirEntrega(entrega.id)}
-                      title="Excluir entrega"
-                    >
-                      🗑️
-                    </button>
+                  <div className="entrega-header-right">
+                    <div className={`status-badge status-${entrega.status_aprovacao || 'pendente'}`}>
+                      {entrega.status_aprovacao === 'aprovado' && '✓ Aprovado'}
+                      {entrega.status_aprovacao === 'reprovado' && '✗ Reprovado'}
+                      {(!entrega.status_aprovacao || entrega.status_aprovacao === 'pendente') && '⏳ Pendente'}
+                    </div>
+                    <div className="entrega-actions">
+                      <button
+                        className="edit-button"
+                        onClick={() => handleEditarEntrega(entrega)}
+                        title="Editar entrega"
+                        disabled={entrega.status_aprovacao !== 'pendente' && entrega.status_aprovacao}
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        className="delete-button"
+                        onClick={() => handleExcluirEntrega(entrega.id)}
+                        title="Excluir entrega"
+                        disabled={entrega.status_aprovacao !== 'pendente' && entrega.status_aprovacao}
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -285,6 +308,20 @@ function EntregaOutstanding({ onLogout }) {
                     <h4 className="secao-title">Evidências ou resultados mensuráveis</h4>
                     <p className="secao-conteudo">{entrega.evidencias}</p>
                   </div>
+
+                  {entrega.observacao_aprovacao && (
+                    <div className="entrega-secao observacao-aprovacao">
+                      <h4 className="secao-title">
+                        {entrega.status_aprovacao === 'aprovado' ? 'Observação da Aprovação' : 'Motivo da Reprovação'}
+                      </h4>
+                      <p className="secao-conteudo">{entrega.observacao_aprovacao}</p>
+                      {entrega.aprovado_por && (
+                        <p className="aprovado-info">
+                          Por {entrega.aprovado_por.nome} em {formatarData(entrega.aprovado_em)}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

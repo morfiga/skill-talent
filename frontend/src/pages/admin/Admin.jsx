@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import AcompanhamentoAdmin from './AcompanhamentoAdmin'
 import './Admin.css'
+import AprovacaoEntregasAdmin from './AprovacaoEntregasAdmin'
+import AprovacaoEntregasOutstandingAdmin from './AprovacaoEntregasOutstandingAdmin'
 import AprovacaoParesAdmin from './AprovacaoParesAdmin'
 import CalibracaoAdmin from './CalibracaoAdmin'
 import CiclosAdmin from './CiclosAdmin'
@@ -70,6 +72,18 @@ function Admin({ onLogout }) {
                 ✅ Aprovação de Pares
               </button>
               <button
+                className={`admin-nav-item ${abaAtiva === 'aprovacao_entregas' ? 'active' : ''}`}
+                onClick={() => setAbaAtiva('aprovacao_entregas')}
+              >
+                💎 Aprovação de Entregas de Valor
+              </button>
+              <button
+                className={`admin-nav-item ${abaAtiva === 'aprovacao_outstanding' ? 'active' : ''}`}
+                onClick={() => setAbaAtiva('aprovacao_outstanding')}
+              >
+                🚀 Aprovação de Outstanding
+              </button>
+              <button
                 className={`admin-nav-item ${abaAtiva === 'calibracao' ? 'active' : ''}`}
                 onClick={() => setAbaAtiva('calibracao')}
               >
@@ -104,6 +118,8 @@ function Admin({ onLogout }) {
             {abaAtiva === 'colaboradores' && <ColaboradoresAdmin />}
             {abaAtiva === 'ciclos' && <CiclosAdmin />}
             {abaAtiva === 'aprovacao_pares' && <AprovacaoParesAdmin />}
+            {abaAtiva === 'aprovacao_entregas' && <AprovacaoEntregasAdmin />}
+            {abaAtiva === 'aprovacao_outstanding' && <AprovacaoEntregasOutstandingAdmin />}
             {abaAtiva === 'calibracao' && <CalibracaoAdmin />}
             {abaAtiva === 'acompanhamento' && <AcompanhamentoAdmin />}
             {abaAtiva === 'liberacao_feedback' && <LiberacaoFeedbackAdmin />}

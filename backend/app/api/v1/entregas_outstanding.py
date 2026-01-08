@@ -2,13 +2,15 @@ from app.core.security import get_current_colaborador
 from app.database import get_db
 from app.models.colaborador import Colaborador
 from app.schemas.entrega_outstanding import (
+    AprovarEntregaOutstandingRequest,
     EntregaOutstandingCreate,
     EntregaOutstandingListResponse,
     EntregaOutstandingResponse,
     EntregaOutstandingUpdate,
+    ReprovarEntregaOutstandingRequest,
 )
 from app.services.entrega_outstanding import EntregaOutstandingService
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/entregas-outstanding", tags=["entregas-outstanding"])
@@ -72,3 +74,59 @@ def delete_entrega_outstanding(
     service: EntregaOutstandingService = Depends(get_entrega_outstanding_service),
 ):
     return service.delete(entrega_id, current_colaborador)
+
+
+@router.get("/admin/pendentes", response_model=EntregaOutstandingListResponse)
+def get_entregas_pendentes(
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
+    service: EntregaOutstandingService = Depends(get_entrega_outstanding_service),
+):
+    """Lista todas as entregas outstanding pendentes de aprovação (apenas admin)"""
+    if not current_colaborador.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Acesso negado. Apenas administradores podem acessar esta funcionalidade.",
+        )
+
+    entregas = service.get_all_pendentes()
+    return {"entregas": entregas, "total": len(entregas)}
+
+
+@router.post("/{entrega_id}/aprovar", response_model=EntregaOutstandingResponse)
+def aprovar_entrega_outstanding(
+    entrega_id: int,
+    request: AprovarEntregaOutstandingRequest,
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
+    service: EntregaOutstandingService = Depends(get_entrega_outstanding_service),
+):
+    """Aprova uma entrega outstanding (apenas admin)"""
+    if not current_colaborador.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Acesso negado. Apenas administradores podem aprovar entregas.",
+        )
+
+    try:
+        return service.aprovar(entrega_id, current_colaborador, request.observacao)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/{entrega_id}/reprovar", response_model=EntregaOutstandingResponse)
+def reprovar_entrega_outstanding(
+    entrega_id: int,
+    request: ReprovarEntregaOutstandingRequest,
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
+    service: EntregaOutstandingService = Depends(get_entrega_outstanding_service),
+):
+    """Reprova uma entrega outstanding (apenas admin)"""
+    if not current_colaborador.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Acesso negado. Apenas administradores podem reprovar entregas.",
+        )
+
+    try:
+        return service.reprovar(entrega_id, current_colaborador, request.observacao)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
