@@ -157,10 +157,44 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
           })
         }
       })
+      const eixoDataGestor = avaliacaoGestor.eixos[eixo.id]
+      if (eixoDataGestor && eixoDataGestor.justificativa && eixoDataGestor.justificativa.trim() !== '') {
+        agrupadas[eixo.id].push({
+          avaliador_id: 'gestor',
+          avaliador_nome: 'Gestor',
+          nivel: eixoDataGestor.nivel,
+          justificativa: eixoDataGestor.justificativa
+        })
+      }
     })
 
     return agrupadas
   }, [eixosAvaliacao, avaliacoesPares])
+
+  // Agrupar feedbacks gerais do gestor e pares
+  const feedbacksGerais = useMemo(() => {
+    if (!avaliacaoGestor || !avaliacoesPares) return {}
+
+    const feedbacks = []
+
+    if (avaliacaoGestor.avaliacaoGeral) {
+      feedbacks.push({
+        avaliador_id: 'gestor',
+        avaliador_nome: 'Gestor',
+        avaliacaoGeral: avaliacaoGestor.avaliacaoGeral
+      })
+    }
+    Object.entries(avaliacoesPares).forEach(([avaliadorId, avaliacao]) => {
+      if (avaliacao.avaliacaoGeral) {
+        feedbacks.push({
+          avaliador_id: avaliadorId,
+          avaliador_nome: avaliacao.avaliador_nome || 'Par',
+          avaliacaoGeral: avaliacao.avaliacaoGeral
+        })
+      }
+    })
+    return feedbacks
+  }, [avaliacaoGestor, avaliacoesPares])
 
   // Comparar nível atual com esperado
   const compararNivel = (nivelAtual, nivelEsperado) => {
@@ -351,7 +385,7 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
         {/* Listagem de Justificativas por Eixo - Apenas quando feedback liberado */}
         {feedbackLiberado && eixosAvaliacao.length > 0 && (
           <div className="perguntas-abertas-container">
-            <h3 className="perguntas-abertas-title">Justificativas Recebidas dos Pares</h3>
+            <h3 className="perguntas-abertas-title">Justificativas Recebidas</h3>
             {eixosAvaliacao.map((eixo) => {
               const justificativas = justificativasPorEixo[eixo.id] || []
 
@@ -383,6 +417,28 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {/* Comentários Gerais do Gestor e Pares - Apenas quando feedback liberado */}
+        {feedbackLiberado && feedbacksGerais.length > 0 && (
+          <div className="perguntas-abertas-container">
+            <h3 className="perguntas-abertas-title">Comentários</h3>
+            <div className="pergunta-aberta-card">
+              <h4 className="pergunta-aberta-texto">Feedback Geral</h4>
+              <div className="respostas-lista">
+                {feedbacksGerais.map((feedback) => (
+                  <div key={feedback.avaliador_id} className="resposta-item">
+                    <div className="resposta-header">
+                      <span className="resposta-autor">{feedback.avaliador_nome}</span>
+                    </div>
+                    <div className="resposta-conteudo">
+                      {feedback.avaliacaoGeral}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 

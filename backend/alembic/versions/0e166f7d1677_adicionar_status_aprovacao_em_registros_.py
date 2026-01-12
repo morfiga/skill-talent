@@ -10,6 +10,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+from app.models.registro_valor import StatusAprovacao
 from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
@@ -167,7 +168,7 @@ def upgrade() -> None:
             "status_aprovacao",
             sa.String(length=20),
             nullable=False,
-            default=sa.text("pendente"),
+            server_default=StatusAprovacao.PENDENTE.value,
         ),
     )
     op.add_column(
