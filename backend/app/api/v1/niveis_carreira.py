@@ -1,27 +1,26 @@
 from typing import Dict, List
 
-from fastapi import APIRouter
-
 from app.core.exceptions import NotFoundException
 from app.core.validators import NIVEIS_CARREIRA_VALIDOS
+from fastapi import APIRouter
 
 router = APIRouter(prefix="/niveis-carreira", tags=["niveis-carreira"])
 
 # Níveis esperados por nível de carreira para cada eixo
-# Formato: [Desenvolvimento contínuo, Colaboração, Operação e processos, Influência]
+# Formato: [Desenvolvimento contínuo, Influência, Operação e processos, Impacto]
 NIVEIS_ESPERADOS_POR_CARREIRA: Dict[str, List[int]] = {
     "E": [1, 1, 1, 1],
     "J1": [1, 1, 1, 1],
-    "J2": [2, 1, 2, 1],
+    "J2": [2, 2, 1, 1],
     "J3": [2, 2, 2, 2],
-    "P1": [3, 2, 3, 2],
-    "P2": [3, 2, 3, 3],
-    "P3": [4, 2, 4, 3],
-    "S1": [4, 3, 4, 3],
-    "S2": [4, 3, 4, 4],
-    "S3": [5, 3, 5, 4],
-    "ES1": [5, 4, 5, 4],
-    "ES2": [5, 4, 5, 4],
+    "P1": [3, 3, 2, 2],
+    "P2": [3, 3, 3, 2],
+    "P3": [4, 4, 3, 2],
+    "S1": [4, 4, 3, 3],
+    "S2": [4, 4, 4, 3],
+    "S3": [5, 5, 4, 3],
+    "ES1": [5, 5, 4, 4],
+    "ES2": [5, 5, 4, 4],
 }
 
 
@@ -37,7 +36,7 @@ def get_niveis_esperados_por_carreira(nivel_carreira: str):
     if nivel_carreira not in NIVEIS_ESPERADOS_POR_CARREIRA:
         raise NotFoundException(
             f"Nível de carreira '{nivel_carreira}'",
-            identifier=f"Valores válidos: {', '.join(NIVEIS_CARREIRA_VALIDOS)}"
+            identifier=f"Valores válidos: {', '.join(NIVEIS_CARREIRA_VALIDOS)}",
         )
 
     return {
