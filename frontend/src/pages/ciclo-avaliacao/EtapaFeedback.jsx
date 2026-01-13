@@ -317,7 +317,6 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
                     </>
                   )}
                   <th>Esperado ({colaborador?.nivel_carreira || '-'})</th>
-                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -358,8 +357,8 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
                             <div className="nivel-cell">
                               <span className="nivel-valor">{nivelMediaPares > 0 ? nivelMediaPares.toFixed(1) : '-'}</span>
                               {nivelMediaPares > 0 && (
-                                <span className={`status-indicator ${compararNivel(Math.round(nivelMediaPares), nivelEsperado)}`}>
-                                  {compararNivel(Math.round(nivelMediaPares), nivelEsperado) === 'atende' ? '✓' : compararNivel(Math.round(nivelMediaPares), nivelEsperado) === 'abaixo' ? '↓' : '↑'}
+                                <span className={`status-indicator ${compararNivel(nivelMediaPares.toFixed(1), nivelEsperado)}`}>
+                                  {compararNivel(nivelMediaPares.toFixed(1), nivelEsperado) === 'atende' ? '✓' : compararNivel(nivelMediaPares.toFixed(1), nivelEsperado) === 'abaixo' ? '↓' : '↑'}
                                 </span>
                               )}
                             </div>
@@ -367,13 +366,6 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
                         </>
                       )}
                       <td className="esperado-cell">{nivelEsperado}</td>
-                      <td>
-                        <div className="status-cell">
-                          {statusAuto && (
-                            <span className={`status-badge ${statusAuto}`}>{statusAuto}</span>
-                          )}
-                        </div>
-                      </td>
                     </tr>
                   )
                 })}
