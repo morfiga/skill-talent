@@ -9,7 +9,7 @@ import AprovacaoParesAdmin from './AprovacaoParesAdmin'
 import CalibracaoAdmin from './CalibracaoAdmin'
 import CiclosAdmin from './CiclosAdmin'
 import ColaboradoresAdmin from './ColaboradoresAdmin'
-import LiberacaoFeedbackAdmin from './LiberacaoFeedbackAdmin'
+import FeedbackAdmin from './FeedbackAdmin'
 
 function Admin({ onLogout }) {
   const navigate = useNavigate()
@@ -90,10 +90,10 @@ function Admin({ onLogout }) {
                 📋 Calibração
               </button>
               <button
-                className={`admin-nav-item ${abaAtiva === 'liberacao_feedback' ? 'active' : ''}`}
-                onClick={() => setAbaAtiva('liberacao_feedback')}
+                className={`admin-nav-item ${abaAtiva === 'feedbacks' ? 'active' : ''}`}
+                onClick={() => setAbaAtiva('feedbacks')}
               >
-                🔓 Liberação de Feedback
+                💬 Feedbacks
               </button>
             </nav>
 
@@ -122,7 +122,7 @@ function Admin({ onLogout }) {
             {abaAtiva === 'aprovacao_outstanding' && <AprovacaoEntregasOutstandingAdmin />}
             {abaAtiva === 'calibracao' && <CalibracaoAdmin />}
             {abaAtiva === 'acompanhamento' && <AcompanhamentoAdmin />}
-            {abaAtiva === 'liberacao_feedback' && <LiberacaoFeedbackAdmin />}
+            {abaAtiva === 'feedbacks' && <FeedbackAdmin />}
           </div>
         </div>
       </main>

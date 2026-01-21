@@ -1,6 +1,6 @@
 import Avatar from '../../../components/Avatar'
 
-function TabelaLiberacaoFeedback({ colaboradores, onLiberar, onRevogar, loading }) {
+function TabelaFeedback({ colaboradores, onLiberar, onRevogar, onVisualizarFeedback, loading }) {
   const formatarData = (dataString) => {
     if (!dataString) return '-'
     const data = new Date(dataString)
@@ -83,6 +83,14 @@ function TabelaLiberacaoFeedback({ colaboradores, onLiberar, onRevogar, loading 
                       ✅
                     </button>
                   )}
+                  <button
+                    className="action-button view"
+                    onClick={() => onVisualizarFeedback(colaborador, colaborador.gestor_id === null ? 'gestor' : 'colaborador')}
+                    disabled={loading}
+                    title="Visualizar feedback"
+                  >
+                    🔍
+                  </button>
                 </div>
               </td>
             </tr>
@@ -93,5 +101,5 @@ function TabelaLiberacaoFeedback({ colaboradores, onLiberar, onRevogar, loading 
   )
 }
 
-export default TabelaLiberacaoFeedback
+export default TabelaFeedback
 

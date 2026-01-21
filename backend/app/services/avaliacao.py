@@ -281,16 +281,15 @@ class AvaliacaoService(BaseService[Avaliacao]):
             ciclo_id=ciclo_id,
             colaborador_id=current_colaborador.id,
         )
-        
+
         # Verificar se o ciclo está na fase de feedback
         ciclo = ciclo_avaliacao.ciclo
         is_fase_feedback = ciclo and ciclo.etapa_atual == EtapaCiclo.FEEDBACK
 
         # Se não for admin, não estiver na fase de feedback, ou o feedback não foi liberado,
         # retornar apenas a autoavaliação
-        pode_ver_feedback = (
-            current_colaborador.is_admin or 
-            (is_fase_feedback and feedback_liberado)
+        pode_ver_feedback = current_colaborador.is_admin or (
+            is_fase_feedback and feedback_liberado
         )
 
         logger.debug(
@@ -316,7 +315,7 @@ class AvaliacaoService(BaseService[Avaliacao]):
         avaliacao_gestor = None
         avaliacoes_pares = []
         media_pares_por_eixo = {}
-        
+
         if pode_ver_feedback:
             avaliacao_gestor = self.repository.get_by_ciclo_and_tipo(
                 avaliado_id=current_colaborador.id,
@@ -396,3 +395,91 @@ class AvaliacaoService(BaseService[Avaliacao]):
             avaliacoes=avaliacoes_completas,
             total=len(avaliacoes_completas),
         )
+
+    def get_feedback_admin(
+        self, ciclo_id: int, colaborador_id: int, current_colaborador: Colaborador
+    ) -> FeedbackResponse:
+        """Permite admin visualizar feedback de qualquer colaborador"""
+        # Verificar se o usuário é admin
+        if not current_colaborador.is_admin:
+            logger.warning(
+                f"Tentativa de acessar endpoint admin sem permissão. Colaborador ID: {current_colaborador.id}"
+            )
+            raise ForbiddenException(
+                "Apenas administradores podem acessar este endpoint"
+            )
+
+        logger.debug(
+            f"Admin {current_colaborador.id} buscando feedback do colaborador {colaborador_id} no ciclo {ciclo_id}"
+        )
+
+        # ciclo_avaliacao = self.repository.validate_ciclo_avaliacao(
+        #     ciclo_id=ciclo_id, colaborador_id=colaborador_id
+        # )
+
+        # if not ciclo_avaliacao:
+        #     logger.warning(
+        #         f"Ciclo de avaliação não encontrado. Ciclo ID: {ciclo_id}, Colaborador ID: {colaborador_id}"
+        #     )
+        #     raise NotFoundException("Ciclo de avaliação", ciclo_id)
+
+        # Buscar autoavaliação
+        autoavaliacao = self.repository.get_by_ciclo_and_tipo(
+            avaliado_id=colaborador_id,
+            avaliador_id=colaborador_id,
+            ciclo_id=ciclo_id,
+            tipo=TipoAvaliacao.AUTOAVALIACAO,
+        )
+        if autoavaliacao:
+            autoavaliacao = autoavaliacao[0]
+        logger.debug(
+            f"Autoavaliação {'encontrada' if autoavaliacao else 'não encontrada'}"
+        )
+
+        # Buscar avaliação do gestor (admin sempre vê tudo)
+        avaliacao_gestor = self.repository.get_by_ciclo_and_tipo(
+            avaliado_id=colaborador_id,
+            ciclo_id=ciclo_id,
+            tipo=TipoAvaliacao.GESTOR,
+        )
+        if avaliacao_gestor:
+            avaliacao_gestor = avaliacao_gestor[0]
+        logger.debug(
+            f"Avaliação do gestor {'encontrada' if avaliacao_gestor else 'não encontrada'}"
+        )
+
+        # Buscar avaliações de pares
+        avaliacoes_pares = self.repository.get_by_ciclo_and_tipo(
+            avaliado_id=colaborador_id,
+            ciclo_id=ciclo_id,
+            tipo=TipoAvaliacao.PAR,
+        )
+        logger.debug(f"Encontradas {len(avaliacoes_pares)} avaliações de pares")
+
+        # Calcular média dos pares por eixo
+        media_pares_por_eixo = self.repository.get_media_pares_por_eixo(
+            avaliado_id=colaborador_id,
+            ciclo_id=ciclo_id,
+        )
+
+        # Obter níveis esperados baseado no nível de carreira do colaborador
+        colaborador = self.colaborador_service.get_by_id(colaborador_id)
+
+        niveis_esperados = []
+        if colaborador and colaborador.nivel_carreira:
+            from app.api.v1.niveis_carreira import NIVEIS_ESPERADOS_POR_CARREIRA
+
+            niveis_esperados = NIVEIS_ESPERADOS_POR_CARREIRA.get(
+                colaborador.nivel_carreira, [0, 0, 0, 0]
+            )
+
+        logger.info(
+            f"Feedback gerado com sucesso para admin. Ciclo ID: {ciclo_id}, Colaborador ID: {colaborador_id}"
+        )
+        return {
+            "autoavaliacao": autoavaliacao,
+            "avaliacao_gestor": avaliacao_gestor,
+            "avaliacoes_pares": avaliacoes_pares,
+            "media_pares_por_eixo": media_pares_por_eixo,
+            "niveis_esperados": niveis_esperados,
+        }

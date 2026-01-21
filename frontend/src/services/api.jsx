@@ -150,6 +150,7 @@ export const avaliacoesAPI = {
     body: JSON.stringify(data),
   }),
   getFeedback: (cicloId) => request(`/avaliacoes/ciclo/${cicloId}/feedback`),
+  getFeedbackAdmin: (colaboradorId, cicloId) => request(`/avaliacoes/admin/colaborador/${colaboradorId}/ciclo/${cicloId}/feedback`),
   getAvaliacoesColaboradorAdmin: (colaboradorId, cicloId = null) => {
     const params = cicloId ? `?ciclo_id=${cicloId}` : ''
     return request(`/avaliacoes/admin/colaborador/${colaboradorId}${params}`)
@@ -241,6 +242,8 @@ export const avaliacoesGestorAPI = {
     const params = cicloId ? `?ciclo_id=${cicloId}` : ''
     return request(`/avaliacoes-gestor/admin/gestor/${gestorId}${params}`)
   },
+  // Admin: buscar feedback de gestor (similar ao endpoint acima, específico para ciclo)
+  getFeedbackGestorAdmin: (gestorId, cicloId) => request(`/avaliacoes-gestor/admin/gestor/${gestorId}/ciclo/${cicloId}/feedback`),
 }
 
 // API de Liberação de Feedback

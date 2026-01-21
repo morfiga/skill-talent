@@ -3,7 +3,7 @@ import { avaliacoesGestorAPI } from '../../services/api'
 import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 
-function EtapaFeedbackGestor({ colaborador, cicloAberto, onVoltar }) {
+function EtapaFeedbackGestor({ colaborador, cicloAberto, onVoltar, isAdminView = false }) {
     const [perguntas, setPerguntas] = useState(null)
     const [autoavaliacao, setAutoavaliacao] = useState({
         respostasFechadas: {},
@@ -16,7 +16,7 @@ function EtapaFeedbackGestor({ colaborador, cicloAberto, onVoltar }) {
         if (cicloAberto && colaborador?.id) {
             loadFeedback()
         }
-    }, [cicloAberto, colaborador?.id])
+    }, [cicloAberto, colaborador?.id, isAdminView])
 
     const loadFeedback = async () => {
         if (!cicloAberto || !colaborador?.id) return

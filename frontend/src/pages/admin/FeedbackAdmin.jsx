@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { useToast } from '../../contexts/ToastContext'
 import { ciclosAPI, colaboradoresAPI, feedbackLiberacaoAPI } from '../../services/api'
 import { handleApiError } from '../../utils/errorHandler'
-import TabelaLiberacaoFeedback from './components/TabelaLiberacaoFeedback'
+import EtapaFeedbackGestor from '../ciclo-avaliacao-gestor/EtapaFeedbackGestor'
+import EtapaFeedback from '../ciclo-avaliacao/EtapaFeedback'
+import TabelaFeedback from './components/TabelaFeedback'
 
-function LiberacaoFeedbackAdmin() {
+function FeedbackAdmin() {
   const { success: showSuccess, error: showError } = useToast()
   const [ciclos, setCiclos] = useState([])
   const [cicloSelecionado, setCicloSelecionado] = useState(null)
@@ -13,6 +15,8 @@ function LiberacaoFeedbackAdmin() {
   const [loading, setLoading] = useState(false)
   const [filtro, setFiltro] = useState('')
   const [error, setError] = useState(null)
+  const [colaboradorSelecionado, setColaboradorSelecionado] = useState(null)
+  const [modoVisualizacao, setModoVisualizacao] = useState('colaborador') // 'colaborador' ou 'gestor'
 
   useEffect(() => {
     loadCiclos()
@@ -77,7 +81,17 @@ function LiberacaoFeedbackAdmin() {
     const ciclo = ciclos.find(c => c.id === parseInt(cicloId))
     if (ciclo) {
       setCicloSelecionado(ciclo)
+      setColaboradorSelecionado(null)
     }
+  }
+
+  const handleVisualizarFeedback = (colaborador, modo) => {
+    setColaboradorSelecionado(colaborador)
+    setModoVisualizacao(modo)
+  }
+
+  const handleVoltar = () => {
+    setColaboradorSelecionado(null)
   }
 
   const handleLiberar = async (colaboradorId) => {
@@ -129,15 +143,58 @@ function LiberacaoFeedbackAdmin() {
   const totalLiberados = colaboradoresComStatus.filter(c => c.feedback_liberado).length
   const totalPendentes = colaboradoresComStatus.length - totalLiberados
 
+  // Se um colaborador foi selecionado, mostrar a visualização do feedback
+  if (colaboradorSelecionado) {
+    if (modoVisualizacao === 'colaborador') {
+      return (
+        <div>
+          <div className="admin-panel-header" style={{ marginBottom: '20px' }}>
+            <div>
+              <h2 className="panel-title">Feedback - {colaboradorSelecionado.nome}</h2>
+              <p className="panel-subtitle">
+                Visualização do feedback como colaborador no ciclo "{cicloSelecionado?.nome}"
+              </p>
+            </div>
+          </div>
+          <EtapaFeedback
+            colaborador={colaboradorSelecionado}
+            cicloAberto={cicloSelecionado}
+            onVoltar={handleVoltar}
+            isAdminView={true}
+          />
+        </div>
+      )
+    } else {
+      return (
+        <div>
+          <div className="admin-panel-header" style={{ marginBottom: '20px' }}>
+            <div>
+              <h2 className="panel-title">Feedback - {colaboradorSelecionado.nome}</h2>
+              <p className="panel-subtitle">
+                Visualização do feedback como gestor no ciclo "{cicloSelecionado?.nome}"
+              </p>
+            </div>
+          </div>
+          <EtapaFeedbackGestor
+            colaborador={colaboradorSelecionado}
+            cicloAberto={cicloSelecionado}
+            onVoltar={handleVoltar}
+            isAdminView={true}
+          />
+        </div>
+      )
+    }
+  }
+
   return (
     <>
       <div className="admin-panel-header">
         <div>
-          <h2 className="panel-title">Liberação de Feedback</h2>
+          <h2 className="panel-title">Feedbacks</h2>
           <p className="panel-subtitle">
             {cicloSelecionado
-              ? `Libere o feedback dos colaboradores no ciclo "${cicloSelecionado.nome}"`
-              : 'Selecione um ciclo na etapa de feedback para liberar'}
+              ? `Libere e visualize o feedback dos colaboradores no ciclo "${cicloSelecionado.nome}"`
+              : 'Selecione um ciclo na etapa de feedback'}
           </p>
         </div>
       </div>
@@ -212,10 +269,11 @@ function LiberacaoFeedbackAdmin() {
               </p>
             </div>
           ) : (
-            <TabelaLiberacaoFeedback
+            <TabelaFeedback
               colaboradores={colaboradoresFiltrados}
               onLiberar={handleLiberar}
               onRevogar={handleRevogar}
+              onVisualizarFeedback={handleVisualizarFeedback}
               loading={loading}
             />
           )}
@@ -225,5 +283,5 @@ function LiberacaoFeedbackAdmin() {
   )
 }
 
-export default LiberacaoFeedbackAdmin
+export default FeedbackAdmin
 

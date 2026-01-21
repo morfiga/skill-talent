@@ -402,6 +402,16 @@ h3.sidebar-title {
   color: #065f46;
 }
 
+.status-badge.colaborador {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.gestor {
+  background: #fce7f3;
+  color: #831843;
+}
+
 .empty-state {
   text-align: center;
   padding: 60px 20px;

@@ -104,3 +104,17 @@ def get_avaliacoes_gestor_gestor_admin(
 ):
     """Endpoint admin para buscar avaliações de gestor recebidas por um gestor"""
     return service.get_avaliacoes_gestor_admin(gestor_id, ciclo_id, current_colaborador)
+
+
+@router.get(
+    "/admin/gestor/{gestor_id}/ciclo/{ciclo_id}/feedback",
+    response_model=AvaliacaoGestorListResponse,
+)
+def get_feedback_gestor_admin(
+    gestor_id: int,
+    ciclo_id: int,
+    current_colaborador: Colaborador = Depends(get_current_colaborador),
+    service: AvaliacaoGestorService = Depends(get_avaliacao_gestor_service),
+):
+    """Endpoint admin para buscar feedback de gestor (avaliações recebidas)"""
+    return service.get_avaliacoes_gestor_admin(gestor_id, ciclo_id, current_colaborador)

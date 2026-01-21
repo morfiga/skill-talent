@@ -3,7 +3,7 @@ import { avaliacoesAPI, eixosAvaliacaoAPI, niveisCarreiraAPI } from '../../servi
 import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 
-function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
+function EtapaFeedback({ colaborador, cicloAberto, onVoltar, isAdminView = false }) {
   const [eixosAvaliacao, setEixosAvaliacao] = useState([])
   const [autoavaliacao, setAutoavaliacao] = useState({
     eixos: {},
@@ -20,13 +20,13 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
   const [feedbackLiberado, setFeedbackLiberado] = useState(false)
 
   useEffect(() => {
-    if (cicloAberto) {
+    if (cicloAberto && colaborador) {
       loadFeedback()
     }
-  }, [cicloAberto])
+  }, [cicloAberto, colaborador])
 
   const loadFeedback = async () => {
-    if (!cicloAberto) return
+    if (!cicloAberto || !colaborador) return
 
     try {
       setLoading(true)
@@ -44,13 +44,16 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar }) {
       }))
       setEixosAvaliacao(eixos)
 
-      // Carregar feedback
-      const feedback = await avaliacoesAPI.getFeedback(cicloAberto.id)
+      // Carregar feedback - usar API admin se necessário
+      const feedback = isAdminView 
+        ? await avaliacoesAPI.getFeedbackAdmin(colaborador.id, cicloAberto.id)
+        : await avaliacoesAPI.getFeedback(cicloAberto.id)
       setFeedbackData(feedback)
 
       // Verificar se o feedback está liberado
       // Se houver avaliação do gestor ou avaliações de pares, o feedback foi liberado
-      const liberado = !!(feedback.avaliacao_gestor || (feedback.avaliacoes_pares && feedback.avaliacoes_pares.length > 0))
+      // No modo admin, sempre considera liberado
+      const liberado = isAdminView || !!(feedback.avaliacao_gestor || (feedback.avaliacoes_pares && feedback.avaliacoes_pares.length > 0))
       setFeedbackLiberado(liberado)
 
       // Atualizar estados locais com dados do feedback
