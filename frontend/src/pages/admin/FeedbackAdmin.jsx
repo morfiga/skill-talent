@@ -149,17 +149,21 @@ function FeedbackAdmin() {
       return (
         <div>
           <div className="admin-panel-header" style={{ marginBottom: '20px' }}>
-            <div>
-              <h2 className="panel-title">Feedback - {colaboradorSelecionado.nome}</h2>
-              <p className="panel-subtitle">
-                Visualização do feedback como colaborador no ciclo "{cicloSelecionado?.nome}"
-              </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <button className="voltar-button" onClick={handleVoltar}>
+                ← Voltar
+              </button>
+              <div>
+                <h2 className="panel-title" style={{ margin: 0 }}>Feedback - {colaboradorSelecionado.nome}</h2>
+                <p className="panel-subtitle" style={{ margin: '4px 0 0 0' }}>
+                  Visualização do feedback como colaborador no ciclo "{cicloSelecionado?.nome}"
+                </p>
+              </div>
             </div>
           </div>
           <EtapaFeedback
             colaborador={colaboradorSelecionado}
             cicloAberto={cicloSelecionado}
-            onVoltar={handleVoltar}
             isAdminView={true}
           />
         </div>
@@ -168,17 +172,21 @@ function FeedbackAdmin() {
       return (
         <div>
           <div className="admin-panel-header" style={{ marginBottom: '20px' }}>
-            <div>
-              <h2 className="panel-title">Feedback - {colaboradorSelecionado.nome}</h2>
-              <p className="panel-subtitle">
-                Visualização do feedback como gestor no ciclo "{cicloSelecionado?.nome}"
-              </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <button className="voltar-button" onClick={handleVoltar}>
+                ← Voltar
+              </button>
+              <div>
+                <h2 className="panel-title" style={{ margin: 0 }}>Feedback - {colaboradorSelecionado.nome}</h2>
+                <p className="panel-subtitle" style={{ margin: '4px 0 0 0' }}>
+                  Visualização do feedback como gestor no ciclo "{cicloSelecionado?.nome}"
+                </p>
+              </div>
             </div>
           </div>
           <EtapaFeedbackGestor
             colaborador={colaboradorSelecionado}
             cicloAberto={cicloSelecionado}
-            onVoltar={handleVoltar}
             isAdminView={true}
           />
         </div>
