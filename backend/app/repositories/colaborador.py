@@ -27,7 +27,11 @@ class ColaboradorRepository(BaseRepository[Colaborador]):
         email: Optional[str] = None,
     ) -> List[Colaborador]:
         """Busca colaboradores ativos com filtros opcionais"""
-        query = self.db.query(self.model).filter(self.model.is_active == True)
+        query = (
+            self.db.query(self.model)
+            .filter(self.model.is_active == True)
+            .order_by(self.model.nome)
+        )
 
         if departamento:
             query = query.filter(self.model.departamento == departamento)
