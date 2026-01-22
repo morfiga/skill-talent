@@ -137,6 +137,45 @@ function EtapaFeedbackGestor({ colaborador, cicloAberto, onVoltar, isAdminView =
         return { fechadas, abertas }
     }
 
+    // Calcular média por categoria
+    const calcularMediaPorCategoria = useMemo(() => {
+        if (!perguntas) return {}
+
+        const mediasPorCategoria = {}
+        const categorias = Object.keys(perguntas.categorias || {})
+
+        categorias.forEach(categoriaCodigo => {
+            const perguntasFechadas = Object.entries(perguntas.perguntas_fechadas || {})
+                .filter(([codigo, info]) => info.categoria === categoriaCodigo)
+                .map(([codigo]) => codigo)
+
+            // Média da autoavaliação para esta categoria
+            const valoresAuto = perguntasFechadas
+                .map(codigo => autoavaliacao.respostasFechadas[codigo])
+                .filter(val => val !== undefined && val !== null && val > 0)
+
+            const mediaAuto = valoresAuto.length > 0
+                ? valoresAuto.reduce((sum, val) => sum + val, 0) / valoresAuto.length
+                : 0
+
+            // Média recebida para esta categoria
+            const valoresRecebidos = perguntasFechadas
+                .map(codigo => calcularMediaPerguntasFechadas[codigo])
+                .filter(val => val !== undefined && val !== null && val > 0)
+
+            const mediaRecebida = valoresRecebidos.length > 0
+                ? valoresRecebidos.reduce((sum, val) => sum + val, 0) / valoresRecebidos.length
+                : 0
+
+            mediasPorCategoria[categoriaCodigo] = {
+                autoavaliacao: mediaAuto,
+                mediaRecebida: mediaRecebida
+            }
+        })
+
+        return mediasPorCategoria
+    }, [perguntas, autoavaliacao.respostasFechadas, calcularMediaPerguntasFechadas])
+
     if (loading) {
         return <div>Carregando feedback...</div>
     }
@@ -175,16 +214,22 @@ function EtapaFeedbackGestor({ colaborador, cicloAberto, onVoltar, isAdminView =
                                             <div key={pergunta.codigo} className="grafico-barra-container">
                                                 <div className="grafico-label">{pergunta.texto}</div>
                                                 <div className="grafico-barras">
-                                                    <div
-                                                        className="grafico-barra autoavaliacao"
-                                                        style={{ height: `${(autoavaliacaoValor / 5) * 100}%` }}
-                                                        title={`Autoavaliação: ${autoavaliacaoValor || '-'}`}
-                                                    />
-                                                    <div
-                                                        className="grafico-barra media-recebida"
-                                                        style={{ height: `${(mediaRecebida / 5) * 100}%` }}
-                                                        title={`Média Recebida: ${mediaRecebida > 0 ? mediaRecebida.toFixed(1) : '-'}`}
-                                                    />
+                                                    <div className="grafico-barra-wrapper">
+                                                        <div
+                                                            className="grafico-barra autoavaliacao"
+                                                            style={{ height: `${(autoavaliacaoValor / 5) * 100}%` }}
+                                                            title={`Autoavaliação: ${autoavaliacaoValor || '-'}`}
+                                                        />
+                                                        <span className="grafico-barra-valor autoavaliacao">{autoavaliacaoValor || '-'}</span>
+                                                    </div>
+                                                    <div className="grafico-barra-wrapper">
+                                                        <div
+                                                            className="grafico-barra media-recebida"
+                                                            style={{ height: `${(mediaRecebida / 5) * 100}%` }}
+                                                            title={`Média Recebida: ${mediaRecebida > 0 ? mediaRecebida.toFixed(1) : '-'}`}
+                                                        />
+                                                        <span className="grafico-barra-valor media-recebida">{mediaRecebida > 0 ? mediaRecebida.toFixed(1) : '-'}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )
@@ -194,10 +239,20 @@ function EtapaFeedbackGestor({ colaborador, cicloAberto, onVoltar, isAdminView =
                                     <div className="legend-item">
                                         <div className="legend-color autoavaliacao"></div>
                                         <span>Autoavaliação</span>
+                                        <span className="media-categoria-valor autoavaliacao">
+                                            {calcularMediaPorCategoria[categoriaCodigo]?.autoavaliacao > 0
+                                                ? calcularMediaPorCategoria[categoriaCodigo].autoavaliacao.toFixed(1)
+                                                : '-'}
+                                        </span>
                                     </div>
                                     <div className="legend-item">
                                         <div className="legend-color media-recebida"></div>
                                         <span>Média Recebida</span>
+                                        <span className="media-categoria-valor media-recebida">
+                                            {calcularMediaPorCategoria[categoriaCodigo]?.mediaRecebida > 0
+                                                ? calcularMediaPorCategoria[categoriaCodigo].mediaRecebida.toFixed(1)
+                                                : '-'}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

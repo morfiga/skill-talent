@@ -282,6 +282,7 @@ function FeedbackAdmin() {
               onLiberar={handleLiberar}
               onRevogar={handleRevogar}
               onVisualizarFeedback={handleVisualizarFeedback}
+              colaboradorId={colaboradorSelecionado?.id}
               loading={loading}
             />
           )}

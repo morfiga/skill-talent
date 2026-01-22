@@ -260,23 +260,32 @@ function EtapaFeedback({ colaborador, cicloAberto, onVoltar, isAdminView = false
                   <div key={eixo.id} className="grafico-barra-container">
                     <div className="grafico-label">{eixo.nome}</div>
                     <div className="grafico-barras">
-                      <div
-                        className="grafico-barra autoavaliacao"
-                        style={{ height: `${(nivelAuto / 5) * 100}%` }}
-                        title={`Autoavaliação: ${nivelAuto || '-'}`}
-                      />
+                      <div className="grafico-barra-wrapper">
+                        <div
+                          className="grafico-barra autoavaliacao"
+                          style={{ height: `${(nivelAuto / 5) * 100}%` }}
+                          title={`Autoavaliação: ${nivelAuto || '-'}`}
+                        />
+                        <span className="grafico-barra-valor autoavaliacao">{nivelAuto || '-'}</span>
+                      </div>
                       {feedbackLiberado && (
                         <>
-                          <div
-                            className="grafico-barra gestor"
-                            style={{ height: `${(nivelGestor / 5) * 100}%` }}
-                            title={`Gestor: ${nivelGestor || '-'}`}
-                          />
-                          <div
-                            className="grafico-barra media-pares"
-                            style={{ height: `${(nivelMediaPares / 5) * 100}%` }}
-                            title={`Média Pares: ${nivelMediaPares > 0 ? nivelMediaPares.toFixed(1) : '-'}`}
-                          />
+                          <div className="grafico-barra-wrapper">
+                            <div
+                              className="grafico-barra gestor"
+                              style={{ height: `${(nivelGestor / 5) * 100}%` }}
+                              title={`Gestor: ${nivelGestor || '-'}`}
+                            />
+                            <span className="grafico-barra-valor gestor">{nivelGestor || '-'}</span>
+                          </div>
+                          <div className="grafico-barra-wrapper">
+                            <div
+                              className="grafico-barra media-pares"
+                              style={{ height: `${(nivelMediaPares / 5) * 100}%` }}
+                              title={`Média Pares: ${nivelMediaPares > 0 ? nivelMediaPares.toFixed(1) : '-'}`}
+                            />
+                            <span className="grafico-barra-valor media-pares">{nivelMediaPares > 0 ? nivelMediaPares.toFixed(1) : '-'}</span>
+                          </div>
                         </>
                       )}
                     </div>
