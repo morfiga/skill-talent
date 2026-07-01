@@ -121,6 +121,14 @@ function App() {
           }
         />
         <Route
+          path="/admin/:secao"
+          element={
+            <AdminRoute>
+              <Admin onLogout={handleLogout} />
+            </AdminRoute>
+          }
+        />
+        <Route
           path="/"
           element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />}
         />

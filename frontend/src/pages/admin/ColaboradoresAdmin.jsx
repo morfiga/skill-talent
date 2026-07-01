@@ -132,6 +132,7 @@ function ColaboradoresAdmin() {
 
       {mostrarFormulario && (
         <FormularioColaborador
+          key={colaboradorEditando?.id ?? 'novo'}
           colaborador={colaboradorEditando}
           onSalvar={handleSalvar}
           onCancelar={handleCancelar}

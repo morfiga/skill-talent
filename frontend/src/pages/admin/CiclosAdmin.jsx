@@ -137,6 +137,7 @@ function CiclosAdmin() {
 
       {mostrarFormulario && (
         <FormularioCiclo
+          key={cicloEditando?.id ?? 'novo'}
           ciclo={cicloEditando}
           onSalvar={handleSalvar}
           onCancelar={handleCancelar}

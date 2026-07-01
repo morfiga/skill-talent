@@ -1,8 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { isNivelCarreiraValido, NIVEIS_CARREIRA_OPCOES } from '../../../constants/niveisCarreira'
 import { PERFIL_COLABORADOR, PERFIS_OPCOES } from '../../../constants/perfis'
 
 function FormularioColaborador({ colaborador, onSalvar, onCancelar, departamentos, colaboradores = [] }) {
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
+
   const nivelOriginal = colaborador?.nivel_carreira || ''
   const [nivelInvalidoAnterior] = useState(
     nivelOriginal && !isNivelCarreiraValido(nivelOriginal) ? nivelOriginal : null
@@ -36,7 +42,7 @@ function FormularioColaborador({ colaborador, onSalvar, onCancelar, departamento
   }
 
   return (
-    <div className="formulario-container">
+    <div className="formulario-container" ref={containerRef}>
       <h3 className="formulario-title">
         {colaborador ? 'Editar Colaborador' : 'Novo Colaborador'}
       </h3>

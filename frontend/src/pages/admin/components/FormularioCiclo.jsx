@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 function FormularioCiclo({ ciclo, onSalvar, onCancelar }) {
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
+
   const [formulario, setFormulario] = useState({
     nome: ciclo?.nome || '',
     status: ciclo?.status || 'aberto',
@@ -21,7 +27,7 @@ function FormularioCiclo({ ciclo, onSalvar, onCancelar }) {
   }
 
   return (
-    <div className="formulario-container">
+    <div className="formulario-container" ref={containerRef}>
       <h3 className="formulario-title">
         {ciclo ? 'Editar Ciclo' : 'Novo Ciclo'}
       </h3>

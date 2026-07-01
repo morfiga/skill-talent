@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import AcompanhamentoAdmin from './AcompanhamentoAdmin'
 import './Admin.css'
@@ -12,11 +11,25 @@ import ColaboradoresAdmin from './ColaboradoresAdmin'
 import FeedbackAdmin from './FeedbackAdmin'
 import OrganogramaAdmin from './OrganogramaAdmin'
 
+const SECOES = [
+  'acompanhamento',
+  'aprovacao_pares',
+  'aprovacao_entregas',
+  'aprovacao_outstanding',
+  'calibracao',
+  'feedbacks',
+  'colaboradores',
+  'organograma',
+  'ciclos',
+]
+
 function Admin({ onLogout }) {
   const navigate = useNavigate()
+  const { secao } = useParams()
   const { colaborador, user } = useAuth()
   const isAdmin = user?.is_admin || colaborador?.is_admin || false
-  const [abaAtiva, setAbaAtiva] = useState('acompanhamento')
+  const abaAtiva = SECOES.includes(secao) ? secao : 'acompanhamento'
+  const irParaSecao = (novaSecao) => navigate(`/admin/${novaSecao}`)
 
   // Redirecionar se não for admin
   if (user !== null && colaborador !== null && !isAdmin) {
@@ -62,37 +75,37 @@ function Admin({ onLogout }) {
             <nav className="admin-nav">
               <button
                 className={`admin-nav-item ${abaAtiva === 'acompanhamento' ? 'active' : ''}`}
-                onClick={() => setAbaAtiva('acompanhamento')}
+                onClick={() => irParaSecao('acompanhamento')}
               >
                 📈 Acompanhamento
               </button>
               <button
                 className={`admin-nav-item ${abaAtiva === 'aprovacao_pares' ? 'active' : ''}`}
-                onClick={() => setAbaAtiva('aprovacao_pares')}
+                onClick={() => irParaSecao('aprovacao_pares')}
               >
                 ✅ Aprovação de Pares
               </button>
               <button
                 className={`admin-nav-item ${abaAtiva === 'aprovacao_entregas' ? 'active' : ''}`}
-                onClick={() => setAbaAtiva('aprovacao_entregas')}
+                onClick={() => irParaSecao('aprovacao_entregas')}
               >
                 💎 Aprovação de Entregas de Valor
               </button>
               <button
                 className={`admin-nav-item ${abaAtiva === 'aprovacao_outstanding' ? 'active' : ''}`}
-                onClick={() => setAbaAtiva('aprovacao_outstanding')}
+                onClick={() => irParaSecao('aprovacao_outstanding')}
               >
                 🚀 Aprovação de Outstanding
               </button>
               <button
                 className={`admin-nav-item ${abaAtiva === 'calibracao' ? 'active' : ''}`}
-                onClick={() => setAbaAtiva('calibracao')}
+                onClick={() => irParaSecao('calibracao')}
               >
                 📋 Calibração
               </button>
               <button
                 className={`admin-nav-item ${abaAtiva === 'feedbacks' ? 'active' : ''}`}
-                onClick={() => setAbaAtiva('feedbacks')}
+                onClick={() => irParaSecao('feedbacks')}
               >
                 💬 Feedbacks
               </button>
@@ -102,19 +115,19 @@ function Admin({ onLogout }) {
             <nav className="admin-nav">
               <button
                 className={`admin-nav-item ${abaAtiva === 'colaboradores' ? 'active' : ''}`}
-                onClick={() => setAbaAtiva('colaboradores')}
+                onClick={() => irParaSecao('colaboradores')}
               >
                 👥 Colaboradores
               </button>
               <button
                 className={`admin-nav-item ${abaAtiva === 'organograma' ? 'active' : ''}`}
-                onClick={() => setAbaAtiva('organograma')}
+                onClick={() => irParaSecao('organograma')}
               >
                 🌳 Organograma
               </button>
               <button
                 className={`admin-nav-item ${abaAtiva === 'ciclos' ? 'active' : ''}`}
-                onClick={() => setAbaAtiva('ciclos')}
+                onClick={() => irParaSecao('ciclos')}
               >
                 📊 Ciclos
               </button>
