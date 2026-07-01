@@ -34,7 +34,7 @@ function DetalhesAcompanhamentoColaborador({ colaborador, onVoltar }) {
                                 <span className="progresso-badge completo">✓ Completo</span>
                             ) : (
                                 <span className="progresso-badge pendente">
-                                    {colaborador.qtd_pares_escolhidos || 0}/4
+                                    {colaborador.qtd_pares_escolhidos || 0}/2
                                 </span>
                             )}
                         </div>

@@ -44,7 +44,7 @@ PERFIS_VALIDOS = [PERFIL_COLABORADOR, PERFIL_LIDER, PERFIL_GESTOR]
 PERFIL_PATTERN = r"^(colaborador|lider|gestor)$"
 
 # Número exato de pares que devem ser selecionados
-NUMERO_PARES_OBRIGATORIO = 4
+NUMERO_PARES_OBRIGATORIO = 2
 
 # Limites de tamanho de campos
 CAMPO_NOME_MIN = 2
@@ -232,13 +232,13 @@ def validate_pares_existem(pares_encontrados: int, pares_solicitados: int) -> No
 
 def validate_numero_pares(pares_ids: List[int]) -> None:
     """
-    Valida se o número de pares é exatamente 4.
+    Valida se o número de pares é exatamente NUMERO_PARES_OBRIGATORIO.
 
     Args:
         pares_ids: Lista de IDs dos pares
 
     Raises:
-        ValidationException: Se não forem exatamente 4 pares
+        ValidationException: Se não forem exatamente NUMERO_PARES_OBRIGATORIO pares
     """
     if len(pares_ids) != NUMERO_PARES_OBRIGATORIO:
         raise ValidationException(

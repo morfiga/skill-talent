@@ -46,7 +46,7 @@ function TabelaAcompanhamentoColaboradores({ colaboradores, onVerDetalhes }) {
                     </span>
                   ) : (
                     <span className="progresso-badge pendente">
-                      {colab.qtd_pares_escolhidos}/4
+                      {colab.qtd_pares_escolhidos}/2
                     </span>
                   )}
                 </div>

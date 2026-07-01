@@ -5,6 +5,8 @@ import { ciclosAvaliacaoAPI, colaboradoresAPI } from '../../services/api'
 import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 
+const NUMERO_PARES = 2
+
 function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalvos, onVoltar }) {
   const { success, error: showError, warning, info } = useToast()
   const [colaboradores, setColaboradores] = useState([])
@@ -67,7 +69,7 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
       if (jaSelecionado) {
         return prev.filter(p => p.id !== colaborador.id)
       } else {
-        if (prev.length < 4) {
+        if (prev.length < NUMERO_PARES) {
           return [...prev, colaborador]
         }
         return prev
@@ -82,7 +84,7 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
       return
     }
 
-    if (paresSelecionados.length === 4 && cicloAberto) {
+    if (paresSelecionados.length === NUMERO_PARES && cicloAberto) {
       try {
         setSalvando(true)
         const paresIds = paresSelecionados.map(p => p.id)
@@ -115,8 +117,8 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
       }
     } else if (!cicloAberto) {
       warning('Nenhum ciclo aberto encontrado. Entre em contato com o administrador.')
-    } else if (paresSelecionados.length !== 4) {
-      warning('É necessário selecionar exatamente 4 pares para salvar.')
+    } else if (paresSelecionados.length !== NUMERO_PARES) {
+      warning(`É necessário selecionar exatamente ${NUMERO_PARES} pares para salvar.`)
     }
   }
 
@@ -131,7 +133,7 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
         <p className="ciclo-step-description">
           {isAprovacaoPares
             ? 'Os pares estão aguardando aprovação do gestor. Não é possível alterá-los neste momento.'
-            : 'Selecione 4 colaboradores para avaliar seu desempenho'}
+            : `Selecione ${NUMERO_PARES} colaboradores para avaliar seu desempenho`}
         </p>
         {isAprovacaoPares && (
           <div style={{
@@ -146,8 +148,8 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
           </div>
         )}
         <div className="selecao-counter">
-          <span className={`counter-text ${paresSelecionados.length === 4 ? 'complete' : ''}`}>
-            {paresSelecionados.length} de 4 selecionados
+          <span className={`counter-text ${paresSelecionados.length === NUMERO_PARES ? 'complete' : ''}`}>
+            {paresSelecionados.length} de {NUMERO_PARES} selecionados
           </span>
         </div>
       </div>
@@ -188,7 +190,7 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
         <div className="colaboradores-grid">
           {colaboradores.filter(c => c.id !== colaboradorId).map((colaborador) => {
             const isSelecionado = paresSelecionados.find(p => p.id === colaborador.id)
-            const isMaximo = paresSelecionados.length === 4 && !isSelecionado
+            const isMaximo = paresSelecionados.length === NUMERO_PARES && !isSelecionado
 
             return (
               <div
@@ -224,9 +226,9 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
           </button>
         )}
         <button
-          className={`continuar-button ${paresSelecionados.length === 4 && !isAprovacaoPares ? 'enabled' : 'disabled'}`}
+          className={`continuar-button ${paresSelecionados.length === NUMERO_PARES && !isAprovacaoPares ? 'enabled' : 'disabled'}`}
           onClick={handleSalvar}
-          disabled={paresSelecionados.length !== 4 || salvando || isAprovacaoPares}
+          disabled={paresSelecionados.length !== NUMERO_PARES || salvando || isAprovacaoPares}
         >
           {salvando ? 'Salvando...' : isAprovacaoPares ? 'Aguardando Aprovação' : 'Salvar'}
         </button>

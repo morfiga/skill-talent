@@ -183,7 +183,7 @@ function CicloAvaliacao({ onLogout }) {
       {
         numero: 1,
         titulo: 'Escolha de Pares',
-        descricao: 'Selecione 4 colaboradores',
+        descricao: 'Selecione 2 colaboradores',
         icone: '👥'
       },
       {

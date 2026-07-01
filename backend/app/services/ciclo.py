@@ -13,6 +13,7 @@ from app.core.exceptions import (
     NotFoundException,
     ValidationException,
 )
+from app.core.validators import NUMERO_PARES_OBRIGATORIO
 from app.models.avaliacao import Avaliacao, TipoAvaliacao
 from app.models.avaliacao_gestor import AvaliacaoGestor
 from app.models.ciclo import Ciclo, EtapaCiclo, StatusCiclo
@@ -205,7 +206,7 @@ class CicloService(BaseService[Ciclo]):
                     or 0
                 )
 
-            escolheu_pares = qtd_pares_escolhidos >= 4
+            escolheu_pares = qtd_pares_escolhidos >= NUMERO_PARES_OBRIGATORIO
 
             # 2. Verificar avaliações de pares que deve fazer
             # (quantos outros colaboradores o escolheram como par)

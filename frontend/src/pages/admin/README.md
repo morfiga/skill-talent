@@ -53,7 +53,7 @@ Gerencia ciclos de avaliação:
 Aprovação de pares escolhidos:
 - Mostra liderados do ciclo em etapa de aprovação
 - Permite editar os pares escolhidos por cada liderado
-- Seleção visual de 4 pares obrigatórios
+- Seleção visual de 2 pares obrigatórios
 
 ### CalibracaoAdmin.jsx
 Visualização de avaliações para calibração:
@@ -68,7 +68,7 @@ Acompanhamento do progresso do ciclo:
 - Seletor de ciclo ativo
 - **Separado em duas tabelas**: Gestores e Colaboradores
 - Status de cada colaborador:
-  - Escolha de pares (4/4)
+  - Escolha de pares (2/2)
   - Avaliações de pares (realizadas/total)
   - Autoavaliação (feita/pendente)
   - Avaliação do gestor (feita/pendente)

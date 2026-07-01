@@ -14,7 +14,7 @@ Orientações para agentes de IA (Claude Code, Cursor, Copilot, …) neste repos
 |--------|-----------|
 | **Colaboradores** | Cadastro, hierarquia (gestor/liderados), níveis de carreira, permissões de admin |
 | **Ciclos** | Ciclos de avaliação com etapas (escolha de pares, autoavaliação, avaliação de pares, feedback, etc.) |
-| **Avaliações** | Autoavaliação, avaliação entre pares (4 pares obrigatórios), avaliação do gestor |
+| **Avaliações** | Autoavaliação, avaliação entre pares (2 pares obrigatórios), avaliação do gestor |
 | **Entregas Outstanding** | Registro e aprovação de entregas excepcionais |
 | **Registros de Valor** | Documentação de ações que agregam valor, com fluxo de aprovação |
 | **Calibração / Acompanhamento** | Painel admin para acompanhar progresso e calibrar notas |
