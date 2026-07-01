@@ -316,6 +316,7 @@ class CicloService(BaseService[Ciclo]):
                     cargo=colab.cargo,
                     departamento=colab.departamento,
                     avatar=colab.avatar,
+                    perfil=colab.perfil,
                     escolheu_pares=escolheu_pares,
                     qtd_pares_escolhidos=qtd_pares_escolhidos,
                     avaliacoes_pares_total=avaliacoes_pares_total,

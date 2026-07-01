@@ -21,6 +21,7 @@ NIVEIS_ESPERADOS_POR_CARREIRA: Dict[str, List[int]] = {
     "S3": [5, 3, 5, 4],
     "ES1": [5, 4, 5, 4],
     "ES2": [5, 4, 5, 4],
+    "Head": [5, 5, 5, 5],
 }
 
 

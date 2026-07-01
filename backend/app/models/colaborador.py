@@ -15,8 +15,11 @@ class Colaborador(Base):
     avatar = Column(String(500), nullable=True)  # Emoji ou URL
     nivel_carreira = Column(
         String(10)
-    )  # E, J1, J2, J3, P1, P2, P3, S1, S2, S3, ES1, ES2
+    )  # E, J1, J2, J3, P1, P2, P3, S1, S2, S3, ES1, ES2, Head
     gestor_id = Column(Integer, ForeignKey("colaboradores.id"), nullable=True)
+    perfil = Column(
+        String(20), nullable=False, server_default="colaborador"
+    )  # colaborador, lider, gestor
     google_id = Column(String(255), unique=True, index=True, nullable=True)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)

@@ -6,6 +6,7 @@ from app.core.exceptions import (
     ForbiddenException,
     NotFoundException,
 )
+from app.core.validators import PERFIL_GESTOR, PERFIL_LIDER
 from app.models.avaliacao_gestor import AvaliacaoGestor
 from app.models.ciclo import EtapaCiclo
 from app.models.colaborador import Colaborador
@@ -57,15 +58,22 @@ class AvaliacaoGestorService(BaseService[AvaliacaoGestor]):
         self, avaliacao: AvaliacaoGestorCreate, current_colaborador: Colaborador
     ) -> AvaliacaoGestorResponse:
         try:
-            # Determinar o gestor_id: se não tem gestor, faz autoavaliação (avaliando a si mesmo)
-            if not current_colaborador.gestor_id:
-                # Autoavaliação: gestor avaliando a si mesmo
+            # Determinar o gestor_id:
+            # - Líderes e gestores fazem autoavaliação (avaliam a si mesmos), mesmo tendo gestor.
+            # - Quem não tem gestor também faz autoavaliação (topo da hierarquia).
+            # - Demais colaboradores avaliam seu gestor/líder direto.
+            eh_lider_ou_gestor = current_colaborador.perfil in (
+                PERFIL_LIDER,
+                PERFIL_GESTOR,
+            )
+            if eh_lider_ou_gestor or not current_colaborador.gestor_id:
+                # Autoavaliação: líder/gestor avaliando a si mesmo
                 gestor_id = current_colaborador.id
                 logger.info(
                     f"Autoavaliação de gestor. Colaborador {current_colaborador.id} avaliando a si mesmo"
                 )
             else:
-                # Avaliação normal: colaborador avaliando seu gestor
+                # Avaliação normal: colaborador avaliando seu gestor/líder direto
                 gestor_id = current_colaborador.gestor_id
 
             # Validar que o gestor existe

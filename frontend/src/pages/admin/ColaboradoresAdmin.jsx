@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { sanitizeNivelCarreira } from '../../constants/niveisCarreira'
+import { sanitizePerfil } from '../../constants/perfis'
 import { useToast } from '../../contexts/ToastContext'
 import { colaboradoresAPI } from '../../services/api'
 import { handleApiError } from '../../utils/errorHandler'
@@ -46,7 +48,9 @@ function ColaboradoresAdmin() {
           email: formulario.email.trim(),
           cargo: formulario.cargo.trim() || null,
           departamento: formulario.departamento.trim() || null,
-          nivel_carreira: formulario.nivel_carreira.trim() || null,
+          nivel_carreira: sanitizeNivelCarreira(formulario.nivel_carreira),
+          perfil: sanitizePerfil(formulario.perfil),
+          gestor_id: formulario.gestor_id ? Number(formulario.gestor_id) : null,
           avatar: formulario.avatar.trim() || null,
           is_admin: formulario.is_admin || false
         })
@@ -57,7 +61,9 @@ function ColaboradoresAdmin() {
           email: formulario.email.trim(),
           cargo: formulario.cargo.trim() || null,
           departamento: formulario.departamento.trim() || null,
-          nivel_carreira: formulario.nivel_carreira.trim() || null,
+          nivel_carreira: sanitizeNivelCarreira(formulario.nivel_carreira),
+          perfil: sanitizePerfil(formulario.perfil),
+          gestor_id: formulario.gestor_id ? Number(formulario.gestor_id) : null,
           avatar: formulario.avatar.trim() || null
         })
         success('Colaborador criado com sucesso!')
@@ -130,6 +136,7 @@ function ColaboradoresAdmin() {
           onSalvar={handleSalvar}
           onCancelar={handleCancelar}
           departamentos={departamentos}
+          colaboradores={colaboradores}
         />
       )}
 

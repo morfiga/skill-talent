@@ -1,15 +1,28 @@
 import { useState } from 'react'
+import { isNivelCarreiraValido, NIVEIS_CARREIRA_OPCOES } from '../../../constants/niveisCarreira'
+import { PERFIL_COLABORADOR, PERFIS_OPCOES } from '../../../constants/perfis'
 
-function FormularioColaborador({ colaborador, onSalvar, onCancelar, departamentos }) {
+function FormularioColaborador({ colaborador, onSalvar, onCancelar, departamentos, colaboradores = [] }) {
+  const nivelOriginal = colaborador?.nivel_carreira || ''
+  const [nivelInvalidoAnterior] = useState(
+    nivelOriginal && !isNivelCarreiraValido(nivelOriginal) ? nivelOriginal : null
+  )
+
   const [formulario, setFormulario] = useState({
     nome: colaborador?.nome || '',
     email: colaborador?.email || '',
     cargo: colaborador?.cargo || '',
     departamento: colaborador?.departamento || '',
-    nivel_carreira: colaborador?.nivel_carreira || '',
+    nivel_carreira: isNivelCarreiraValido(nivelOriginal) ? nivelOriginal : '',
+    perfil: colaborador?.perfil || PERFIL_COLABORADOR,
+    gestor_id: colaborador?.gestor_id ? String(colaborador.gestor_id) : '',
     avatar: colaborador?.avatar || '',
     is_admin: colaborador?.is_admin || false
   })
+
+  const gestoresDisponiveis = colaboradores
+    .filter(c => c.id !== colaborador?.id)
+    .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''))
 
   const handleInputChange = (campo, valor) => {
     setFormulario(prev => ({
@@ -96,21 +109,52 @@ function FormularioColaborador({ colaborador, onSalvar, onCancelar, departamento
           onChange={(e) => handleInputChange('nivel_carreira', e.target.value)}
         >
           <option value="">Selecione um nível</option>
-          <option value="E">Estagiário</option>
-          <option value="J1">Junior 1</option>
-          <option value="J2">Junior 2</option>
-          <option value="J3">Junior 3</option>
-          <option value="P1">Pleno 1</option>
-          <option value="P2">Pleno 2</option>
-          <option value="P3">Pleno 3</option>
-          <option value="S1">Senior 1</option>
-          <option value="S2">Senior 2</option>
-          <option value="S3">Senior 3</option>
-          <option value="ES1">Especialista 1</option>
-          <option value="ES2">Especialista 2</option>
+          {NIVEIS_CARREIRA_OPCOES.map(({ value, label }) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
         </select>
+        {nivelInvalidoAnterior && (
+          <p className="campo-descricao" style={{ marginTop: '4px', fontSize: '0.85rem', color: '#c62828' }}>
+            O valor anterior &quot;{nivelInvalidoAnterior}&quot; não é válido. Selecione um nível da lista.
+          </p>
+        )}
         <p className="campo-descricao" style={{ marginTop: '4px', fontSize: '0.85rem', color: '#666' }}>
           Nível hierárquico ou senioridade do colaborador na empresa.
+        </p>
+      </div>
+
+      <div className="formulario-campo">
+        <label className="campo-label">Perfil</label>
+        <select
+          className="campo-input"
+          value={formulario.perfil}
+          onChange={(e) => handleInputChange('perfil', e.target.value)}
+        >
+          {PERFIS_OPCOES.map(({ value, label }) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </select>
+        <p className="campo-descricao" style={{ marginTop: '4px', fontSize: '0.85rem', color: '#666' }}>
+          Papel na hierarquia. Gestores participam da calibração; líderes não.
+        </p>
+      </div>
+
+      <div className="formulario-campo">
+        <label className="campo-label">Gestor / Líder direto</label>
+        <select
+          className="campo-input"
+          value={formulario.gestor_id}
+          onChange={(e) => handleInputChange('gestor_id', e.target.value)}
+        >
+          <option value="">Sem gestor (topo da hierarquia)</option>
+          {gestoresDisponiveis.map((c) => (
+            <option key={c.id} value={String(c.id)}>
+              {c.nome}{c.cargo ? ` — ${c.cargo}` : ''}
+            </option>
+          ))}
+        </select>
+        <p className="campo-descricao" style={{ marginTop: '4px', fontSize: '0.85rem', color: '#666' }}>
+          A quem este colaborador reporta diretamente.
         </p>
       </div>
 

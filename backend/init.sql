@@ -38,6 +38,7 @@ CREATE TABLE `colaboradores` (
   `avatar` varchar(10) DEFAULT NULL,
   `nivel_carreira` varchar(10) DEFAULT NULL,
   `gestor_id` int DEFAULT NULL,
+  `perfil` varchar(20) NOT NULL DEFAULT 'colaborador',
   `is_active` tinyint(1) DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

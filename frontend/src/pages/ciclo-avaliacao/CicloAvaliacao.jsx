@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '../../contexts/ToastContext'
 import { useAuth } from '../../hooks/useAuth'
-import { ciclosAPI, ciclosAvaliacaoAPI, colaboradoresAPI } from '../../services/api'
+import { ciclosAPI, ciclosAvaliacaoAPI } from '../../services/api'
+import { isLiderOuGestor } from '../../constants/perfis'
 import { handleApiError } from '../../utils/errorHandler'
 import '../CicloAvaliacao.css'
 import '../Page.css'
@@ -25,7 +26,8 @@ function CicloAvaliacao({ onLogout }) {
   const [cicloAtivo, setCicloAtivo] = useState(null)
   const [parSendoAvaliado, setParSendoAvaliado] = useState(null)
   const [etapaAtual, setEtapaAtual] = useState(1)
-  const [isGestor, setIsGestor] = useState(false)
+  // Líderes e gestores usam o fluxo de líder (autoavaliação + avaliar liderados)
+  const isGestor = isLiderOuGestor(colaborador?.perfil)
 
   // Função para verificar se etapa está liberada
   const etapaEstaLiberada = useCallback((etapaNum) => {
@@ -88,11 +90,10 @@ function CicloAvaliacao({ onLogout }) {
   useEffect(() => {
     if (colaboradorId) {
       loadInitialData()
-      checkIsGestor()
     }
   }, [colaboradorId])
 
-  // Redirecionar gestores para o componente específico
+  // Redirecionar líderes e gestores para o fluxo específico
   useEffect(() => {
     if (isGestor && cicloAberto) {
       navigate('/ciclo-avaliacao-gestor/1')
@@ -104,20 +105,6 @@ function CicloAvaliacao({ onLogout }) {
       loadCicloAtivo()
     }
   }, [cicloAberto, colaboradorId])
-
-  const checkIsGestor = async () => {
-    if (!colaboradorId) {
-      return
-    }
-    try {
-      const response = await colaboradoresAPI.getLiderados(colaboradorId)
-      const temLiderados = response.colaboradores && response.colaboradores.length > 0
-      setIsGestor(temLiderados)
-    } catch (error) {
-      handleApiError(error, 'verificar se é gestor', '/colaboradores/{id}/liderados', null)
-      setIsGestor(false)
-    }
-  }
 
   const loadInitialData = async () => {
     try {

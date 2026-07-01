@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PERFIL_GESTOR } from '../../constants/perfis'
 import { useToast } from '../../contexts/ToastContext'
 import { avaliacoesAPI, avaliacoesGestorAPI, ciclosAPI, colaboradoresAPI, eixosAvaliacaoAPI } from '../../services/api'
 import DetalhesCalibracao from './components/DetalhesCalibracao'
@@ -182,10 +183,9 @@ function CalibracaoAdmin() {
     col.departamento?.toLowerCase().includes(filtro.toLowerCase())
   )
 
-  // Separar gestores e colaboradores
-  const gestoresIds = new Set(colaboradores.map(c => c.gestor_id).filter(Boolean))
-  const gestoresFiltrados = colaboradoresFiltrados.filter(c => gestoresIds.has(c.id))
-  const colaboradoresSemGestorFiltrados = colaboradoresFiltrados.filter(c => !gestoresIds.has(c.id))
+  // Separar por perfil: gestores participam da calibração; líderes e colaboradores não.
+  const gestoresFiltrados = colaboradoresFiltrados.filter(c => c.perfil === PERFIL_GESTOR)
+  const colaboradoresSemGestorFiltrados = colaboradoresFiltrados.filter(c => c.perfil !== PERFIL_GESTOR)
 
   return (
     <>

@@ -166,6 +166,7 @@ class ColaboradorAcompanhamentoResponse(BaseModel):
     cargo: Optional[str] = None
     departamento: Optional[str] = None
     avatar: Optional[str] = None
+    perfil: Optional[str] = None  # colaborador, lider, gestor
 
     # Status das etapas
     escolheu_pares: bool

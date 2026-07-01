@@ -28,10 +28,20 @@ NIVEIS_CARREIRA_VALIDOS = [
     "S3",
     "ES1",
     "ES2",
+    "Head",
 ]
 
 # Pattern regex para nível de carreira
-NIVEL_CARREIRA_PATTERN = r"^(E|J[1-3]|P[1-3]|S[1-3]|ES[1-2])$"
+NIVEL_CARREIRA_PATTERN = r"^(E|J[1-3]|P[1-3]|S[1-3]|ES[1-2]|Head)$"
+
+# Perfis (papéis) válidos na hierarquia gestor -> lider -> liderados
+PERFIL_COLABORADOR = "colaborador"
+PERFIL_LIDER = "lider"
+PERFIL_GESTOR = "gestor"
+PERFIS_VALIDOS = [PERFIL_COLABORADOR, PERFIL_LIDER, PERFIL_GESTOR]
+
+# Pattern regex para perfil
+PERFIL_PATTERN = r"^(colaborador|lider|gestor)$"
 
 # Número exato de pares que devem ser selecionados
 NUMERO_PARES_OBRIGATORIO = 4
@@ -70,6 +80,29 @@ def validate_nivel_carreira(nivel: Optional[str]) -> Optional[str]:
             f"Nível de carreira inválido. Valores aceitos: {', '.join(NIVEIS_CARREIRA_VALIDOS)}"
         )
     return nivel
+
+
+def validate_perfil(perfil: Optional[str]) -> Optional[str]:
+    """
+    Valida se o perfil (papel na hierarquia) é válido.
+
+    Args:
+        perfil: Perfil a ser validado
+
+    Returns:
+        O perfil validado ou None se não fornecido
+
+    Raises:
+        ValueError: Se o perfil não for válido
+    """
+    if perfil is None:
+        return None
+
+    if perfil not in PERFIS_VALIDOS:
+        raise ValueError(
+            f"Perfil inválido. Valores aceitos: {', '.join(PERFIS_VALIDOS)}"
+        )
+    return perfil
 
 
 def validate_pares_ids(pares_ids: List[int]) -> List[int]:
