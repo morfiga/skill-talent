@@ -10,6 +10,7 @@ import CalibracaoAdmin from './CalibracaoAdmin'
 import CiclosAdmin from './CiclosAdmin'
 import ColaboradoresAdmin from './ColaboradoresAdmin'
 import FeedbackAdmin from './FeedbackAdmin'
+import OrganogramaAdmin from './OrganogramaAdmin'
 
 function Admin({ onLogout }) {
   const navigate = useNavigate()
@@ -106,6 +107,12 @@ function Admin({ onLogout }) {
                 👥 Colaboradores
               </button>
               <button
+                className={`admin-nav-item ${abaAtiva === 'organograma' ? 'active' : ''}`}
+                onClick={() => setAbaAtiva('organograma')}
+              >
+                🌳 Organograma
+              </button>
+              <button
                 className={`admin-nav-item ${abaAtiva === 'ciclos' ? 'active' : ''}`}
                 onClick={() => setAbaAtiva('ciclos')}
               >
@@ -116,6 +123,7 @@ function Admin({ onLogout }) {
 
           <div className="admin-panel">
             {abaAtiva === 'colaboradores' && <ColaboradoresAdmin />}
+            {abaAtiva === 'organograma' && <OrganogramaAdmin />}
             {abaAtiva === 'ciclos' && <CiclosAdmin />}
             {abaAtiva === 'aprovacao_pares' && <AprovacaoParesAdmin />}
             {abaAtiva === 'aprovacao_entregas' && <AprovacaoEntregasAdmin />}
