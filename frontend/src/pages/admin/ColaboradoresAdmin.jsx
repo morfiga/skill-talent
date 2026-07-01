@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react'
+import Carregando from '../../components/Carregando'
+import EstadoVazio from '../../components/EstadoVazio'
+import MensagemErro from '../../components/MensagemErro'
 import { sanitizeNivelCarreira } from '../../constants/niveisCarreira'
 import { sanitizePerfil } from '../../constants/perfis'
 import { useToast } from '../../contexts/ToastContext'
@@ -152,23 +155,10 @@ function ColaboradoresAdmin() {
       </div>
 
       <div className="colaboradores-lista">
-        {error && (
-          <div className="error-message" style={{
-            padding: '12px',
-            background: '#ffebee',
-            color: '#c62828',
-            borderRadius: '8px',
-            marginBottom: '20px'
-          }}>
-            {error}
-          </div>
-        )}
+        <MensagemErro mensagem={error} />
 
         {loading ? (
-          <div className="empty-state">
-            <div className="empty-icon">⏳</div>
-            <p className="empty-text">Carregando colaboradores...</p>
-          </div>
+          <Carregando texto="Carregando colaboradores..." />
         ) : (
           <>
             <h3 className="lista-title">
@@ -178,12 +168,10 @@ function ColaboradoresAdmin() {
             </h3>
 
             {colaboradoresFiltrados.length === 0 && !mostrarFormulario && (
-              <div className="empty-state">
-                <div className="empty-icon">👥</div>
-                <p className="empty-text">
-                  {filtro ? 'Nenhum colaborador encontrado com o filtro aplicado.' : 'Nenhum colaborador cadastrado.'}
-                </p>
-              </div>
+              <EstadoVazio
+                icone="👥"
+                texto={filtro ? 'Nenhum colaborador encontrado com o filtro aplicado.' : 'Nenhum colaborador cadastrado.'}
+              />
             )}
 
             <TabelaColaboradores

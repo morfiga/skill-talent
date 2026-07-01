@@ -1,3 +1,37 @@
+:root {
+  /* Marca e status (paleta atual do app) */
+  --cor-primaria: #50e550;
+  --cor-primaria-escura: #3cc93c;
+  --cor-sucesso: #4caf50;
+  --cor-aviso: #ffc107;
+  --cor-erro: #ef4444;
+  --cor-erro-bg: #ffebee;
+  --cor-erro-texto: #c62828;
+
+  /* Texto */
+  --texto-forte: #1f2937;
+  --texto: #374151;
+  --texto-suave: #6b7280;
+  --texto-fraco: #9ca3af;
+
+  /* Superfícies e bordas */
+  --superficie: #ffffff;
+  --superficie-suave: #f8f9fa;
+  --borda: #e5e7eb;
+
+  /* Perfis (hierarquia gestor / líder / colaborador) */
+  --perfil-gestor: #6366f1;
+  --perfil-lider: #0d9488;
+  --perfil-colaborador: #94a3b8;
+
+  /* Raio, sombra */
+  --raio-sm: 6px;
+  --raio: 8px;
+  --raio-lg: 12px;
+  --sombra: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --sombra-md: 0 4px 12px rgba(15, 23, 42, 0.14);
+}
+
 * {
   margin: 0;
   padding: 0;

@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import Avatar from '../../components/Avatar'
+import Carregando from '../../components/Carregando'
+import EstadoVazio from '../../components/EstadoVazio'
+import MensagemErro from '../../components/MensagemErro'
 import { PERFIL_COLABORADOR, PERFIL_GESTOR, PERFIL_LIDER, getPerfilLabel } from '../../constants/perfis'
 import { useToast } from '../../contexts/ToastContext'
 import { colaboradoresAPI } from '../../services/api'
@@ -114,15 +117,15 @@ function OrganogramaAdmin() {
 
       <div className="organograma-legenda">
         <span className="organograma-legenda-item">
-          <span className="organograma-legenda-cor" style={{ background: '#6366f1' }} />
+          <span className="organograma-legenda-cor" style={{ background: 'var(--perfil-gestor)' }} />
           Gestor
         </span>
         <span className="organograma-legenda-item">
-          <span className="organograma-legenda-cor" style={{ background: '#0d9488' }} />
+          <span className="organograma-legenda-cor" style={{ background: 'var(--perfil-lider)' }} />
           Líder
         </span>
         <span className="organograma-legenda-item">
-          <span className="organograma-legenda-cor" style={{ background: '#94a3b8' }} />
+          <span className="organograma-legenda-cor" style={{ background: 'var(--perfil-colaborador)' }} />
           Colaborador
         </span>
         <span className="organograma-legenda-item" style={{ marginLeft: 'auto' }}>
@@ -130,28 +133,12 @@ function OrganogramaAdmin() {
         </span>
       </div>
 
-      {error && (
-        <div className="error-message" style={{
-          padding: '12px',
-          background: '#ffebee',
-          color: '#c62828',
-          borderRadius: '8px',
-          marginBottom: '20px'
-        }}>
-          {error}
-        </div>
-      )}
+      <MensagemErro mensagem={error} />
 
       {loading ? (
-        <div className="empty-state">
-          <div className="empty-icon">⏳</div>
-          <p className="empty-text">Carregando organograma...</p>
-        </div>
+        <Carregando texto="Carregando organograma..." />
       ) : raizes.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">🗂️</div>
-          <p className="empty-text">Nenhum colaborador cadastrado.</p>
-        </div>
+        <EstadoVazio icone="🗂️" texto="Nenhum colaborador cadastrado." />
       ) : (
         <div className="organograma-scroll">
           <div className="org-tree">

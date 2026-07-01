@@ -130,15 +130,15 @@
 }
 
 .org-node--gestor {
-  border-top-color: #6366f1;
+  border-top-color: var(--perfil-gestor);
 }
 
 .org-node--lider {
-  border-top-color: #0d9488;
+  border-top-color: var(--perfil-lider);
 }
 
 .org-node--colaborador {
-  border-top-color: #94a3b8;
+  border-top-color: var(--perfil-colaborador);
 }
 
 .org-node-nome {
@@ -166,13 +166,13 @@
 }
 
 .org-badge--gestor {
-  background: #6366f1;
+  background: var(--perfil-gestor);
 }
 
 .org-badge--lider {
-  background: #0d9488;
+  background: var(--perfil-lider);
 }
 
 .org-badge--colaborador {
-  background: #94a3b8;
+  background: var(--perfil-colaborador);
 }

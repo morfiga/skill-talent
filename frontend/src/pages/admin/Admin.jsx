@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
+import Carregando from '../../components/Carregando'
 import { useAuth } from '../../hooks/useAuth'
 import AcompanhamentoAdmin from './AcompanhamentoAdmin'
 import './Admin.css'
@@ -41,10 +42,7 @@ function Admin({ onLogout }) {
   if (user === null && colaborador === null) {
     return (
       <div className="page-container">
-        <div className="empty-state">
-          <div className="empty-icon">⏳</div>
-          <p className="empty-text">Carregando...</p>
-        </div>
+        <Carregando />
       </div>
     )
   }

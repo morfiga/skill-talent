@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react'
+import Carregando from '../../components/Carregando'
+import EstadoVazio from '../../components/EstadoVazio'
+import MensagemErro from '../../components/MensagemErro'
 import { useToast } from '../../contexts/ToastContext'
 import { ciclosAPI } from '../../services/api'
 import { handleApiError } from '../../utils/errorHandler'
@@ -155,23 +158,10 @@ function CiclosAdmin() {
       </div>
 
       <div className="colaboradores-lista">
-        {error && (
-          <div className="error-message" style={{
-            padding: '12px',
-            background: '#ffebee',
-            color: '#c62828',
-            borderRadius: '8px',
-            marginBottom: '20px'
-          }}>
-            {error}
-          </div>
-        )}
+        <MensagemErro mensagem={error} />
 
         {loading ? (
-          <div className="empty-state">
-            <div className="empty-icon">⏳</div>
-            <p className="empty-text">Carregando ciclos...</p>
-          </div>
+          <Carregando texto="Carregando ciclos..." />
         ) : (
           <>
             <h3 className="lista-title">
@@ -181,12 +171,10 @@ function CiclosAdmin() {
             </h3>
 
             {ciclosFiltrados.length === 0 && !mostrarFormulario && (
-              <div className="empty-state">
-                <div className="empty-icon">📊</div>
-                <p className="empty-text">
-                  {filtro ? 'Nenhum ciclo encontrado com o filtro aplicado.' : 'Nenhum ciclo cadastrado.'}
-                </p>
-              </div>
+              <EstadoVazio
+                icone="📊"
+                texto={filtro ? 'Nenhum ciclo encontrado com o filtro aplicado.' : 'Nenhum ciclo cadastrado.'}
+              />
             )}
 
             <TabelaCiclos

@@ -1,0 +1,70 @@
+/* Componentes de feedback de estado: carregando, vazio e erro */
+
+.ui-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: var(--texto-suave);
+}
+
+.ui-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--borda);
+  border-top-color: var(--cor-primaria);
+  animation: ui-spin 0.7s linear infinite;
+}
+
+.ui-loading-texto {
+  font-size: 0.95rem;
+}
+
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ui-empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.ui-empty-icone {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.ui-empty-texto {
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+}
+
+.ui-empty-dica {
+  color: var(--texto-fraco);
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+.ui-empty-acao {
+  margin-top: 16px;
+}
+
+.ui-alert-erro {
+  padding: 12px 14px;
+  background: var(--cor-erro-bg);
+  color: var(--cor-erro-texto);
+  border-radius: var(--raio);
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-spinner {
+    animation-duration: 2s;
+  }
+}

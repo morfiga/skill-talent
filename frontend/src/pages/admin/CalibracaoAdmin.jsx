@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import EstadoVazio from '../../components/EstadoVazio'
+import MensagemErro from '../../components/MensagemErro'
 import { PERFIL_GESTOR } from '../../constants/perfis'
 import { useToast } from '../../contexts/ToastContext'
 import { avaliacoesAPI, avaliacoesGestorAPI, ciclosAPI, colaboradoresAPI, eixosAvaliacaoAPI } from '../../services/api'
@@ -200,26 +202,14 @@ function CalibracaoAdmin() {
         </div>
       </div>
 
-      {error && (
-        <div className="error-message" style={{
-          padding: '12px',
-          background: '#ffebee',
-          color: '#c62828',
-          borderRadius: '8px',
-          marginBottom: '20px'
-        }}>
-          {error}
-        </div>
-      )}
+      <MensagemErro mensagem={error} />
 
       {!cicloCalibracao ? (
-        <div className="empty-state">
-          <div className="empty-icon">📋</div>
-          <p className="empty-text">Nenhum ciclo na etapa de calibração encontrado.</p>
-          <p className="empty-text" style={{ fontSize: '0.9rem', color: '#666', marginTop: '8px' }}>
-            Avance um ciclo para a etapa de calibração para visualizar as avaliações.
-          </p>
-        </div>
+        <EstadoVazio
+          icone="📋"
+          texto="Nenhum ciclo na etapa de calibração encontrado."
+          dica="Avance um ciclo para a etapa de calibração para visualizar as avaliações."
+        />
       ) : !colaboradorSelecionado ? (
         <div>
           <div className="admin-filtros">
@@ -238,11 +228,10 @@ function CalibracaoAdmin() {
             </h3>
 
             {gestoresFiltrados.length === 0 ? (
-              <div className="empty-state" style={{ marginBottom: '30px' }}>
-                <p className="empty-text">
-                  {filtro ? 'Nenhum gestor encontrado com o filtro aplicado.' : 'Nenhum gestor encontrado.'}
-                </p>
-              </div>
+              <EstadoVazio
+                icone="👔"
+                texto={filtro ? 'Nenhum gestor encontrado com o filtro aplicado.' : 'Nenhum gestor encontrado.'}
+              />
             ) : (
               <TabelaCalibracaoGestores
                 gestores={gestoresFiltrados}
@@ -256,11 +245,10 @@ function CalibracaoAdmin() {
             </h3>
 
             {colaboradoresSemGestorFiltrados.length === 0 ? (
-              <div className="empty-state">
-                <p className="empty-text">
-                  {filtro ? 'Nenhum colaborador encontrado com o filtro aplicado.' : 'Nenhum colaborador encontrado.'}
-                </p>
-              </div>
+              <EstadoVazio
+                icone="👥"
+                texto={filtro ? 'Nenhum colaborador encontrado com o filtro aplicado.' : 'Nenhum colaborador encontrado.'}
+              />
             ) : (
               <TabelaCalibracaoColaboradores
                 colaboradores={colaboradoresSemGestorFiltrados}
