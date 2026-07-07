@@ -3,9 +3,11 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '../../contexts/ToastContext'
 import { useApi } from '../../hooks/useApi'
 import { useAuth } from '../../hooks/useAuth'
-import { ciclosAPI } from '../../services/api'
+import { ciclosAPI, ciclosAvaliacaoAPI } from '../../services/api'
 import '../CicloAvaliacao.css'
 import '../Page.css'
+import EtapaAvaliarPares from '../ciclo-avaliacao/EtapaAvaliarPares'
+import EtapaAvaliarParIndividual from '../ciclo-avaliacao/EtapaAvaliarParIndividual'
 import EtapaAutoavaliacaoGestor from './EtapaAutoavaliacaoGestor'
 import EtapaAvaliarLideradoIndividual from './EtapaAvaliarLideradoIndividual'
 import EtapaAvaliarLiderados from './EtapaAvaliarLiderados'
@@ -19,9 +21,14 @@ function CicloAvaliacaoGestor({ onLogout }) {
     const { info } = useToast()
     const isAdmin = colaborador?.is_admin || false
     const [cicloAberto, setCicloAberto] = useState(null)
+    const [cicloAtivo, setCicloAtivo] = useState(null)
     const [etapaAtual, setEtapaAtual] = useState(1)
     const [lideradoSendoAvaliado, setLideradoSendoAvaliado] = useState(null)
+    const [parSendoAvaliado, setParSendoAvaliado] = useState(null)
     const { execute, loading, error } = useApi()
+
+    // Gestores só veem a etapa "Avaliar Pares" se foram escolhidos como par
+    const temParesParaAvaliar = (cicloAtivo?.pares_para_avaliar?.length ?? 0) > 0
 
     // Função para verificar se etapa está liberada
     const etapaEstaLiberada = useCallback((etapaNum) => {
@@ -32,7 +39,8 @@ function CicloAvaliacaoGestor({ onLogout }) {
         // Para gestores:
         // Etapa 1: Autoavaliação -> avaliacoes
         // Etapa 2: Avaliar Liderados -> avaliacoes
-        // Etapa 3: Feedback -> feedback
+        // Etapa 3: Avaliar Pares -> avaliacoes (só se houver pares para avaliar)
+        // Etapa 4: Feedback -> feedback
 
         let liberada = false
 
@@ -41,22 +49,30 @@ function CicloAvaliacaoGestor({ onLogout }) {
             liberada = cicloAberto.etapa_atual === 'avaliacoes' ||
                 cicloAberto.etapa_atual === 'feedback'
         } else if (etapaNum === 3) {
+            // Avaliar Pares
+            liberada = temParesParaAvaliar &&
+                (cicloAberto.etapa_atual === 'avaliacoes' ||
+                    cicloAberto.etapa_atual === 'feedback')
+        } else if (etapaNum === 4) {
             // Feedback
             liberada = cicloAberto.etapa_atual === 'feedback'
         }
 
         return liberada
-    }, [cicloAberto])
+    }, [cicloAberto, temParesParaAvaliar])
 
     // Determinar etapa atual baseada na URL
     useEffect(() => {
         if (location.pathname.includes('/2/liderado')) {
             // Rota especial para avaliar liderado individual
             setEtapaAtual(2)
+        } else if (location.pathname.includes('/3/par')) {
+            // Rota especial para avaliar par individual
+            setEtapaAtual(3)
         } else if (etapa) {
             const etapaNum = parseInt(etapa)
-            // Para gestores, máximo é 3 etapas
-            const maxEtapas = 3
+            // Para gestores, máximo é 4 etapas
+            const maxEtapas = 4
             if (etapaNum >= 1 && etapaNum <= maxEtapas) {
                 setEtapaAtual(etapaNum)
             }
@@ -91,6 +107,16 @@ function CicloAvaliacaoGestor({ onLogout }) {
         if (ciclo) {
             setCicloAberto(ciclo)
         }
+
+        // Ciclo ativo do gestor (traz os pares_para_avaliar quando ele foi escolhido como par)
+        const ativo = await execute(
+            () => ciclosAvaliacaoAPI.getAtivo(),
+            'carregar ciclo ativo',
+            '/ciclos-avaliacao/ativo'
+        )
+        if (ativo) {
+            setCicloAtivo(ativo)
+        }
     }
 
     const handleNavegarEtapa = (etapaNum) => {
@@ -108,6 +134,13 @@ function CicloAvaliacaoGestor({ onLogout }) {
         navigate('/ciclo-avaliacao-gestor/2/liderado')
     }
 
+    const handleIniciarAvaliacaoPar = (par) => {
+        setParSendoAvaliado(par)
+        // Salvar par no localStorage para recuperar na rota
+        localStorage.setItem('parSendoAvaliado', JSON.stringify(par))
+        navigate('/ciclo-avaliacao-gestor/3/par')
+    }
+
     // Carregar liderado do localStorage quando necessário
     useEffect(() => {
         if (location.pathname.includes('/2/liderado')) {
@@ -115,6 +148,17 @@ function CicloAvaliacaoGestor({ onLogout }) {
             if (lideradoSalvo) {
                 const liderado = JSON.parse(lideradoSalvo)
                 setLideradoSendoAvaliado(liderado)
+            }
+        }
+    }, [location.pathname])
+
+    // Carregar par do localStorage quando necessário
+    useEffect(() => {
+        if (location.pathname.includes('/3/par')) {
+            const parSalvo = localStorage.getItem('parSendoAvaliado')
+            if (parSalvo) {
+                const par = JSON.parse(parSalvo)
+                setParSendoAvaliado(par)
             }
         }
     }, [location.pathname])
@@ -134,8 +178,15 @@ function CicloAvaliacaoGestor({ onLogout }) {
                 descricao: 'Avalie seus liderados',
                 icone: '👥'
             },
-            {
+            // Só aparece se o gestor foi escolhido como par por algum colaborador
+            ...(temParesParaAvaliar ? [{
                 numero: 3,
+                titulo: 'Avaliar Pares',
+                descricao: 'Avalie seus pares',
+                icone: '⭐'
+            }] : []),
+            {
+                numero: 4,
                 titulo: 'Feedback',
                 descricao: 'Veja sua avaliação',
                 icone: '📊'
@@ -234,6 +285,46 @@ function CicloAvaliacaoGestor({ onLogout }) {
         )
     }
 
+    // Se estiver na rota de avaliar par individual
+    if (location.pathname.includes('/3/par')) {
+        return (
+            <div className="page-container">
+                <header className="page-header">
+                    <div className="header-content">
+                        <button className="back-button" onClick={() => navigate('/dashboard')}>
+                            ← Voltar
+                        </button>
+                        <h1 className="page-title">Ciclo de avaliação - Gestor</h1>
+                        <div className="header-buttons">
+                            {isAdmin && (
+                                <button className="admin-button" onClick={() => navigate('/admin')}>
+                                    Administração
+                                </button>
+                            )}
+                            <button className="logout-button" onClick={onLogout}>
+                                Sair
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div className="ciclo-layout">
+                    {renderMenuLateral()}
+                    <main className="ciclo-main">
+                        <div className="ciclo-content">
+                            <EtapaAvaliarParIndividual
+                                colaboradorId={colaboradorId}
+                                cicloAberto={cicloAberto}
+                                parSendoAvaliado={parSendoAvaliado}
+                                onVoltar={() => navigate('/ciclo-avaliacao-gestor/3')}
+                            />
+                        </div>
+                    </main>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="page-container">
             <header className="page-header">
@@ -292,10 +383,19 @@ function CicloAvaliacaoGestor({ onLogout }) {
                                         />
                                     )}
                                     {etapaAtual === 3 && (
+                                        <EtapaAvaliarPares
+                                            colaboradorId={colaboradorId}
+                                            cicloAberto={cicloAberto}
+                                            cicloAtivo={cicloAtivo}
+                                            onIniciarAvaliacao={handleIniciarAvaliacaoPar}
+                                            onVoltar={() => navigate('/ciclo-avaliacao-gestor/2')}
+                                        />
+                                    )}
+                                    {etapaAtual === 4 && (
                                         <EtapaFeedbackGestor
                                             colaborador={colaborador}
                                             cicloAberto={cicloAberto}
-                                            onVoltar={() => navigate('/ciclo-avaliacao-gestor/2')}
+                                            onVoltar={() => navigate('/ciclo-avaliacao-gestor/3')}
                                         />
                                     )}
                                 </>
