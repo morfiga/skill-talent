@@ -51,14 +51,14 @@ class ParSelecionadoResponse(BaseModel):
 
 
 class CicloAvaliacaoResponse(CicloAvaliacaoBase):
-    id: int
+    id: Optional[int] = None
     ciclo_id: int
     ciclo: Optional[CicloResponse] = None
     colaborador_id: int
     colaborador: Optional[ColaboradorResponse] = None
     pares_selecionados: List[ParSelecionadoResponse] = []
     pares_para_avaliar: List[ColaboradorResponse] = []
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
     class Config:

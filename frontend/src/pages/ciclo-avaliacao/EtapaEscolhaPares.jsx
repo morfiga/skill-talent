@@ -90,7 +90,7 @@ function EtapaEscolhaPares({ colaboradorId, cicloAberto, cicloAtivo, onParesSalv
         const paresIds = paresSelecionados.map(p => p.id)
         let ciclo
 
-        if (cicloAtivo) {
+        if (cicloAtivo?.id) {
           // Ciclo já existe - atualizar os pares selecionados
           ciclo = await ciclosAvaliacaoAPI.update(cicloAtivo.id, {
             pares_ids: paresIds

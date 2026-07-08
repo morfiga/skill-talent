@@ -10,7 +10,7 @@ from app.core.validators import validate_pares_existem
 from app.models.ciclo import EtapaCiclo
 from app.models.ciclo_avaliacao import CicloAvaliacao
 from app.models.colaborador import Colaborador
-from app.repositories import CicloAvaliacaoRepository
+from app.repositories import CicloAvaliacaoRepository, CicloRepository
 from app.schemas.ciclo_avaliacao import (
     CicloAvaliacaoCreate,
     CicloAvaliacaoListResponse,
@@ -28,6 +28,7 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
     def __init__(self, db: Session):
         super().__init__(db)
         self.repository = CicloAvaliacaoRepository(db)
+        self.ciclo_repository = CicloRepository(db)
         self.colaborador_service = ColaboradorService(db)
 
     def _validate_pares_exist(self, pares_ids: List[int]) -> None:
@@ -92,14 +93,20 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
         """Obtém o ciclo de avaliação ativo do usuário logado"""
         ciclo = self.repository.get_ativo_by_colaborador(colaborador_id)
 
-        if not ciclo:
+        if ciclo:
+            ciclo_completo = self.repository.get_completo(ciclo.id)
+            return self._enrich_ciclo_avaliacao_with_pares_para_avaliar(
+                ciclo_completo, colaborador_id
+            )
+
+        # Colaborador sem registro próprio no ciclo aberto (ex.: líderes/gestores, que
+        # não passam pela etapa de escolha de pares) ainda pode ter sido escolhido como
+        # par por outros colaboradores. Retornamos os pares para avaliar mesmo assim.
+        ciclo_aberto = self.ciclo_repository.get_aberto()
+        if not ciclo_aberto:
             raise NotFoundException("Ciclo de avaliação ativo", colaborador_id)
 
-        ciclo_completo = self.repository.get_completo(ciclo.id)
-        ciclo_enriched = self._enrich_ciclo_avaliacao_with_pares_para_avaliar(
-            ciclo_completo, colaborador_id
-        )
-        return ciclo_enriched
+        return self._build_ciclo_avaliacao_sem_registro(ciclo_aberto, colaborador_id)
 
     def get_ciclo_avaliacao(
         self, ciclo_id: int, colaborador_id: int
@@ -250,5 +257,30 @@ class CicloAvaliacaoService(BaseService[CicloAvaliacao]):
                 ParSelecionadoResponse.model_validate(ps)
                 for ps in ciclo_avaliacao.pares_selecionados
             ]
+
+        return CicloAvaliacaoResponse.model_validate(ciclo_dict)
+
+    def _build_ciclo_avaliacao_sem_registro(self, ciclo_aberto, avaliador_id: int):
+        """Monta a resposta do ciclo ativo para um colaborador que não possui registro
+        próprio de ciclo de avaliação, mas foi escolhido como par por outros."""
+        from app.schemas.ciclo import CicloResponse
+        from app.schemas.colaborador import ColaboradorResponse
+
+        pares_para_avaliar = self.repository.get_pares_para_avaliar(
+            avaliador_id=avaliador_id, ciclo_id=ciclo_aberto.id
+        )
+
+        ciclo_dict = {
+            "id": None,
+            "ciclo_id": ciclo_aberto.id,
+            "ciclo": CicloResponse.model_validate(ciclo_aberto),
+            "colaborador_id": avaliador_id,
+            "created_at": None,
+            "updated_at": None,
+            "pares_selecionados": [],
+            "pares_para_avaliar": [
+                ColaboradorResponse.model_validate(par) for par in pares_para_avaliar
+            ],
+        }
 
         return CicloAvaliacaoResponse.model_validate(ciclo_dict)
